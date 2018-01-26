@@ -24,24 +24,37 @@ Here is a sample of how to start the UltraDark blockchain manually:
 
 ```elixir
 %{blockchain: [block]} = UltraDark.initialize
-```
->%{blockchain: [%{difficulty: 5.0,
-  hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-  index: 0, nonce: nil, previous_hash: nil, timestamp: nil,
-  transactions: [%{inputs: [], outputs: "GENESIS BLOCK"}]}]
-  }
 
-```elixir
+#=> %{blockchain: [
+#          %{difficulty: 5.0,
+#               hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
+#               index: 0,
+#               nonce: nil,
+#               previous_hash: nil,
+#               timestamp: nil,
+#               transactions: [
+#                 %{inputs: [],
+#                     outputs: "GENESIS BLOCK"
+#                 }
+#              ]
+#          }
+#     ]}
+
 block |> UltraDark.Blockchain.Block.initialize |> UltraDark.Blockchain.Block.mine
+
+# %{ difficulty: 5.0,
+#       hash: "C75616884DCBFA36E0BC1367C1095D9479D61EA372BEB32E046186960233DE70",
+#       index: 1,
+#       nonce: 0,
+#       previous_hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
+#       timestamp: "2018-01-26 02:31:13.926205Z",
+#       transactions: [
+#         %{inputs: [],
+#             outputs: []
+#          }
+#       ]
+#   }
 ```
->Mining!
-%{ difficulty: 5.0,
-  hash: "C75616884DCBFA36E0BC1367C1095D9479D61EA372BEB32E046186960233DE70",
-  index: 1, nonce: 0,
-  previous_hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-  timestamp: "2018-01-26 02:31:13.926205Z",
-  transactions: [%{inputs: [], outputs: []}]
-}
 
 ## Development
 
