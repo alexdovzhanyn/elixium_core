@@ -24,6 +24,9 @@ defmodule UltraDark.Blockchain.Block do
     }
   end
 
+  @doc """
+    Takes the previous block as an argument
+  """
   def initialize(%{index: index, hash: previous_hash}) do
     %{
       index: index + 1,
