@@ -1,7 +1,8 @@
 defmodule UltraDark.Blockchain do
+  alias UltraDark.Blockchain.Block, as: Block
 
   def initialize do
-    :ok
+    [ Block.initialize ]
   end
 
 end

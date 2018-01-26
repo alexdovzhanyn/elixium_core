@@ -1,7 +1,9 @@
 defmodule UltraDark do
-  require UltraDark.Blockchain
+  alias UltraDark.Blockchain, as: Blockchain
 
   def initialize do
-    UltraDark.Blockchain.initialize
+    %{
+      :blockchain => Blockchain.initialize
+    }
   end
 end
