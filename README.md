@@ -1,3 +1,5 @@
+[![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
+
 # UltraDark
 UltraDark is a peer-to-peer network and blockchain written in Elixir. It aims to be a privacy focused blockchain that supports contracting. We're looking for
 contributors, so pull requests and issues are welcome!
