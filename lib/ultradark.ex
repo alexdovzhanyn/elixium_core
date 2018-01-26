@@ -1,18 +1,7 @@
-defmodule Ultradark do
-  @moduledoc """
-  Documentation for Ultradark.
-  """
+defmodule UltraDark do
+  require UltraDark.Blockchain
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Ultradark.hello
-      :world
-
-  """
-  def hello do
-    :world
+  def initialize do
+    UltraDark.Blockchain.initialize
   end
 end

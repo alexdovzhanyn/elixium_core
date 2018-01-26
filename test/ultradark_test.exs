@@ -1,8 +1,8 @@
-defmodule UltradarkTest do
+defmodule UltraDarkTest do
   use ExUnit.Case
-  doctest Ultradark
+  doctest UltraDark
 
   test "greets the world" do
-    assert Ultradark.hello() == :world
+    assert UltraDark.hello() == :world
   end
 end

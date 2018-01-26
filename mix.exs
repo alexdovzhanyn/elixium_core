@@ -1,4 +1,4 @@
-defmodule Ultradark.Mixfile do
+defmodule UltraDark.Mixfile do
   use Mix.Project
 
   def project do
@@ -7,6 +7,7 @@ defmodule Ultradark.Mixfile do
       version: "0.1.0",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
+      elixirc_paths: ["lib", "lib/blockchain"],
       deps: deps()
     ]
   end
