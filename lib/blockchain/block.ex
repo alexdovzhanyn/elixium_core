@@ -1,6 +1,14 @@
 defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Blockchain.Block, as: Block
-  defstruct index: nil, hash: nil, previous_hash: nil, difficulty: nil, nonce: 0, timestamp: DateTime.utc_now |> DateTime.to_string, transactions: [%{ inputs: [], outputs: [] }]
+  defstruct [
+    index: nil,
+    hash: nil,
+    previous_hash: nil,
+    difficulty: nil,
+    nonce: 0,
+    timestamp: nil,
+    transactions: [%{ inputs: [], outputs: [] }]
+  ]
 
   @doc """
     When the first node on the UltraDark network spins up, there won't be any blocks in the chain.
@@ -14,6 +22,7 @@ defmodule UltraDark.Blockchain.Block do
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
       difficulty: 5.0,
+      timestamp: DateTime.utc_now |> DateTime.to_string,
       transactions: [
         %{
           inputs: [],
@@ -30,7 +39,8 @@ defmodule UltraDark.Blockchain.Block do
     %Block{
       index: index + 1,
       previous_hash: previous_hash,
-      difficulty: 5.0
+      difficulty: 5.0,
+      timestamp: DateTime.utc_now |> DateTime.to_string
     }
   end
 
