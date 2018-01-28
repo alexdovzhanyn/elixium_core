@@ -7,7 +7,7 @@ defmodule UltraDark.Blockchain.Block do
     difficulty: nil,
     nonce: 0,
     timestamp: nil,
-    transactions: [%{ inputs: [], outputs: [] }]
+    transactions: []
   ]
 
   @doc """
