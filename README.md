@@ -8,12 +8,12 @@ our development discussion, join our [Gitter Channel](https://gitter.im/ultradar
 Although UltraDark is still in early development, we have a rough roadmap of features that are intended to be included. The following list describes features that may or may not be
 implemented as right now:
 
-1. **Anonymity**
+### 1. Anonymity
   * The UltraDark Core Wallet automatically performs a key rotation every 720 blocks (roughly 24 hours) _or_ whenever you receive a transaction, meaning that you are not trackable by public key
-2. **Smart Contracts**
+### 2. Smart Contracts
   * Easily create and deploy smart contracts to facilitate intelligent exchanges of funds
   * Deploy decentralized applications with low fees, running on the UltraDark network
-3. **Speed**
+### 3. Speed
   * With node response times of roughly 50 microseconds, transaction speeds are **4000x** the speed of Bitcoin
   * Process roughly 20,000 transactions per second
   * 2 minute average blocktime
