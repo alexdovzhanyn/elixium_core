@@ -30,7 +30,7 @@ defmodule UltraDark.Blockchain.Block do
     %Block{
       index: index + 1,
       previous_hash: previous_hash,
-      difficulty: 1
+      difficulty: 5.0
     }
   end
 
@@ -43,26 +43,27 @@ defmodule UltraDark.Blockchain.Block do
   def mine(block) do
     %{index: index, hash: hash, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce} = block
 
-    IO.puts "Hash: #{hash} -- Nonce: #{nonce}"
+    # I would love to show some sort of hashrate here, but it looks like getting the time with Elixir is incredibly computationally expensive,
+    # to the point where mining performance gets HALVED
+    IO.write "Hash: #{hash} -- Nonce: #{nonce}\r"
 
-    blockheader = Integer.to_string(index) <> previous_hash <> timestamp <> Integer.to_string(nonce)
-    block = Map.merge(block, %{
-      hash: :crypto.hash(:sha256, blockheader) |> Base.encode16,
-      nonce: nonce
-    })
+    block = %{ block | hash: calculate_hash([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
 
-    cond do
-    hash_beat_target?(block) ->
-      IO.puts "Block hash calculated: #{block.hash}, using nonce: #{block.nonce}"
-    true ->
-      mine(Map.merge(block, %{nonce: block.nonce + 1}))
+    if hash_beat_target?(block) do
+      block
+    else
+      mine(%{block | nonce: block.nonce + 1})
     end
+  end
+
+  def calculate_hash(header) do
+    :crypto.hash(:sha256, header) |> Base.encode16
   end
 
   @doc """
     Because the hash is a Base16 string, and not an integer, we must first convert the hash to an integer, and afterwards compare it to the target
   """
-  def hash_beat_target?(%Block{hash: hash, difficulty: difficulty}) do
+  def hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
     { integer_value_of_hash, "" } = Integer.parse(hash, 16)
     integer_value_of_hash < calculate_target(difficulty)
   end

@@ -20,43 +20,7 @@ This code is licensed under the MIT License, which means _anyone_ can use it to 
 ## Setup
 Run `mix deps.get` to fetch any dependencies needed to run UltraDark. After downloading all dependencies, run `mix compile` to compile the Elixir code. Currently,
 UltraDark is only under development and is unavailable to be used as a network or currency. In order to play around with UltraDark and it's methods, run `iex -S mix`. This
-will pop open an iex session with UltraDark loaded.
-
-Here is a sample of how to start the UltraDark blockchain manually:
-
-```elixir
-%{blockchain: [block]} = UltraDark.initialize
-
-#=> %{blockchain: [
-#          %{difficulty: 5.0,
-#               hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-#               index: 0,
-#               nonce: nil,
-#               previous_hash: nil,
-#               timestamp: nil,
-#               transactions: [
-#                 %{inputs: [],
-#                     outputs: "GENESIS BLOCK"
-#                 }
-#              ]
-#          }
-#     ]}
-
-block |> UltraDark.Blockchain.Block.initialize |> UltraDark.Blockchain.Block.mine
-
-# %{ difficulty: 5.0,
-#       hash: "C75616884DCBFA36E0BC1367C1095D9479D61EA372BEB32E046186960233DE70",
-#       index: 1,
-#       nonce: 0,
-#       previous_hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-#       timestamp: "2018-01-26 02:31:13.926205Z",
-#       transactions: [
-#         %{inputs: [],
-#             outputs: []
-#          }
-#       ]
-#   }
-```
+will pop open an iex session with UltraDark loaded. To start mining UltraDark, just write `UltraDark.initialize`!
 
 ## Development
 
