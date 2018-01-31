@@ -55,7 +55,7 @@ defmodule UltraDark.Blockchain.Block do
 
     # I would love to show some sort of hashrate here, but it looks like getting the time with Elixir is incredibly computationally expensive,
     # to the point where mining performance gets HALVED
-    IO.write "Hash: #{hash} -- Nonce: #{nonce}\r"
+    IO.write "Block Index: #{index} -- Hash: #{hash} -- Nonce: #{nonce}\r"
 
     block = %{ block | hash: calculate_hash([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
 

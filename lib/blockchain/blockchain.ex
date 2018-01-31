@@ -6,7 +6,11 @@ defmodule UltraDark.Blockchain do
     Creates a List with a genesis block in it
   """
   def initialize do
-    [ Block.initialize ]
+    if Ledger.is_empty? do
+      [ Block.initialize ]
+    else
+      Ledger.retrieve_chain
+    end
   end
 
   @doc """
