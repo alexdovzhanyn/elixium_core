@@ -2,8 +2,10 @@ defmodule UltraDark do
   alias UltraDark.Blockchain, as: Blockchain
   alias UltraDark.Blockchain.Block, as: Block
   alias UltraDark.Validator, as: Validator
+  alias UltraDark.Ledger, as: Ledger
 
   def initialize do
+    Ledger.initialize
     chain = Blockchain.initialize
 
     main(chain)

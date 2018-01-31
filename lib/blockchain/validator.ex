@@ -38,6 +38,6 @@ defmodule UltraDark.Validator do
     |> calculate_merkle_root(true)
   end
 
-  def calculate_merkle_root(list, called) when length(list) == 1, do: List.first(list)
-  def calculate_merkle_root(list, called), do: calculate_merkle_root(list)
+  def calculate_merkle_root(list, true) when length(list) == 1, do: List.first(list)
+  def calculate_merkle_root(list, true), do: calculate_merkle_root(list)
 end

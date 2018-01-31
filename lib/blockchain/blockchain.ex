@@ -1,5 +1,6 @@
 defmodule UltraDark.Blockchain do
   alias UltraDark.Blockchain.Block, as: Block
+  alias UltraDark.Ledger, as: Ledger
 
   @doc """
     Creates a List with a genesis block in it
@@ -12,7 +13,11 @@ defmodule UltraDark.Blockchain do
     Adds the latest block to the beginning of the blockchain
   """
   def add_block(chain, block) do
-    [block | chain]
+    chain = [block | chain]
+
+    Ledger.append_block(block)
+
+    chain
   end
 
 end

@@ -3,7 +3,7 @@ defmodule UltraDark.Wallet do
 
   def new_transaction(address, amount, fee)  do
     tx = %Transaction{
-      designations: [%{amount: 12, addr: 'wfwfwefwef'}, %{amount: 10, addr: 'wefwef'}],
+      designations: [%{amount: amount, addr: address}],
       inputs: [%{amount: 2, txoid: 'wewfwefwe:1'}, %{amount: 2, txoid: 'wewfwefwe:1'}],
       timestamp: DateTime.utc_now |> DateTime.to_string
     }
