@@ -31,6 +31,7 @@ defmodule UltraDark.Ledger do
     within_db_transaction(fn ref ->
       Exleveldb.map(ref, fn {hash, block} -> :erlang.binary_to_term(block) end)
     end)
+    |> Enum.sort_by(&(&1.index),&>=/2)
   end
 
   def is_empty? do
