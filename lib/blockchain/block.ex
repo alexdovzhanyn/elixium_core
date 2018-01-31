@@ -60,7 +60,7 @@ defmodule UltraDark.Blockchain.Block do
     block = %{ block | hash: calculate_hash([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
 
     if hash_beat_target?(block) do
-      block
+      %{ block | previous_hash: hash }
     else
       mine(%{block | nonce: block.nonce + 1})
     end
