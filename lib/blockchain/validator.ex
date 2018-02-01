@@ -1,5 +1,6 @@
 defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block, as: Block
+  alias UltraDark.Transaction, as: Transaction
 
   @doc """
     A block is considered valid if the index is greater than the index of the previous block,
@@ -10,8 +11,8 @@ defmodule UltraDark.Validator do
     last_block = List.first(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
-         :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
-         :ok <- valid_hash(block)
+       :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
+       :ok <- valid_hash(block)
     do
       :ok
     else
@@ -40,4 +41,27 @@ defmodule UltraDark.Validator do
 
   def calculate_merkle_root(list, true) when length(list) == 1, do: List.first(list)
   def calculate_merkle_root(list, true), do: calculate_merkle_root(list)
+
+  def valid_coinbase?(%{transactions: transactions, index: block_index}) do
+    coinbase = List.first(transactions)
+
+    with :ok <- is_coinbase?(coinbase),
+       :ok <- appropriate_coinbase_output?(transactions, block_index)
+    do
+      :ok
+    else
+      err -> :error
+    end
+  end
+
+  defp is_coinbase?(tx) do
+    if tx.txtype == "COINBASE", do: :ok
+  end
+
+  defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
+    total_block_fees = transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
+    appropriate_block_reward = Block.calculate_block_reward(block_index)
+
+    if total_block_fees + appropriate_block_reward == List.first(coinbase.outputs).amount, do: :ok
+  end
 end

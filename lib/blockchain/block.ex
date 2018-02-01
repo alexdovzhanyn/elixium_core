@@ -86,4 +86,8 @@ defmodule UltraDark.Blockchain.Block do
   def calculate_target(difficulty) do
     (:math.pow(16, 64 - difficulty) |> round) - 1
   end
+
+  def calculate_block_reward(block_index) do
+    100 / :math.pow(2, Integer.floor_div(block_index, 200000))
+  end
 end
