@@ -18,12 +18,12 @@ defmodule UltraDark.Validator do
     do
       :ok
     else
-      :invalid_index -> IO.puts "Block has invalid index"
-      :invalid_prev_hash -> IO.puts "Block previous_hash is not same as the previous block's hash"
-      :invalid_hash -> IO.puts "Block header digest does not match hash"
-      :no_coinbase -> IO.puts "Block does not cointain a coinbase"
-      :invalid_coinbase_type -> IO.puts "Block coinbase txtype is not COINBASE"
-      :invalid_coinbase_output -> IO.puts "Block coinbase  output amount is invalid"
+      :invalid_index -> (fn -> IO.puts "Block has invalid index"; :error end).()
+      :invalid_prev_hash -> (fn -> IO.puts "Block previous_hash is not same as the previous block's hash"; :error end).()
+      :invalid_hash -> (fn -> IO.puts "Block header digest does not match hash"; :error end).()
+      :no_coinbase -> (fn -> IO.puts "Block does not cointain a coinbase"; :error end).()
+      :invalid_coinbase_type -> (fn -> IO.puts "Block coinbase txtype is not COINBASE"; :error end).()
+      :invalid_coinbase_output -> (fn -> IO.puts "Block coinbase  output amount is invalid"; :error end).()
     end
   end
 
