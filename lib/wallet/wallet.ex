@@ -1,5 +1,6 @@
 defmodule UltraDark.Wallet do
   alias UltraDark.Transaction, as: Transaction
+  alias UltraDark.Utilities, as: Utilities
 
   def new_transaction(address, amount, fee)  do
     tx = %Transaction{
@@ -11,7 +12,7 @@ defmodule UltraDark.Wallet do
     # The transaction ID is just the merkle root of all the inputs, concatenated with the timestamp
     id =
     Transaction.calculate_hash(tx) <> tx.timestamp
-    |> (fn (h) -> :crypto.hash(:sha256, h) |> Base.encode16 end).()
+    |> (&(Utilities.sha_base16 &1)).()
 
     tx = %{tx | id: id}
 

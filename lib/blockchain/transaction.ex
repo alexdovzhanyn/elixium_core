@@ -1,6 +1,7 @@
 defmodule UltraDark.Transaction do
   alias UltraDark.Transaction, as: Transaction
   alias UltraDark.Validator, as: Validator
+  alias UltraDark.Utilities, as: Utilities
   defstruct [
     id: nil,
     inputs: [],
@@ -31,8 +32,8 @@ defmodule UltraDark.Transaction do
   """
   def calculate_hash(transaction) do
     transaction.inputs
-    |> Enum.map(fn input -> input[:txoid] end)
-    |> Validator.calculate_merkle_root
+    |> Enum.map(&(&1[:txoid]))
+    |> Utilities.calculate_merkle_root
   end
 
 
@@ -43,7 +44,7 @@ defmodule UltraDark.Transaction do
   """
   def generate_coinbase(miner_address, amount) do
     timestamp = DateTime.utc_now |> DateTime.to_string
-    txid = :crypto.hash(:sha256, miner_address <> timestamp) |> Base.encode16
+    txid = Utilities.sha_base16(miner_address <> timestamp)
 
     %Transaction{
       id: txid,
