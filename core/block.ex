@@ -40,7 +40,7 @@ defmodule UltraDark.Blockchain.Block do
     %Block{
       index: index + 1,
       previous_hash: previous_hash,
-      difficulty: 1.0,
+      difficulty: 6.0,
       timestamp: DateTime.utc_now |> DateTime.to_string
     }
   end

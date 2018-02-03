@@ -20,7 +20,8 @@ defmodule UltraDark.Ledger do
   """
   def retrieve_block(hash) do
     within_db_transaction fn ref ->
-      Exleveldb.get(ref, :erlang.binary_to_term(String.to_atom(hash)))
+      {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))
+      :erlang.binary_to_term(block)
     end
   end
 
@@ -28,10 +29,10 @@ defmodule UltraDark.Ledger do
     Return the whole chain from leveldb
   """
   def retrieve_chain do
-    within_db_transaction(fn ref ->
+    within_db_transaction fn ref ->
       Exleveldb.map(ref, fn {_, block} -> :erlang.binary_to_term(block) end)
-    end)
-    |> Enum.sort_by(&(&1.index),&>=/2)
+      |> Enum.sort_by(&(&1.index),&>=/2)
+    end  
   end
 
   def is_empty? do

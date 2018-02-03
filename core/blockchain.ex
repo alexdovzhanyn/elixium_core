@@ -7,7 +7,7 @@ defmodule UltraDark.Blockchain do
   """
   def initialize do
     if Ledger.is_empty? do
-      [ Block.initialize ]
+      add_block([], Block.initialize)
     else
       Ledger.retrieve_chain
     end

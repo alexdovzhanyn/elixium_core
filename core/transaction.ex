@@ -41,7 +41,7 @@ defmodule UltraDark.Transaction do
     This coinbase has a single output, designated to the address of the miner, and the output amount is
     the block reward plus any transaction fees from within the transaction
   """
-  def generate_coinbase(miner_address, amount) do
+  def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now |> DateTime.to_string
     txid = Utilities.sha_base16(miner_address <> timestamp)
 
