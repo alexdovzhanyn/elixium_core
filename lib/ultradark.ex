@@ -21,7 +21,9 @@ defmodule UltraDark do
 
     case Validator.is_block_valid?(block, chain) do
       :ok -> main(Blockchain.add_block(chain, block))
-      :error -> main(chain)
+      {:error, err} ->
+        IO.puts err
+        main(chain)
     end
   end
 end

@@ -1,6 +1,6 @@
 defmodule UltraDark.Blockchain.Block do
-  alias UltraDark.Blockchain.Block, as: Block
-  alias UltraDark.Utilities, as: Utilities
+  alias UltraDark.Blockchain.Block
+  alias UltraDark.Utilities
   defstruct [
     index: nil,
     hash: nil,
