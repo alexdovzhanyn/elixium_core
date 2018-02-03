@@ -2,7 +2,8 @@
 
 # UltraDark
 UltraDark is a peer-to-peer network and blockchain written in Elixir, aiming to excel where many other blockchains fall short. UltraDark provides privacy and anonymity, smart contracting, and high transaction speeds. We're looking for contributors, so pull requests and issues are welcome! If you have any trouble getting set up or just want to join in with
-our development discussion, join our [Gitter Channel](https://gitter.im/ultradark/Lobby).
+our development discussion, join our [Gitter Channel](https://gitter.im/ultradark/Lobby). Check out the [UltraDark Development Wiki](https://github.com/UltraDark/UltraDark/wiki) if
+you need a reference/starting point for the project.
 
 ## Features
 Although UltraDark is still in early development, we have a rough roadmap of features that are intended to be included. The following list describes features that may or may not be
