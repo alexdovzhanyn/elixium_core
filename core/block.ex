@@ -1,5 +1,6 @@
 defmodule UltraDark.Blockchain.Block do
-  alias UltraDark.Blockchain.Block, as: Block
+  alias UltraDark.Blockchain.Block
+  alias UltraDark.Utilities
   defstruct [
     index: nil,
     hash: nil,
@@ -57,7 +58,7 @@ defmodule UltraDark.Blockchain.Block do
     # to the point where mining performance gets HALVED
     IO.write "Block Index: #{index} -- Hash: #{hash} -- Nonce: #{nonce}\r"
 
-    block = %{ block | hash: calculate_hash([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
+    block = %{ block | hash: Utilities.sha_base16([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
 
     if hash_beat_target?(block) do
       block
@@ -66,15 +67,11 @@ defmodule UltraDark.Blockchain.Block do
     end
   end
 
-  def calculate_hash(header) do
-    :crypto.hash(:sha256, header) |> Base.encode16
-  end
-
   @doc """
     Because the hash is a Base16 string, and not an integer, we must first convert the hash to an integer, and afterwards compare it to the target
   """
   def hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
-    { integer_value_of_hash, "" } = Integer.parse(hash, 16)
+    { integer_value_of_hash, _ } = Integer.parse(hash, 16)
     integer_value_of_hash < calculate_target(difficulty)
   end
 
@@ -85,5 +82,9 @@ defmodule UltraDark.Blockchain.Block do
   """
   def calculate_target(difficulty) do
     (:math.pow(16, 64 - difficulty) |> round) - 1
+  end
+
+  def calculate_block_reward(block_index) do
+    100 / :math.pow(2, Integer.floor_div(block_index, 200000))
   end
 end

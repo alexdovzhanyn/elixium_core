@@ -10,34 +10,33 @@ defmodule UltraDark.Ledger do
     Add a block to leveldb, indexing it by its hash (this is the most likely piece of data to be unique)
   """
   def append_block(block) do
-    within_db_transaction(fn ref ->
+    within_db_transaction fn ref ->
       Exleveldb.put(ref, String.to_atom(block.hash), :erlang.term_to_binary(block))
-    end)
+    end
   end
 
   @doc """
     Given a block hash, return its contents
   """
   def retrieve_block(hash) do
-    within_db_transaction(fn ref ->
-      Exleveldb.get(ref, :erlang.binary_to_term(String.to_atom(hash)))
-    end)
+    within_db_transaction fn ref ->
+      {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))
+      :erlang.binary_to_term(block)
+    end
   end
 
   @doc """
     Return the whole chain from leveldb
   """
   def retrieve_chain do
-    within_db_transaction(fn ref ->
-      Exleveldb.map(ref, fn {hash, block} -> :erlang.binary_to_term(block) end)
-    end)
-    |> Enum.sort_by(&(&1.index),&>=/2)
+    within_db_transaction fn ref ->
+      Exleveldb.map(ref, fn {_, block} -> :erlang.binary_to_term(block) end)
+      |> Enum.sort_by(&(&1.index),&>=/2)
+    end  
   end
 
   def is_empty? do
-    within_db_transaction(fn ref ->
-      Exleveldb.is_empty?(ref)
-    end)
+    within_db_transaction fn ref -> Exleveldb.is_empty? ref end
   end
 
   @doc """

@@ -1,13 +1,13 @@
 defmodule UltraDark.Blockchain do
-  alias UltraDark.Blockchain.Block, as: Block
-  alias UltraDark.Ledger, as: Ledger
+  alias UltraDark.Blockchain.Block
+  alias UltraDark.Ledger
 
   @doc """
     Creates a List with a genesis block in it
   """
   def initialize do
     if Ledger.is_empty? do
-      [ Block.initialize ]
+      add_block([], Block.initialize)
     else
       Ledger.retrieve_chain
     end
