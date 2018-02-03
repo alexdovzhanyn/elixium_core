@@ -1,6 +1,6 @@
-defmodule UltraDark.Wallet do
-  alias UltraDark.Transaction, as: Transaction
-  alias UltraDark.Utilities, as: Utilities
+defmodule Wallet do
+  alias UltraDark.Transaction
+  alias UltraDark.Utilities
 
   def new_transaction(address, amount, desired_fee)  do
     inputs = find_suitable_inputs(amount + desired_fee)

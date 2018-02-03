@@ -1,6 +1,5 @@
 defmodule UltraDark.Transaction do
   alias UltraDark.Transaction
-  alias UltraDark.Validator
   alias UltraDark.Utilities
   defstruct [
     id: nil,

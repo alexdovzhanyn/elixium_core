@@ -1,8 +1,8 @@
-defmodule UltraDark do
-  alias UltraDark.Blockchain, as: Blockchain
-  alias UltraDark.Blockchain.Block, as: Block
-  alias UltraDark.Validator, as: Validator
-  alias UltraDark.Ledger, as: Ledger
+defmodule Miner do
+  alias UltraDark.Blockchain
+  alias UltraDark.Blockchain.Block
+  alias UltraDark.Validator
+  alias UltraDark.Ledger
 
   def initialize do
     Ledger.initialize
