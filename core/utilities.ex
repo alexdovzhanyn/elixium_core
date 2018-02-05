@@ -7,6 +7,7 @@ defmodule UltraDark.Utilities do
     The merkle root lets us represent a large dataset using only one string. We can be confident that
     if any of the data changes, the merkle root will be different, which invalidates the dataset
   """
+  @spec calculate_merkle_root(list) :: String.t
   def calculate_merkle_root(list) do
     list
     |> Enum.chunk_every(2)

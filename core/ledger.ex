@@ -1,4 +1,5 @@
 defmodule UltraDark.Ledger do
+  alias UltraDark.Blockchain.Block
   require Exleveldb
 
   def initialize do
@@ -18,6 +19,7 @@ defmodule UltraDark.Ledger do
   @doc """
     Given a block hash, return its contents
   """
+  @spec retrieve_block(String.t) :: %Block{}
   def retrieve_block(hash) do
     within_db_transaction fn ref ->
       {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))
@@ -32,7 +34,7 @@ defmodule UltraDark.Ledger do
     within_db_transaction fn ref ->
       Exleveldb.map(ref, fn {_, block} -> :erlang.binary_to_term(block) end)
       |> Enum.sort_by(&(&1.index),&>=/2)
-    end  
+    end
   end
 
   def is_empty? do
