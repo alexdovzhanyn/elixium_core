@@ -8,7 +8,7 @@ defmodule UltraDark.Validator do
     the previous_hash is equal to the hash of the previous block, and the hash of the block,
     when recalculated, is the same as what the listed block hash is
   """
-  @spec is_block_valid?(%Block, list) :: :ok | {:error, String.t}
+  @spec is_block_valid?(%Block{}, list) :: :ok | {:error, String.t}
   def is_block_valid?(block, chain) do
     last_block = List.first(chain)
 

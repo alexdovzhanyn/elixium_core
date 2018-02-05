@@ -33,6 +33,14 @@ defmodule UltraDark.UtxoStore do
     |> Store.transact(@store_dir)
   end
 
+  @spec retrieve_all_utxos :: list
+  def retrieve_all_utxos do
+    fn ref ->
+      Exleveldb.map(ref, fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
+    end
+    |> Store.transact(@store_dir)
+  end
+
   @spec update_with_transactions(list) :: nil
   def update_with_transactions(transactions) do
     fn ref ->
