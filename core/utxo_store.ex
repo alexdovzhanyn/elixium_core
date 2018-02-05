@@ -41,7 +41,7 @@ defmodule UltraDark.UtxoStore do
     |> Store.transact(@store_dir)
   end
 
-  @spec update_with_transactions(list) :: nil
+  @spec update_with_transactions(list) :: :ok | {:error, any}
   def update_with_transactions(transactions) do
     fn ref ->
       remove =
