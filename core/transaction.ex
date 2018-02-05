@@ -11,6 +11,7 @@ defmodule UltraDark.Transaction do
     txtype: "P2PK" # Most transactions will be pay-to-public-key
   ]
 
+  @spec calculate_outputs(%Transaction{}) :: %{outputs: list, fee: float}
   def calculate_outputs(transaction) do
     %{designations: designations} = transaction
 

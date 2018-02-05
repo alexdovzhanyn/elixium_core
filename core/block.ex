@@ -36,6 +36,7 @@ defmodule UltraDark.Blockchain.Block do
   @doc """
     Takes the previous block as an argument (This is the way we create every block except the genesis block)
   """
+  @spec initialize(%Block{}) :: %Block{}
   def initialize(%{index: index, hash: previous_hash}) do
     %Block{
       index: index + 1,

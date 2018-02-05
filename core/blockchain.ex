@@ -1,6 +1,7 @@
 defmodule UltraDark.Blockchain do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Ledger
+  alias UltraDark.UtxoStore
 
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
@@ -21,6 +22,7 @@ defmodule UltraDark.Blockchain do
     chain = [block | chain]
 
     Ledger.append_block(block)
+    UtxoStore.update_with_transactions(block.transactions)
 
     chain
   end

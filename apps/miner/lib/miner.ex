@@ -4,9 +4,11 @@ defmodule Miner do
   alias UltraDark.Validator
   alias UltraDark.Ledger
   alias UltraDark.Transaction
+  alias UltraDark.UtxoStore
 
   def initialize do
     Ledger.initialize
+    UtxoStore.initialize
     chain = Blockchain.initialize
 
     main(chain)
