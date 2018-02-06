@@ -1,4 +1,5 @@
 [![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
+[![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/ultradark/Lobby)
 
 # UltraDark
 UltraDark is a peer-to-peer network and blockchain written in Elixir, aiming to excel where many other blockchains fall short. UltraDark provides privacy and anonymity, smart contracting, and high transaction speeds. We're looking for contributors, so pull requests and issues are welcome! If you have any trouble getting set up or just want to join in with

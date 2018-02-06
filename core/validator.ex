@@ -1,6 +1,5 @@
 defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block
-  alias UltraDark.Transaction
   alias UltraDark.Utilities
 
   @doc """
@@ -8,6 +7,7 @@ defmodule UltraDark.Validator do
     the previous_hash is equal to the hash of the previous block, and the hash of the block,
     when recalculated, is the same as what the listed block hash is
   """
+  @spec is_block_valid?(%Block{}, list) :: :ok | {:error, String.t}
   def is_block_valid?(block, chain) do
     last_block = List.first(chain)
 
@@ -32,6 +32,7 @@ defmodule UltraDark.Validator do
     if Utilities.sha_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce)]) == hash, do: :ok, else: {:error, "Block has invalid hash"}
   end
 
+  @spec valid_coinbase?(%Block{}) :: :ok | {:error, String.t}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = List.first(transactions)
 
@@ -50,9 +51,6 @@ defmodule UltraDark.Validator do
   end
 
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
-    total_block_fees = transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
-    appropriate_block_reward = Block.calculate_block_reward(block_index)
-
-    if total_block_fees + appropriate_block_reward == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
+    if Block.total_block_fees(transactions) + Block.calculate_block_reward(block_index) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
   end
 end

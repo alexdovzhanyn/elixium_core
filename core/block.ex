@@ -1,6 +1,7 @@
 defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
+  alias UltraDark.Transaction
   defstruct [
     index: nil,
     hash: nil,
@@ -27,20 +28,21 @@ defmodule UltraDark.Blockchain.Block do
       transactions: [
         %{
           inputs: [],
-          outputs: "GENESIS BLOCK"
+          outputs: [%{txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0", data: "GENESIS BLOCK"}]
         }
       ]
     }
   end
 
   @doc """
-    Takes the previous block as an argument
+    Takes the previous block as an argument (This is the way we create every block except the genesis block)
   """
+  @spec initialize(%Block{}) :: %Block{}
   def initialize(%{index: index, hash: previous_hash}) do
     %Block{
       index: index + 1,
       previous_hash: previous_hash,
-      difficulty: 6.0,
+      difficulty: 4.0,
       timestamp: DateTime.utc_now |> DateTime.to_string
     }
   end
@@ -51,6 +53,7 @@ defmodule UltraDark.Blockchain.Block do
     to see whether the number represented by the hash is lower than the mining difficulty. If the value of the hash is lower, it is a valid block,
     and we can broadcast the block to other nodes on the network.
   """
+  @spec mine(%Block{}) :: %Block{}
   def mine(block) do
     %{index: index, hash: hash, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce} = block
 
@@ -70,6 +73,7 @@ defmodule UltraDark.Blockchain.Block do
   @doc """
     Because the hash is a Base16 string, and not an integer, we must first convert the hash to an integer, and afterwards compare it to the target
   """
+  @spec hash_beat_target?(%Block{}) :: boolean
   def hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
     { integer_value_of_hash, _ } = Integer.parse(hash, 16)
     integer_value_of_hash < calculate_target(difficulty)
@@ -80,11 +84,17 @@ defmodule UltraDark.Blockchain.Block do
     the goal is to find a hash that is lower in numerical value than the target. The maximum target (when the difficulty is 0) is
     115792089237316195423570985008687907853269984665640564039457584007913129639935, which means any hash is valid.
   """
+  @spec calculate_target(float) :: number
   def calculate_target(difficulty) do
     (:math.pow(16, 64 - difficulty) |> round) - 1
   end
 
+  @spec calculate_block_reward(number) :: number
   def calculate_block_reward(block_index) do
     100 / :math.pow(2, Integer.floor_div(block_index, 200000))
+  end
+
+  def total_block_fees(transactions) do
+    transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
   end
 end
