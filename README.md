@@ -12,6 +12,7 @@ implemented as right now:
 
 ### 1. Anonymity
   * The UltraDark Core Wallet automatically performs a key rotation every 720 blocks (roughly 24 hours) _or_ whenever you receive a transaction, meaning that you are not trackable by public key
+  * Using zkSNARKS technology, UltraDark is able to ensure that no you can not be identified based on transaction patterns, addresses, or contents.
 ### 2. Smart Contracts
   * Easily create and deploy smart contracts to facilitate intelligent exchanges of funds
   * Deploy decentralized applications with low fees, running on the UltraDark network
