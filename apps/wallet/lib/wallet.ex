@@ -31,10 +31,19 @@ defmodule Wallet do
     Map.merge(tx, Transaction.calculate_outputs(tx))
   end
 
+  @doc """
+    Return all UTXOs that are owned by the given public key
+  """
+  @spec find_owned_utxos(String.t) :: list
   def find_owned_utxos(public_key) do
     UtxoStore.find_by_address(public_key)
   end
 
+  @doc """
+    Take all the inputs that we have the necessary credentials to utilize, and then return
+    the most possible utxos whos amounts add up to the amount passed in
+  """
+  @spec find_suitable_inputs(number) :: list
   def find_suitable_inputs(amount) do
     find_owned_utxos("Some Miner address here")
     |> Enum.sort(&(&1.amount < &2.amount))
