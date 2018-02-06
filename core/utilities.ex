@@ -2,7 +2,6 @@ defmodule UltraDark.Utilities do
 
   def sha_base16(input), do: :crypto.hash(:sha256, input) |> Base.encode16
 
-
   @doc """
     The merkle root lets us represent a large dataset using only one string. We can be confident that
     if any of the data changes, the merkle root will be different, which invalidates the dataset

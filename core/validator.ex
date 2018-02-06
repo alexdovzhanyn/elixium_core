@@ -33,6 +33,7 @@ defmodule UltraDark.Validator do
     if Utilities.sha_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce)]) == hash, do: :ok, else: {:error, "Block has invalid hash"}
   end
 
+  @spec valid_coinbase?(%Block{}) :: :ok | {:error, String.t}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = List.first(transactions)
 

@@ -11,11 +11,13 @@ defmodule UltraDark.UtxoStore do
   @doc """
     Add a utxo to leveldb, indexing it by its txoid
   """
+  @spec add_utxo(map) :: :ok | {:error, any}
   def add_utxo(utxo) do
     fn ref -> Exleveldb.put(ref, String.to_atom(utxo.txoid), :erlang.term_to_binary(utxo)) end
     |> Store.transact(@store_dir)
   end
 
+  @spec remove_utxo(String.t) :: :ok | {:error, any}
   def remove_utxo(txoid) do
     fn ref -> Exleveldb.delete(ref, String.to_atom(txoid)) end
     |> Store.transact(@store_dir)
