@@ -37,6 +37,6 @@ defmodule Miner do
   end
 
   defp calculate_coinbase_amount(block) do
-    Block.calculate_block_reward(block.index)
+    Block.calculate_block_reward(block.index) + Block.total_block_fees(block.transactions)
   end
 end

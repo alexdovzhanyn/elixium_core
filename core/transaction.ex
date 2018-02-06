@@ -53,7 +53,7 @@ defmodule UltraDark.Transaction do
       txtype: "COINBASE",
       timestamp: timestamp,
       outputs: [
-        %{txoid: "#{txid}:0",addr: miner_address, amount: amount}
+        %{txoid: "#{txid}:0", addr: miner_address, amount: amount}
       ]
     }
   end

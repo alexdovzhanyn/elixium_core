@@ -52,9 +52,6 @@ defmodule UltraDark.Validator do
   end
 
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
-    total_block_fees = transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
-    appropriate_block_reward = Block.calculate_block_reward(block_index)
-
-    if total_block_fees + appropriate_block_reward == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
+    if Block.total_block_fees(transactions) + Block.calculate_block_reward(block_index) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
   end
 end

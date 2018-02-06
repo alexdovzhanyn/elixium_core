@@ -92,4 +92,8 @@ defmodule UltraDark.Blockchain.Block do
   def calculate_block_reward(block_index) do
     100 / :math.pow(2, Integer.floor_div(block_index, 200000))
   end
+
+  def total_block_fees(transactions) do
+    transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
+  end
 end
