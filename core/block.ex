@@ -27,7 +27,7 @@ defmodule UltraDark.Blockchain.Block do
       transactions: [
         %{
           inputs: [],
-          outputs: "GENESIS BLOCK"
+          outputs: [%{data: "GENESIS BLOCK"}]
         }
       ]
     }
@@ -41,7 +41,7 @@ defmodule UltraDark.Blockchain.Block do
     %Block{
       index: index + 1,
       previous_hash: previous_hash,
-      difficulty: 4.0,
+      difficulty: 2.0,
       timestamp: DateTime.utc_now |> DateTime.to_string
     }
   end

@@ -1,6 +1,7 @@
 defmodule Wallet do
   alias UltraDark.Transaction
   alias UltraDark.Utilities
+  alias UltraDark.UtxoStore
 
   def new_transaction(address, amount, desired_fee)  do
     inputs = find_suitable_inputs(amount + desired_fee)
@@ -31,11 +32,21 @@ defmodule Wallet do
   end
 
   def find_owned_utxos(public_key) do
-
+    UtxoStore.find_by_address(public_key)
   end
 
   def find_suitable_inputs(amount) do
-    [%{amount: 1000, addr: "weffff", txoid: "randomhash:0"}]
+    find_owned_utxos("Some Miner address here")
+    |> Enum.sort(&(&1.amount < &2.amount))
+    |> take_necessary_utxos(amount)
+  end
+
+  defp take_necessary_utxos(utxos, amount), do: take_necessary_utxos(utxos, [], amount)
+  defp take_necessary_utxos(utxos, chosen, amount) when amount <= 0, do: chosen
+  defp take_necessary_utxos(utxos, chosen, amount) do
+    [utxo | remaining] = utxos
+
+    take_necessary_utxos(remaining, [utxo | chosen], amount - utxo.amount)
   end
 
 end
