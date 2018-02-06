@@ -16,15 +16,15 @@ defmodule Miner do
 
   def main(chain) do
     block =
-    List.first(chain)
-    |> Block.initialize
+      List.first(chain)
+      |> Block.initialize
 
     block =
-    block
-    |> calculate_coinbase_amount
-    |> Transaction.generate_coinbase("Some Miner address here")
-    |> (fn coinbase -> Map.merge(block, %{transactions: [coinbase | block.transactions]}) end).()
-    |> Block.mine
+      block
+      |> calculate_coinbase_amount
+      |> Transaction.generate_coinbase("Some Miner address here")
+      |> (fn coinbase -> Map.merge(block, %{transactions: [coinbase | block.transactions]}) end).()
+      |> Block.mine
 
     IO.puts "\e[34mBlock hash at index #{block.index} calculated:\e[0m #{block.hash}, using nonce: #{block.nonce}"
 

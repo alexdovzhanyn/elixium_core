@@ -18,9 +18,9 @@ defmodule UltraDark.Transaction do
     fee = calculate_fee(transaction)
 
     outputs =
-    designations
-    |> Enum.with_index
-    |> Enum.map(fn ({designation, idx}) -> %{txoid: "#{transaction.id}:#{idx}", addr: designation[:addr], amount: designation[:amount]} end)
+      designations
+      |> Enum.with_index
+      |> Enum.map(fn ({designation, idx}) -> %{txoid: "#{transaction.id}:#{idx}", addr: designation[:addr], amount: designation[:amount]} end)
 
     %{outputs: outputs, fee: fee}
   end

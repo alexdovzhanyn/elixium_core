@@ -45,14 +45,14 @@ defmodule UltraDark.UtxoStore do
   def update_with_transactions(transactions) do
     fn ref ->
       remove =
-      transactions
-      |> Enum.flat_map(&(&1.inputs))
-      |> Enum.map(&({:delete, &1.txoid}))
+        transactions
+        |> Enum.flat_map(&(&1.inputs))
+        |> Enum.map(&({:delete, &1.txoid}))
 
       add =
-      transactions
-      |> Enum.flat_map(&(&1.outputs))
-      |> Enum.map(&({:put, &1.txoid, :erlang.term_to_binary(&1)}))
+        transactions
+        |> Enum.flat_map(&(&1.outputs))
+        |> Enum.map(&({:put, &1.txoid, :erlang.term_to_binary(&1)}))
 
       Exleveldb.write(ref, Enum.concat(remove, add))
     end
