@@ -19,12 +19,11 @@ defmodule Miner do
     List.first(chain)
     |> Block.initialize
 
-    coinbase =
-    calculate_coinbase_amount(block)
-    |> Transaction.generate_coinbase("Some Miner address here")
-
     block =
-    Map.merge(block, %{transactions: [coinbase | block.transactions]})
+    block
+    |> calculate_coinbase_amount
+    |> Transaction.generate_coinbase("Some Miner address here")
+    |> (fn coinbase -> Map.merge(block, %{transactions: [coinbase | block.transactions]}) end).()
     |> Block.mine
 
     IO.puts "\e[34mBlock hash at index #{block.index} calculated:\e[0m #{block.hash}, using nonce: #{block.nonce}"
