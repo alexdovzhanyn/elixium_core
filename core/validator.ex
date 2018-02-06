@@ -1,6 +1,5 @@
 defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block
-  alias UltraDark.Transaction
   alias UltraDark.Utilities
 
   @doc """

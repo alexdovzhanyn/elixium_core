@@ -51,7 +51,7 @@ defmodule Wallet do
   end
 
   defp take_necessary_utxos(utxos, amount), do: take_necessary_utxos(utxos, [], amount)
-  defp take_necessary_utxos(utxos, chosen, amount) when amount <= 0, do: chosen
+  defp take_necessary_utxos(_utxos, chosen, amount) when amount <= 0, do: chosen
   defp take_necessary_utxos(utxos, chosen, amount) do
     [utxo | remaining] = utxos
 
