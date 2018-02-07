@@ -37,4 +37,4 @@ This code is licensed under the MIT License, which means _anyone_ can use it to 
 ## Setup
 Run `mix deps.get` to fetch any dependencies needed to run UltraDark. After downloading all dependencies, run `mix compile` to compile the Elixir code. Currently,
 UltraDark is only under development and is unavailable to be used as a network or currency. In order to play around with UltraDark and it's methods, run `iex -S mix`. This
-will pop open an iex session with UltraDark loaded. To start mining UltraDark, just write `UltraDark.initialize`!
+will pop open an iex session with UltraDark loaded. To start mining UltraDark, just run `mix miner` !
