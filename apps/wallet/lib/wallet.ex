@@ -3,7 +3,6 @@ defmodule Wallet do
   alias UltraDark.Utilities
   alias UltraDark.UtxoStore
   alias UltraDark.KeyPair
-  require IEx
 
   def new_transaction(address, amount, desired_fee)  do
     inputs = find_suitable_inputs(amount + desired_fee)
