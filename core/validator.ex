@@ -15,7 +15,8 @@ defmodule UltraDark.Validator do
     with :ok <- valid_index(block.index, last_block.index),
        :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
        :ok <- valid_hash(block),
-       :ok <- valid_coinbase?(block)
+       :ok <- valid_coinbase?(block),
+       :ok <- valid_transactions?(block)
     do
       :ok
     else
@@ -47,7 +48,7 @@ defmodule UltraDark.Validator do
     end
   end
 
-  @spec valid_transaction?(Transaction) :: :ok | {:error, String.t}
+  @spec valid_transaction?(Transaction) :: boolean
   def valid_transaction?(%{inputs: inputs}) do
     inputs
     |> Enum.map(fn input ->
@@ -57,6 +58,11 @@ defmodule UltraDark.Validator do
       KeyPair.verify_signature(pub, sig, input.txoid)
     end)
     |> Enum.all?(&(&1 == true))
+  end
+
+  @spec valid_transactions?(Block) :: :ok | {:error, String.t}
+  def valid_transactions?(%{transactions: transactions}) do
+    if Enum.all?(transactions, &(valid_transaction? &1)), do: :ok, else: {:error, "Transaction contains invalid input(s)"}
   end
 
   defp is_coinbase?(tx) do
