@@ -2,6 +2,7 @@ defmodule Wallet do
   alias UltraDark.Transaction
   alias UltraDark.Utilities
   alias UltraDark.UtxoStore
+  alias UltraDark.KeyPair
 
   def new_transaction(address, amount, desired_fee)  do
     inputs = find_suitable_inputs(amount + desired_fee)
@@ -34,9 +35,22 @@ defmodule Wallet do
   @doc """
     Return all UTXOs that are owned by the given public key
   """
-  @spec find_owned_utxos(String.t) :: list
-  def find_owned_utxos(public_key) do
+  @spec find_pubkey_utxos(String.t) :: list
+  def find_pubkey_utxos(public_key) do
     UtxoStore.find_by_address(public_key)
+  end
+
+  def find_wallet_utxos do
+    {:ok, keyfiles} = File.ls(".keys")
+
+    keyfiles
+    |> Enum.flat_map(fn file ->
+      {pub, priv} = KeyPair.get_from_file(".keys/#{file}")
+      hex = pub |> Base.encode16
+
+      find_pubkey_utxos(hex)
+      |> Enum.map( &(Map.merge(&1, %{signature: KeyPair.sign(priv, &1.txoid) |> Base.encode16})) )
+    end)
   end
 
   @doc """
@@ -45,7 +59,7 @@ defmodule Wallet do
   """
   @spec find_suitable_inputs(number) :: list
   def find_suitable_inputs(amount) do
-    find_owned_utxos("Some Miner address here")
+    find_wallet_utxos()
     |> Enum.sort(&(&1.amount < &2.amount))
     |> take_necessary_utxos(amount)
   end

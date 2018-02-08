@@ -7,4 +7,5 @@ erl_crash.dump
 *.ez
 /.chaindata
 /.utxo
+/.keys
 mix.lock
