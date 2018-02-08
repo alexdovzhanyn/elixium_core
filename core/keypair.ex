@@ -7,6 +7,7 @@ defmodule UltraDark.KeyPair do
   @doc """
     Creates a new keypair and stores the private key in a keyfile. Returns the public and private key
   """
+  @spec create_keypair :: {binary, binary}
   def create_keypair do
     keypair = :crypto.generate_key(@algorithm, @curve)
     keypair |> create_keyfile
