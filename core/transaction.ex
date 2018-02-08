@@ -11,7 +11,7 @@ defmodule UltraDark.Transaction do
     txtype: "P2PK" # Most transactions will be pay-to-public-key
   ]
 
-  @spec calculate_outputs(%Transaction{}) :: %{outputs: list, fee: float}
+  @spec calculate_outputs(Transaction) :: %{outputs: list, fee: float}
   def calculate_outputs(transaction) do
     %{designations: designations} = transaction
 
@@ -30,7 +30,7 @@ defmodule UltraDark.Transaction do
     from other transactions. This is called the UTXO model. In order to efficiently represent the UTXOs within the transaction,
     we can calculate the merkle root of the inputs of the transaction.
   """
-  @spec calculate_hash(%Transaction{}) :: String.t
+  @spec calculate_hash(Transaction) :: String.t
   def calculate_hash(transaction) do
     transaction.inputs
     |> Enum.map(&(&1[:txoid]))
@@ -43,7 +43,7 @@ defmodule UltraDark.Transaction do
     This coinbase has a single output, designated to the address of the miner, and the output amount is
     the block reward plus any transaction fees from within the transaction
   """
-  @spec generate_coinbase(float, String.t) :: %Transaction{}
+  @spec generate_coinbase(float, String.t) :: Transaction
   def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now |> DateTime.to_string
     txid = Utilities.sha_base16(miner_address <> timestamp)
@@ -63,7 +63,7 @@ defmodule UltraDark.Transaction do
     Enum.reduce(inputs, 0, fn (%{amount: amount}, acc) -> amount + acc end)
   end
 
-  @spec calculate_fee(%Transaction{}) :: float
+  @spec calculate_fee(Transaction) :: float
   def calculate_fee(transaction) do
     sum_inputs(transaction.inputs) - sum_inputs(transaction.designations)
   end

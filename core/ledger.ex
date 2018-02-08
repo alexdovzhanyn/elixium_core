@@ -20,7 +20,7 @@ defmodule UltraDark.Ledger do
   @doc """
     Given a block hash, return its contents
   """
-  @spec retrieve_block(String.t) :: %Block{}
+  @spec retrieve_block(String.t) :: Block
   def retrieve_block(hash) do
     fn ref ->
       {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))

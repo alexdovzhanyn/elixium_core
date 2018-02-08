@@ -37,7 +37,7 @@ defmodule UltraDark.Blockchain.Block do
   @doc """
     Takes the previous block as an argument (This is the way we create every block except the genesis block)
   """
-  @spec initialize(%Block{}) :: %Block{}
+  @spec initialize(Block) :: Block
   def initialize(%{index: index, hash: previous_hash}) do
     %Block{
       index: index + 1,
@@ -53,7 +53,7 @@ defmodule UltraDark.Blockchain.Block do
     to see whether the number represented by the hash is lower than the mining difficulty. If the value of the hash is lower, it is a valid block,
     and we can broadcast the block to other nodes on the network.
   """
-  @spec mine(%Block{}) :: %Block{}
+  @spec mine(Block) :: Block
   def mine(block) do
     %{index: index, hash: hash, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce} = block
 
@@ -73,7 +73,7 @@ defmodule UltraDark.Blockchain.Block do
   @doc """
     Because the hash is a Base16 string, and not an integer, we must first convert the hash to an integer, and afterwards compare it to the target
   """
-  @spec hash_beat_target?(%Block{}) :: boolean
+  @spec hash_beat_target?(Block) :: boolean
   def hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
     { integer_value_of_hash, _ } = Integer.parse(hash, 16)
     integer_value_of_hash < calculate_target(difficulty)

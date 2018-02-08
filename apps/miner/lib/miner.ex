@@ -6,15 +6,15 @@ defmodule Miner do
   alias UltraDark.Transaction
   alias UltraDark.UtxoStore
 
-  def initialize do
+  def initialize(address) do
     Ledger.initialize
     UtxoStore.initialize
     chain = Blockchain.initialize
 
-    main(chain)
+    main(chain, address)
   end
 
-  def main(chain) do
+  def main(chain, address) do
     block =
       List.first(chain)
       |> Block.initialize
@@ -22,17 +22,17 @@ defmodule Miner do
     block =
       block
       |> calculate_coinbase_amount
-      |> Transaction.generate_coinbase("Some Miner address here")
+      |> Transaction.generate_coinbase(address)
       |> (fn coinbase -> Map.merge(block, %{transactions: [coinbase | block.transactions]}) end).()
       |> Block.mine
 
     IO.puts "\e[34mBlock hash at index #{block.index} calculated:\e[0m #{block.hash}, using nonce: #{block.nonce}"
 
     case Validator.is_block_valid?(block, chain) do
-      :ok -> main(Blockchain.add_block(chain, block))
+      :ok -> main(Blockchain.add_block(chain, block), address)
       {:error, err} ->
         IO.puts err
-        main(chain)
+        main(chain, address)
     end
   end
 

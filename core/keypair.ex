@@ -34,14 +34,9 @@ defmodule UltraDark.KeyPair do
     File.write(".keys/#{pub_hex}.key", private)
   end
 
-  @spec sign(String.t, String.t) :: {:ok, binary} | {:error, any}
-  def sign(public_key, data) do
-    keypath = ".keys/#{public_key}.key"
-    if (!File.exists? keypath), do: {:error, :key_doesnt_exist}
-
-    {_, private_key} = get_from_file(keypath)
-
-    {:ok, :crypto.sign(@sigtype, @hashtype, data, [private_key, @curve])}
+  @spec sign(binary, String.t) :: String.t
+  def sign(private_key, data) do
+    :crypto.sign(@sigtype, @hashtype, data, [private_key, @curve])
   end
 
   @spec verify_signature(binary, binary, String.t) :: boolean

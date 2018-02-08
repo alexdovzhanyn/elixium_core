@@ -17,7 +17,7 @@ defmodule UltraDark.Blockchain do
   @doc """
     Adds the latest block to the beginning of the blockchain
   """
-  @spec add_block(list, %Block{}) :: list
+  @spec add_block(list, Block) :: list
   def add_block(chain, block) do
     chain = [block | chain]
 

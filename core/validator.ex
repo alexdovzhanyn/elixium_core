@@ -1,13 +1,14 @@
 defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
+  alias UltraDark.KeyPair
 
   @doc """
     A block is considered valid if the index is greater than the index of the previous block,
     the previous_hash is equal to the hash of the previous block, and the hash of the block,
     when recalculated, is the same as what the listed block hash is
   """
-  @spec is_block_valid?(%Block{}, list) :: :ok | {:error, String.t}
+  @spec is_block_valid?(Block, list) :: :ok | {:error, String.t}
   def is_block_valid?(block, chain) do
     last_block = List.first(chain)
 
@@ -32,7 +33,7 @@ defmodule UltraDark.Validator do
     if Utilities.sha_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce)]) == hash, do: :ok, else: {:error, "Block has invalid hash"}
   end
 
-  @spec valid_coinbase?(%Block{}) :: :ok | {:error, String.t}
+  @spec valid_coinbase?(Block) :: :ok | {:error, String.t}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = List.first(transactions)
 
@@ -44,6 +45,18 @@ defmodule UltraDark.Validator do
     else
       err -> err
     end
+  end
+
+  @spec valid_transaction?(Transaction) :: :ok | {:error, String.t}
+  def valid_transaction?(%{inputs: inputs}) do
+    inputs
+    |> Enum.map(fn input ->
+      {:ok, pub} = input.addr |> Base.decode16
+      {:ok, sig} = input.signature |> Base.decode16
+
+      KeyPair.verify_signature(pub, sig, input.txoid)
+    end)
+    |> Enum.all?(&(&1 == true))
   end
 
   defp is_coinbase?(tx) do
