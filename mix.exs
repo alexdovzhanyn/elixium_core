@@ -13,7 +13,7 @@ defmodule UltraDark.Mixfile do
   defp deps do
     [
       {:exleveldb, "~> 0.12.2"},
-      {:execjs, "~> 1.1"}
+      {:execjs, github: "devinus/execjs"}
     ]
   end
 end
