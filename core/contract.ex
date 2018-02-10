@@ -29,7 +29,7 @@ defmodule UltraDark.Contract do
       Ledger.retrieve_block(block_hash).transactions
       |> Enum.find(&(&1.id == transaction_id))
 
-    pid = spawn fn -> call(method, transaction.data, opts) end
+    call(method, transaction.data, opts)
   end
 
   @doc """
