@@ -6,6 +6,7 @@ defmodule UltraDark.Transaction do
     inputs: [],
     outputs: [],
     fee: 0,
+    data: nil,
     designations: [],
     timestamp: nil,
     txtype: "P2PK" # Most transactions will be pay-to-public-key

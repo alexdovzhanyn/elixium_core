@@ -27,8 +27,9 @@ defmodule UltraDark.Blockchain.Block do
       timestamp: DateTime.utc_now |> DateTime.to_string,
       transactions: [
         %{
+          data: "GENESIS BLOCK",
           inputs: [],
-          outputs: [%{txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0", data: "GENESIS BLOCK", addr: nil, amount: nil}]
+          outputs: [%{txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0", addr: nil, amount: nil}]
         }
       ]
     }

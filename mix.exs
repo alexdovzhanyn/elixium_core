@@ -12,7 +12,8 @@ defmodule UltraDark.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:exleveldb, "~> 0.12.2"}
+      {:exleveldb, "~> 0.12.2"},
+      { :execjs, github: "devinus/execjs" }
     ]
   end
 end
