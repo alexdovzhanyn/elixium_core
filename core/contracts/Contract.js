@@ -1,15 +1,12 @@
 'use strict'
 
-class Contract {
+let UltraDark = {}
+
+UltraDark.Contract = class  {
   constructor() {
-    console.log('constructor')
   }
 
   main() {
 
   }
-}
-
-module.exports = {
-  Contract
 }

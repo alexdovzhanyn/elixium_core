@@ -8,9 +8,18 @@ defmodule UltraDark.Contract do
   @doc """
     Call a method defined in the javascript source
   """
-  def call(method, binary, opts \\ []) do
+  def call_method(method, binary, opts \\ []) do
     :erlang.binary_to_term(binary)
     |> Execjs.call(method, opts)
+  end
+
+  @doc """
+    Takes a binary javascript file, and adds a given script to the end of the file, then runs it
+    E.G. run_in_context("return new MyContract().main()", bin)
+  """
+  def run_in_context(script, binary) do
+    context = :erlang.binary_to_term(binary)
+    Execjs.exec context.(script)
   end
 
   @doc """
@@ -29,7 +38,7 @@ defmodule UltraDark.Contract do
       Ledger.retrieve_block(block_hash).transactions
       |> Enum.find(&(&1.id == transaction_id))
 
-    call(method, transaction.data, opts)
+    call_method(method, transaction.data, opts)
   end
 
   @doc """
@@ -37,9 +46,10 @@ defmodule UltraDark.Contract do
   """
   def compile(path) do
     {:ok, script} = File.read(path)
+    {:ok, ultradarkjs} = File.read("core/contracts/Contract.js")
 
     script_bin =
-      Execjs.compile(script)
+      Execjs.compile(ultradarkjs <> script)
       |> :erlang.term_to_binary
 
     binary_path(path)
