@@ -8,8 +8,11 @@ defmodule UltraDark.Contract do
   @doc """
     Call a method defined in the javascript source
   """
+  @spec call_method(String.t, binary, List) :: any
   def call_method(method, binary, opts \\ []) do
     :erlang.binary_to_term(binary)
+    |> prepare_executable
+    |> Execjs.compile
     |> Execjs.call(method, opts)
   end
 
@@ -17,14 +20,20 @@ defmodule UltraDark.Contract do
     Takes a binary javascript file, and adds a given script to the end of the file, then runs it
     E.G. run_in_context("return new MyContract().main()", bin)
   """
+  @spec run_in_context(String.t, binary) :: any
   def run_in_context(script, binary) do
-    context = :erlang.binary_to_term(binary)
+    context =
+      binary
+      |> :erlang.binary_to_term
+      |> prepare_executable
+      |> Execjs.compile
     Execjs.exec context.(script)
   end
 
   @doc """
     Given a contract address, call a method within that contract
   """
+  @spec run_contract(String.t, String.t, List) :: any
   def run_contract(contract_address, method, opts \\ []) do
     [block_hash, transaction_id] =
       contract_address
@@ -46,17 +55,32 @@ defmodule UltraDark.Contract do
   """
   def compile(path) do
     {:ok, script} = File.read(path)
-    {:ok, ultradarkjs} = File.read("core/contracts/Contract.js")
-
-    script_bin =
-      Execjs.compile(ultradarkjs <> script)
-      |> :erlang.term_to_binary
 
     binary_path(path)
-    |> File.write(script_bin)
+    |> File.write(:erlang.term_to_binary(script))
   end
 
-  def binary_path(path) do
+  @doc """
+    Combine the source file with the contents of our contract js file, which specifies
+    the structure for contracts
+  """
+  @spec prepare_executable(String.t) :: String.t
+  def prepare_executable(source) do
+    {:ok, ultradarkjs} = File.read("core/contracts/Contract.js")
+    ultradarkjs <> source
+  end
+
+  @doc """
+    AST lets us analyze the structure of the contract, this is used to determine
+    the computational intensity needed to run the contract
+  """
+  @spec generate_ast_from_source(String.t) :: Map
+  def generate_ast_from_source(source) do
+    Execjs.eval("var e = require('esprima'); e.parse(`#{source}`)")
+    |> ESTree.Tools.ESTreeJSONTransformer.convert
+  end
+
+  defp binary_path(path) do
     String.replace(path, ".js", ".bin")
   end
 end

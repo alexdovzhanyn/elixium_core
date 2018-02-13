@@ -1,0 +1,23 @@
+{
+  "name": "ultradark",
+  "version": "1.0.0",
+  "description": "[![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]() [![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/ultradark/Lobby)",
+  "main": "singlized.js",
+  "dependencies": {
+    "esprima": "^4.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UltraDark/UltraDark.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UltraDark/UltraDark/issues"
+  },
+  "homepage": "https://github.com/UltraDark/UltraDark#readme"
+}

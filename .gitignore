@@ -8,4 +8,6 @@ erl_crash.dump
 /.chaindata
 /.utxo
 /.keys
+node_modules/*
+package-lock.json
 mix.lock
