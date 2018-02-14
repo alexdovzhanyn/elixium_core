@@ -20,6 +20,8 @@ defmodule Miner do
       List.first(chain)
       |> Block.initialize
 
+	IO.write "mining block #{block.index}...\r"
+	
 	before = :os.system_time
 	
     block =
