@@ -5,6 +5,7 @@ defmodule Miner do
   alias UltraDark.Ledger
   alias UltraDark.Transaction
   alias UltraDark.UtxoStore
+  alias UltraDark.Utilities
 
   def initialize(address) do
     Ledger.initialize
@@ -23,7 +24,7 @@ defmodule Miner do
       block
       |> calculate_coinbase_amount
       |> Transaction.generate_coinbase(address)
-      |> (fn coinbase -> Map.merge(block, %{transactions: [coinbase | block.transactions]}) end).()
+      |> merge_block(block)
       |> Block.mine
 
     IO.puts "\e[34mBlock hash at index #{block.index} calculated:\e[0m #{block.hash}, using nonce: #{block.nonce}"
@@ -38,5 +39,12 @@ defmodule Miner do
 
   defp calculate_coinbase_amount(block) do
     Block.calculate_block_reward(block.index) + Block.total_block_fees(block.transactions)
+  end
+
+  defp merge_block(coinbase, block) do
+  	new_transactions = [coinbase | block.transactions]
+  	txoids = Enum.map(new_transactions, &(&1.id))
+
+  	Map.merge(block, %{transactions: new_transactions, merkle_root: Utilities.calculate_merkle_root(txoids)})
   end
 end

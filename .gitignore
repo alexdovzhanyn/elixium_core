@@ -9,3 +9,5 @@ erl_crash.dump
 /.utxo
 /.keys
 mix.lock
+.\#*
+\#*\#
