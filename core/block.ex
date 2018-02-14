@@ -61,7 +61,7 @@ defmodule UltraDark.Blockchain.Block do
     # to the point where mining performance gets HALVED
     IO.write "Block Index: #{index} -- Hash: #{hash} -- Nonce: #{nonce}\r"
 
-    block = %{ block | hash: Utilities.sha_base16([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
+    block = %{ block | hash: Utilities.calculate_merkle_root([Integer.to_string(index), previous_hash,  timestamp, Integer.to_string(nonce)]) }
 
     if hash_beat_target?(block) do
       block
