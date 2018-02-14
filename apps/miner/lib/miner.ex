@@ -42,10 +42,9 @@ defmodule Miner do
   end
 
   defp merge_block(coinbase, block) do
-	new_transactions = [coinbase | block.transactions]
-	txoids = Enum.map(new_transactions, &(&1.id))
+  	new_transactions = [coinbase | block.transactions]
+  	txoids = Enum.map(new_transactions, &(&1.id))
 
-	Map.merge(block, %{transactions: new_transactions,
-					   merkle_root: Utilities.calculate_merkle_root(txoids)})
+  	Map.merge(block, %{transactions: new_transactions, merkle_root: Utilities.calculate_merkle_root(txoids)})
   end
 end

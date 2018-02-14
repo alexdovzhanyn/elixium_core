@@ -9,7 +9,7 @@ defmodule UltraDark.Blockchain.Block do
     difficulty: nil,
     nonce: 0,
     timestamp: nil,
-	merkle_root: nil,
+	  merkle_root: nil,
     transactions: []
   ]
 
