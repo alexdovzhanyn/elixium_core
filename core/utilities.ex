@@ -1,12 +1,12 @@
 defmodule UltraDark.Utilities do
- # def sha_base16(input), do: :crypto.hash(:sha256, input) |> Base.encode16
- def sha_base16(input) do
-  :crypto.hash(:sha256, input) |> Base.encode16
- end
- def sha3_hashing(input) do
-   converted_input=Enum.join(input)
-   :sha3.hexhash(256,converted_input)
- end
+ 
+  def sha_base16(input), do: :crypto.hash(:sha256, input) |> Base.encode16
+
+  # Concatintes the list items together to a string and hashes the block header with  keccak sha3 algorithm
+  def sha3_hashing(input) do
+    converted_input=Enum.join(input)
+    :sha3.hexhash(256,converted_input)
+  end
 
 
   @doc """
