@@ -56,11 +56,7 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec mine(Block) :: Block
   def mine(block) do
-    %{index: index, hash: hash, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, merkle_root: merkle_root} = block
-
-    # I would love to show some sort of hashrate here, but it looks like getting the time with Elixir is incredibly computationally expensive,
-    # to the point where mining performance gets HALVED
-    IO.write "Block Index: #{index} -- Hash: #{hash} -- Nonce: #{nonce}\r"
+    %{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, merkle_root: merkle_root} = block
 
     block = %{ block | hash: Utilities.sha_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) }
 
