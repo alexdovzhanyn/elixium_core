@@ -13,7 +13,7 @@ defmodule UltraDark.Mixfile do
   defp deps do
     [
       {:exleveldb, "~> 0.12.2"},
-      {:sha3, "~> 2.0"}
+      {:keccakf1600, "~> 2.0.0"}
     ]
   end
 end
