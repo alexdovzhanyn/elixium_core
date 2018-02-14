@@ -20,6 +20,8 @@ defmodule Miner do
       List.first(chain)
       |> Block.initialize
 
+	before = :os.system_time
+	
     block =
       block
       |> calculate_coinbase_amount
@@ -27,7 +29,11 @@ defmodule Miner do
       |> merge_block(block)
       |> Block.mine
 
-    IO.puts "\e[34mBlock hash at index #{block.index} calculated:\e[0m #{block.hash}, using nonce: #{block.nonce}"
+	blue = "\e[34m"
+	clear = "\e[0m"
+	elapsed = (:os.system_time - before) / 1000000000
+
+    IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
 
     case Validator.is_block_valid?(block, chain) do
       :ok -> main(Blockchain.add_block(chain, block), address)
