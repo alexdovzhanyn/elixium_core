@@ -12,7 +12,8 @@ defmodule UltraDark.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:exleveldb, "~> 0.12.2"}
+      {:exleveldb, "~> 0.12.2"},
+      {:sha3, "~> 2.0"}
     ]
   end
 end
