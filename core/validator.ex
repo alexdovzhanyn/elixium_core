@@ -30,8 +30,13 @@ defmodule UltraDark.Validator do
   defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
   defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash != last_block_hash, do: {:error, "Blocks prev_hash is not equal to the last block's hash"}
 
-  defp valid_hash(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash}) do
-    if Utilities.sha3_hashing([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce)]) == hash, do: :ok, else: {:error, "Block has invalid hash"}
+
+  defp valid_hash(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash, merkle_root: merkle_root}) do
+    if Utilities.sha3_hash([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) == hash do
+	    :ok
+	  else
+	    {:error, "Block has invalid hash"}
+	  end
   end
 
   @spec valid_coinbase?(Block) :: :ok | {:error, String.t}
