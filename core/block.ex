@@ -58,7 +58,9 @@ defmodule UltraDark.Blockchain.Block do
   def mine(block) do
     %{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, merkle_root: merkle_root} = block
 
-    block = %{ block | hash: Utilities.sha_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) }
+
+    block = %{ block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) }
+
 
     if hash_beat_target?(block) do
       block
