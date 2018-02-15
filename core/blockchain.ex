@@ -26,7 +26,8 @@ defmodule UltraDark.Blockchain do
 
     Ledger.append_block(block)
     UtxoStore.update_with_transactions(block.transactions)
-	rebalance_difficulty? chain
+	
+	if rem(length(chain), @diff_rebalance_offset) == 0, do: rebalance_difficulty chain
 
     chain
   end
@@ -45,12 +46,7 @@ defmodule UltraDark.Blockchain do
 	blue = "\e[34m"
 	clear = "\e[0m"
 
-	IO.puts "#{blue}difficulty of block#{clear} #{length chain} #{blue}set to#{clear} #{diff} #{blue}from#{clear} #{prev}"
-  end
-
-  # rebalances the difficulty, but only if it's needed
-  def rebalance_difficulty?(chain) do
-	if rem(length(chain), @diff_rebalance_offset) == 0, do: rebalance_difficulty(chain)
+	IO.puts "#{blue}difficulty of block#{clear} #{block.index} #{blue}set to#{clear} #{diff} #{blue}from#{clear} #{prev}"
   end
 
   # converts a iso8601 timestamp to a unix timestamp
