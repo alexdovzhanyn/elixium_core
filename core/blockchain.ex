@@ -35,7 +35,7 @@ defmodule UltraDark.Blockchain do
   def rebalance_difficulty(chain) do
 	last = List.first(chain)
 	beginning = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
-	avg_spb = (unix_timestamp(last.timestamp) - unix_timestamp(beginning.timestamp)) / @diff_rebalance_offset
+	avg_spb = (DateTime.to_unix(last.timestamp) - DateTime.to_unix(beginning.timestamp)) / @diff_rebalance_offset
 	speed_ratio = @target_blocktime / avg_spb
 	prev = last.difficulty
 
@@ -47,15 +47,5 @@ defmodule UltraDark.Blockchain do
 	clear = "\e[0m"
 
 	IO.puts "#{blue}difficulty of block#{clear} #{block.index} #{blue}set to#{clear} #{diff} #{blue}from#{clear} #{prev}"
-  end
-
-  # converts a iso8601 timestamp to a unix timestamp
-  defp unix_timestamp(time) do
-	case DateTime.from_iso8601(time) do
-	  {:ok, time, _} -> DateTime.to_unix(time)
-	  {:error, _} ->
-		IO.puts "error"
-		-1
-	end
   end
 end
