@@ -94,18 +94,19 @@ defmodule UltraDark.Contract do
     end
   end
 
+  @base [:^, :==, :!=, :===, :!==, :<=, :<, :>, :>=, :instanceof, :|, :&, :"<<", :">>", :">>>", :in]
+  @low [:+, :-]
+  @medium [:*, :/, :%]
+  @medium_high [:++, :--]
+
   @spec compute_binary_or_update_expression_gamma(ESTree.BinaryExpression | ESTree.UpdateExpression) :: number | {:error, String.t}
   defp compute_binary_or_update_expression_gamma(%{operator: operator}) do
     case operator do
-      :+ -> 3
-      :- -> 3
-      :* -> 5
-      :/ -> 5
-      :% -> 5
-      :^ -> 2
-      :++ -> 6
-      :-- -> 6
-      op -> {:error, "No compute_binary_expression_gamma defined for operator: #{op}"}
+      op when op in @base -> 2
+      op when op in @low -> 3
+      op when op in @medium -> 5
+      op when op in @medium_high -> 6
+      op -> {:error, "No compute_binary_or_update_expression_gamma defined for operator: #{op}"}
     end
   end
 end
