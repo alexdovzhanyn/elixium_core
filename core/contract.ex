@@ -80,7 +80,32 @@ defmodule UltraDark.Contract do
     |> ESTree.Tools.ESTreeJSONTransformer.convert
   end
 
+  @spec binary_path(String.t) :: String.t
   defp binary_path(path) do
     String.replace(path, ".js", ".bin")
+  end
+
+  @spec calculate_gamma_for_expression(ESTree.ExpressionStatement) :: number
+  def calculate_gamma_for_expression(%ESTree.ExpressionStatement{expression: expression}) do
+    case expression do
+      %ESTree.BinaryExpression{} -> compute_binary_or_update_expression_gamma(expression)
+      %ESTree.UpdateExpression{} -> compute_binary_or_update_expression_gamma(expression)
+      _ -> expression
+    end
+  end
+
+  @spec compute_binary_or_update_expression_gamma(ESTree.BinaryExpression | ESTree.UpdateExpression) :: number | {:error, String.t}
+  defp compute_binary_or_update_expression_gamma(%{operator: operator}) do
+    case operator do
+      :+ -> 3
+      :- -> 3
+      :* -> 5
+      :/ -> 5
+      :% -> 5
+      :^ -> 2
+      :++ -> 6
+      :-- -> 6
+      op -> {:error, "No compute_binary_expression_gamma defined for operator: #{op}"}
+    end
   end
 end
