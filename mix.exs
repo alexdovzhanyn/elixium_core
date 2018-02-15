@@ -13,6 +13,7 @@ defmodule UltraDark.Mixfile do
   defp deps do
     [
       {:exleveldb, "~> 0.12.2"},
+      {:keccakf1600, "~> 2.0.0"},
       {:execjs, github: "UltraDark/execjs"},
       {:estree, "~>2.6.1"}
     ]
