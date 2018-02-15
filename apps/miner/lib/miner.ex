@@ -20,6 +20,8 @@ defmodule Miner do
       List.first(chain)
       |> Block.initialize
 
+	difficulty = block.difficulty
+
 	IO.write "mining block #{block.index}...\r"
 	
 	before = :os.system_time
@@ -37,7 +39,7 @@ defmodule Miner do
 
     IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
 
-    case Validator.is_block_valid?(block, chain) do
+    case Validator.is_block_valid?(block, chain, difficulty) do
       :ok -> main(Blockchain.add_block(chain, block), address)
       {:error, err} ->
         IO.puts err

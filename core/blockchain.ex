@@ -31,14 +31,15 @@ defmodule UltraDark.Blockchain do
   end
 
   def rebalance_difficulty(chain) do
+	first = List.first(chain)
 	beginning = max(length(chain) - @diff_rebalance_offset + 1, 0)
-	avg_spb = (List.first(chain).timestamp - chain[beginning].timestamp) / @diff_rebalance_offset
+	avg_spb = (first.timestamp - chain[beginning].timestamp) / @diff_rebalance_offset
 	speed_ratio = @target_blocktime / avg_spb
 	prev = List.first(chain).difficulty
 
 	# difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
 	diff = :math.log2(speed_ratio) / 4
-	List.first(chain).difficulty = diff
+	chain = List.update_at(chain, 0, &(%{&1 | difficulty: diff}))
 
 	blue = "\e[34m"
 	clear = "\e[0m"
