@@ -4,7 +4,7 @@ defmodule UltraDark.Blockchain do
   alias UltraDark.UtxoStore
 
   @target_blocktime 120
-  @diff_rebalance_offset 10080
+  @diff_rebalance_offset 5
 
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
@@ -26,16 +26,17 @@ defmodule UltraDark.Blockchain do
 
     Ledger.append_block(block)
     UtxoStore.update_with_transactions(block.transactions)
+	rebalance_difficulty? chain
 
     chain
   end
 
   def rebalance_difficulty(chain) do
-	first = List.first(chain)
-	beginning = max(length(chain) - @diff_rebalance_offset + 1, 0)
-	avg_spb = (first.timestamp - chain[beginning].timestamp) / @diff_rebalance_offset
+	last = List.first(chain)
+	beginning = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
+	avg_spb = (unix_timestamp(last.timestamp) - unix_timestamp(beginning.timestamp)) / @diff_rebalance_offset
 	speed_ratio = @target_blocktime / avg_spb
-	prev = List.first(chain).difficulty
+	prev = last.difficulty
 
 	# difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
 	diff = :math.log2(speed_ratio) / 4
@@ -50,5 +51,15 @@ defmodule UltraDark.Blockchain do
   # rebalances the difficulty, but only if it's needed
   def rebalance_difficulty?(chain) do
 	if rem(length(chain), @diff_rebalance_offset) == 0, do: rebalance_difficulty(chain)
+  end
+
+  # converts a iso8601 timestamp to a unix timestamp
+  defp unix_timestamp(time) do
+	case DateTime.from_iso8601(time) do
+	  {:ok, time, _} -> DateTime.to_unix(time)
+	  {:error, _} ->
+		IO.puts "error"
+		-1
+	end
   end
 end

@@ -16,8 +16,6 @@ defmodule Miner do
   end
 
   def main(chain, address) do
-	Blockchain.rebalance_difficulty? chain
-
     block =
       List.first(chain)
       |> Block.initialize
