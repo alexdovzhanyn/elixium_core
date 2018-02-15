@@ -25,7 +25,7 @@ defmodule UltraDark.Blockchain.Block do
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
       difficulty: 6.0,
-      timestamp: DateTime.utc_now |> DateTime.to_string,
+      timestamp: DateTime.utc_now,
       transactions: [
         %{
           inputs: [],
@@ -58,7 +58,7 @@ defmodule UltraDark.Blockchain.Block do
   def mine(block) do
     %{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, merkle_root: merkle_root} = block
 
-    block = %{ block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) }
+    block = %{ block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, DateTime.to_string(timestamp), Integer.to_string(nonce), merkle_root]) }
 
     if hash_beat_target?(block) do
       block

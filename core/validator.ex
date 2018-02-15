@@ -33,7 +33,7 @@ defmodule UltraDark.Validator do
 
 
   defp valid_hash(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash, merkle_root: merkle_root}) do
-    if Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) == hash do
+    if Utilities.sha3_base16([Integer.to_string(index), previous_hash, DateTime.to_string(timestamp), Integer.to_string(nonce), merkle_root]) == hash do
 	    :ok
 	  else
 	    {:error, "Block has invalid hash"}
