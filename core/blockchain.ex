@@ -32,7 +32,7 @@ defmodule UltraDark.Blockchain do
     chain
   end
 
-  def rebalance_difficulty(chain) do
+  def recalculate_difficulty(chain) do
 	last = List.first(chain)
 	beginning = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
 	avg_spb = (DateTime.to_unix(last.timestamp) - DateTime.to_unix(beginning.timestamp)) / @diff_rebalance_offset
@@ -41,11 +41,12 @@ defmodule UltraDark.Blockchain do
 
 	# difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
 	diff = :math.log2(speed_ratio) / 4
-	chain = List.update_at(chain, 0, &(%{&1 | difficulty: diff}))
 
 	blue = "\e[34m"
 	clear = "\e[0m"
 
 	IO.puts "#{blue}difficulty of block#{clear} #{block.index} #{blue}set to#{clear} #{diff} #{blue}from#{clear} #{prev}"
+
+	diff
   end
 end
