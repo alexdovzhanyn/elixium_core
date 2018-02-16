@@ -4,7 +4,7 @@ defmodule UltraDark.Blockchain do
   alias UltraDark.UtxoStore
 
   @target_blocktime 120
-  @diff_rebalance_offset 5
+  @diff_rebalance_offset 10080
 
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
@@ -37,10 +37,12 @@ defmodule UltraDark.Blockchain do
     {lastTime, firstTime} =
       with {:ok, lastTime, _} <- DateTime.from_iso8601(last.timestamp),
            {:ok, firstTime, _} <- DateTime.from_iso8601(first.timestamp),
-           do: {lastTime, firstTime}
+      do: {lastTime, firstTime}
 
+	{firstUnix, lastUnix} = {DateTime.to_unix(firstTime), DateTime.to_unix(lastTime)}
+	
     avg_spb =
-      (DateTime.to_unix(lastTime) - DateTime.to_unix(firstTime)) /
+      (lastUnix - firstUnix) /
         @diff_rebalance_offset
 
     speed_ratio = @target_blocktime / avg_spb
