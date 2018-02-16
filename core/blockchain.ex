@@ -10,10 +10,10 @@ defmodule UltraDark.Blockchain do
     Creates a List with a genesis block in it or returns the existing blockchain
   """
   def initialize do
-    if Ledger.is_empty? do
-      add_block([], Block.initialize)
+    if Ledger.is_empty?() do
+      add_block([], Block.initialize())
     else
-      Ledger.retrieve_chain
+      Ledger.retrieve_chain()
     end
   end
 
@@ -26,27 +26,36 @@ defmodule UltraDark.Blockchain do
 
     Ledger.append_block(block)
     UtxoStore.update_with_transactions(block.transactions)
-	
-	if rem(length(chain), @diff_rebalance_offset) == 0, do: rebalance_difficulty chain
 
     chain
   end
 
   def recalculate_difficulty(chain) do
-	last = List.first(chain)
-	beginning = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
-	avg_spb = (DateTime.to_unix(last.timestamp) - DateTime.to_unix(beginning.timestamp)) / @diff_rebalance_offset
-	speed_ratio = @target_blocktime / avg_spb
-	prev = last.difficulty
+    last = List.first(chain)
+    first = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
 
-	# difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
-	diff = :math.log2(speed_ratio) / 4
+    {lastTime, firstTime} =
+      with {:ok, lastTime, _} <- DateTime.from_iso8601(last.timestamp),
+           {:ok, firstTime, _} <- DateTime.from_iso8601(first.timestamp),
+           do: {lastTime, firstTime}
 
-	blue = "\e[34m"
-	clear = "\e[0m"
+    avg_spb =
+      (DateTime.to_unix(lastTime) - DateTime.to_unix(firstTime)) /
+        @diff_rebalance_offset
 
-	IO.puts "#{blue}difficulty of block#{clear} #{block.index} #{blue}set to#{clear} #{diff} #{blue}from#{clear} #{prev}"
+    speed_ratio = @target_blocktime / avg_spb
+    prev = last.difficulty
 
-	diff
+    # difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
+    diff = :math.log2(speed_ratio) / 4
+
+    blue = "\e[34m"
+    clear = "\e[0m"
+
+    IO.puts("#{blue}block difficulty set to#{clear} #{diff} #{blue}from#{clear} #{prev}")
+
+    diff
   end
+
+  def diff_rebalance_offset, do: @diff_rebalance_offset
 end

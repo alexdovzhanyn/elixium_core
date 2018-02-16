@@ -12,15 +12,21 @@ defmodule Miner do
     UtxoStore.initialize
     chain = Blockchain.initialize
 
-    main(chain, address)
+    main(chain, address, List.first(chain).difficulty)
   end
 
-  def main(chain, address) do
+  def main(chain, address, difficulty) do
     block =
       List.first(chain)
       |> Block.initialize
 
-	difficulty = block.difficulty
+	difficulty = if rem(block.index, Blockchain.diff_rebalance_offset) == 0 do
+	  Blockchain.recalculate_difficulty chain
+	else
+	  difficulty
+	end
+
+	block = %{block | difficulty: difficulty}
 
 	IO.write "mining block #{block.index}...\r"
 	
@@ -40,10 +46,10 @@ defmodule Miner do
     IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
 
     case Validator.is_block_valid?(block, chain, difficulty) do
-      :ok -> main(Blockchain.add_block(chain, block), address)
+      :ok -> main(Blockchain.add_block(chain, block), address, difficulty)
       {:error, err} ->
         IO.puts err
-        main(chain, address)
+        main(chain, address, difficulty)
     end
   end
 
