@@ -22,7 +22,7 @@ defmodule Miner do
 
     difficulty =
       if rem(block.index, Blockchain.diff_rebalance_offset()) == 0 do
-        Blockchain.recalculate_difficulty(chain)
+        Blockchain.recalculate_difficulty(chain) + difficulty
       else
         difficulty
       end
