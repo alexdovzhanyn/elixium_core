@@ -4,7 +4,7 @@ defmodule UltraDark.Blockchain do
   alias UltraDark.UtxoStore
 
   @target_blocktime 120
-  @diff_rebalance_offset 10080
+  @diff_rebalance_offset 1000
 
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
