@@ -36,23 +36,16 @@ defmodule UltraDark.Blockchain do
     last = List.first(chain)
     first = Enum.at(chain, beginning_index)
 
-    IO.inspect(beginning_index, label: "beginning_index")
-    IO.inspect(last.index, label: "last")
-    IO.inspect(first.index, label: "first")
-
     diff =
       with {:ok, last_time, _} <- DateTime.from_iso8601(last.timestamp),
            {:ok, first_time, _} <- DateTime.from_iso8601(first.timestamp) do
         diff_µs = DateTime.diff(last_time, first_time, :microseconds)
         diff_s = diff_µs / 1_000_000.0
         avg_secs_per_block = diff_s / @diff_rebalance_offset
-        IO.puts("avg secs per block = #{avg_secs_per_block}")
         speed_ratio = @target_blocktime / avg_secs_per_block
-        IO.puts("speed ratio = #{speed_ratio}")
         :math.log(speed_ratio) / :math.log(16)
       end
 
-    IO.puts("difficulty set to #{diff}")
     diff
   end
 
