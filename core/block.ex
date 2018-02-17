@@ -2,16 +2,15 @@ defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
   alias UltraDark.Transaction
-  defstruct [
-    index: nil,
-    hash: nil,
-    previous_hash: nil,
-    difficulty: nil,
-    nonce: 0,
-    timestamp: nil,
-    merkle_root: nil,
-    transactions: []
-  ]
+
+  defstruct index: nil,
+            hash: nil,
+            previous_hash: nil,
+            difficulty: nil,
+            nonce: 0,
+            timestamp: nil,
+            merkle_root: nil,
+            transactions: []
 
   @doc """
     When the first node on the UltraDark network spins up, there won't be any blocks in the chain.
@@ -24,12 +23,19 @@ defmodule UltraDark.Blockchain.Block do
     %Block{
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-      difficulty: 6.0,
-      timestamp: DateTime.utc_now,
+      difficulty: 4.0,
+      timestamp: DateTime.utc_now() |> DateTime.to_string(),
       transactions: [
         %{
           inputs: [],
-          outputs: [%{txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0", data: "GENESIS BLOCK", addr: nil, amount: nil}]
+          outputs: [
+            %{
+              txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0",
+              data: "GENESIS BLOCK",
+              addr: nil,
+              amount: nil
+            }
+          ]
         }
       ]
     }
@@ -44,7 +50,7 @@ defmodule UltraDark.Blockchain.Block do
       index: index + 1,
       previous_hash: previous_hash,
       difficulty: 4.0,
-      timestamp: DateTime.utc_now |> DateTime.to_string
+      timestamp: DateTime.utc_now() |> DateTime.to_string()
     }
   end
 
@@ -56,9 +62,25 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec mine(Block) :: Block
   def mine(block) do
-    %{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, merkle_root: merkle_root} = block
+    %{
+      index: index,
+      previous_hash: previous_hash,
+      timestamp: timestamp,
+      nonce: nonce,
+      merkle_root: merkle_root
+    } = block
 
-    block = %{ block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) }
+    block = %{
+      block
+      | hash:
+          Utilities.sha3_base16([
+            Integer.to_string(index),
+            previous_hash,
+            timestamp,
+            Integer.to_string(nonce),
+            merkle_root
+          ])
+    }
 
     if hash_beat_target?(block) do
       block
@@ -72,7 +94,7 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec hash_beat_target?(Block) :: boolean
   def hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
-    { integer_value_of_hash, _ } = Integer.parse(hash, 16)
+    {integer_value_of_hash, _} = Integer.parse(hash, 16)
     integer_value_of_hash < calculate_target(difficulty)
   end
 
@@ -88,7 +110,7 @@ defmodule UltraDark.Blockchain.Block do
 
   @spec calculate_block_reward(number) :: number
   def calculate_block_reward(block_index) do
-    100 / :math.pow(2, Integer.floor_div(block_index, 200000))
+    100 / :math.pow(2, Integer.floor_div(block_index, 200_000))
   end
 
   def total_block_fees(transactions) do

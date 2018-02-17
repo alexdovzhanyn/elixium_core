@@ -4,7 +4,7 @@ defmodule UltraDark.Blockchain do
   alias UltraDark.UtxoStore
 
   @target_blocktime 120
-  @diff_rebalance_offset 10080
+  @diff_rebalance_offset 50
 
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
@@ -31,31 +31,28 @@ defmodule UltraDark.Blockchain do
   end
 
   def recalculate_difficulty(chain) do
+    beginning_index = min(length(chain) - 1, @diff_rebalance_offset - 1)
+
     last = List.first(chain)
-    first = Enum.at(chain, max(length(chain) - @diff_rebalance_offset + 1, 0))
+    first = Enum.at(chain, beginning_index)
 
-    {lastTime, firstTime} =
-      with {:ok, lastTime, _} <- DateTime.from_iso8601(last.timestamp),
-           {:ok, firstTime, _} <- DateTime.from_iso8601(first.timestamp),
-      do: {lastTime, firstTime}
+    IO.inspect(beginning_index, label: "beginning_index")
+    IO.inspect(last.index, label: "last")
+    IO.inspect(first.index, label: "first")
 
-	{firstUnix, lastUnix} = {DateTime.to_unix(firstTime), DateTime.to_unix(lastTime)}
-	
-    avg_spb =
-      (lastUnix - firstUnix) /
-        @diff_rebalance_offset
+    diff =
+      with {:ok, last_time, _} <- DateTime.from_iso8601(last.timestamp),
+           {:ok, first_time, _} <- DateTime.from_iso8601(first.timestamp) do
+        diff_µs = DateTime.diff(last_time, first_time, :microseconds)
+        diff_s = diff_µs / 1_000_000.0
+        avg_secs_per_block = diff_s / @diff_rebalance_offset
+        IO.puts("avg secs per block = #{avg_secs_per_block}")
+        speed_ratio = @target_blocktime / avg_secs_per_block
+        IO.puts("speed ratio = #{speed_ratio}")
+        :math.log(speed_ratio) / :math.log(16)
+      end
 
-    speed_ratio = @target_blocktime / avg_spb
-    prev = last.difficulty
-
-    # difficulty = log speed_ratio base 16 = log2(speed_ratio) / log2(16)
-    diff = :math.log2(speed_ratio) / 4
-
-    blue = "\e[34m"
-    clear = "\e[0m"
-
-    IO.puts("#{blue}block difficulty set to#{clear} #{diff} #{blue}from#{clear} #{prev}")
-
+    IO.puts("difficulty set to #{diff}")
     diff
   end
 
