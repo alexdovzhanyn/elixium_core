@@ -45,11 +45,7 @@ defmodule Miner do
     clear = "\e[0m"
     elapsed = (:os.system_time - before) / 1_000_000_000
 
-    IO.puts(
-      "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{
-        clear
-      } #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
-    )
+    IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
 
     case Validator.is_block_valid?(block, chain, difficulty) do
       :ok ->
