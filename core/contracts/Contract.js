@@ -1,6 +1,7 @@
 'use strict'
 
 let UltraDark = {}
+let gamma  = 0
 
 UltraDark.Contract = class  {
   constructor() {
@@ -9,4 +10,8 @@ UltraDark.Contract = class  {
   main() {
 
   }
+}
+
+UltraDark.Contract.charge_gamma = function(amount) {
+  gamma += amount
 }

@@ -1,6 +1,5 @@
 defmodule UltraDark.Contract do
   alias UltraDark.Ledger
-  require Execjs
   @moduledoc """
     Parse, compile, and run javascript
   """
@@ -78,16 +77,6 @@ defmodule UltraDark.Contract do
     ultradarkjs <> source
   end
 
-  @doc """
-    AST lets us analyze the structure of the contract, this is used to determine
-    the computational intensity needed to run the contract
-  """
-  @spec generate_ast_from_source(String.t) :: Map
-  def generate_ast_from_source(source) do
-    Execjs.eval("var e = require('esprima'); e.parse(`#{source}`)")
-    |> ESTree.Tools.ESTreeJSONTransformer.convert
-  end
-
   @spec binary_path(String.t) :: String.t
   defp binary_path(path) do
     String.replace(path, ".js", ".bin")
@@ -128,5 +117,21 @@ defmodule UltraDark.Contract do
       op when op in @medium_high -> 6
       op -> {:error, "No compute_binary_or_update_expression_gamma defined for operator: #{op}"}
     end
+  end
+
+
+  def test_the_contract do
+    {:ok, bin} = File.read("test.bin")
+
+    context =
+      bin
+      |> :erlang.binary_to_term
+      |> UltraDark.AST.generate_from_source
+      |> UltraDark.AST.remap_with_gamma
+      |> ESTree.Tools.Generator.generate
+      |> UltraDark.Contract.prepare_executable
+      |> Execjs.compile
+
+    Execjs.exec context.("let c = new MyContract(); return gamma;")
   end
 end
