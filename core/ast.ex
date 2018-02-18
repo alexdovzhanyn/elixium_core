@@ -31,6 +31,7 @@ defmodule UltraDark.AST do
 
     case comp do
       %ESTree.MethodDefinition{} -> remap_with_gamma(rest, new_ast)
+      %ESTree.ClassDefinition{} -> remap_with_gamma(rest, new_ast)
       _ -> remap_with_gamma(rest, [generate_gamma_charge(comp) | new_ast])
     end
   end
