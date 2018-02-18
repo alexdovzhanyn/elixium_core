@@ -29,7 +29,7 @@ defmodule Miner do
 
     block = %{block | difficulty: difficulty}
 
-    IO.write("mining block #{block.index}...\r")
+    IO.write("Mining block #{block.index}...\r")
 
     before = :os.system_time
 
@@ -42,16 +42,15 @@ defmodule Miner do
 
     blue = "\e[34m"
     clear = "\e[0m"
-    elapsed = (:os.system_time - before) / 1_000_000_000
+    elapsed = (:os.system_time - before) / 1000000000
 
     IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
 
     case Validator.is_block_valid?(block, chain, difficulty) do
-      :ok ->
-        main(Blockchain.add_block(chain, block), address, difficulty)
+      :ok -> main(Blockchain.add_block(chain, block), address, difficulty)
 
       {:error, err} ->
-        IO.puts(err)
+        IO.puts err
         main(chain, address, difficulty)
     end
   end
@@ -62,7 +61,7 @@ defmodule Miner do
 
   defp merge_block(coinbase, block) do
     new_transactions = [coinbase | block.transactions]
-    txoids = Enum.map(new_transactions, & &1.id)
+    txoids = Enum.map(new_transactions, &(&1.id))
 
     Map.merge(block, %{
       transactions: new_transactions,

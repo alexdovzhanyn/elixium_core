@@ -3,14 +3,16 @@ defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Utilities
   alias UltraDark.Transaction
 
-  defstruct index: nil,
-            hash: nil,
-            previous_hash: nil,
-            difficulty: nil,
-            nonce: 0,
-            timestamp: nil,
-            merkle_root: nil,
-            transactions: []
+  defstruct [
+    index: nil,
+    hash: nil,
+    previous_hash: nil,
+    difficulty: nil,
+    nonce: 0,
+    timestamp: nil,
+    merkle_root: nil,
+    transactions: []
+  ]
 
   @doc """
     When the first node on the UltraDark network spins up, there won't be any blocks in the chain.
@@ -70,22 +72,12 @@ defmodule UltraDark.Blockchain.Block do
       merkle_root: merkle_root
     } = block
 
-    block = %{
-      block
-      | hash:
-          Utilities.sha3_base16([
-            Integer.to_string(index),
-            previous_hash,
-            timestamp,
-            Integer.to_string(nonce),
-            merkle_root
-          ])
-    }
+    block = %{block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root])}
 
-    if hash_beat_target?(block) do
+    if hash_beat_target? block do
       block
     else
-      mine(%{block | nonce: block.nonce + 1})
+      mine %{block | nonce: block.nonce + 1}
     end
   end
 
@@ -110,7 +102,7 @@ defmodule UltraDark.Blockchain.Block do
 
   @spec calculate_block_reward(number) :: number
   def calculate_block_reward(block_index) do
-    100 / :math.pow(2, Integer.floor_div(block_index, 200_000))
+    100 / :math.pow(2, Integer.floor_div(block_index, 200000))
   end
 
   def total_block_fees(transactions) do
