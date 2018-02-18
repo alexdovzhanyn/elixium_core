@@ -54,6 +54,24 @@ defmodule UltraDark.AST do
     |> List.first
   end
 
+  def gamma_for_computation(%ESTree.BinaryExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
+  def gamma_for_computation(%ESTree.UpdateExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
+  def gamma_for_computation(%ESTree.ExpressionStatement{ expression: expression }), do: gamma_for_computation(expression)
+  def gamma_for_computation(%ESTree.ReturnStatement{ argument: argument }), do: gamma_for_computation(argument)
+  def gamma_for_computation(%ESTree.VariableDeclaration{ declarations: declarations }), do: gamma_for_computation(declarations)
+  def gamma_for_computation(%ESTree.VariableDeclarator{ init: %{ value: value } }), do: calculate_gamma_for_declaration(value)
+  def gamma_for_computation(%ESTree.CallExpression{}), do: 0
+
+  def gamma_for_computation([first | rest]), do: gamma_for_computation(rest, [gamma_for_computation(first)])
+  def gamma_for_computation([first | rest], gamma_list), do: gamma_for_computation(rest, [gamma_for_computation(first) | gamma_list])
+  def gamma_for_computation([], gamma_list), do: Enum.reduce(gamma_list, fn gamma, acc -> acc + gamma end)
+
+  def gamma_for_computation(other) do
+    IO.warn "Gamma for computation not implemented for: #{other.type}"
+    # IEx.pry
+    0
+  end
+
   @doc """
     Takes in a variable declaration and returns the gamma necessary to store the data
     within the contract. The cost is mapped to 2500 gamma per byte
@@ -76,24 +94,6 @@ defmodule UltraDark.AST do
       op when op in @medium_high -> 6
       op -> {:error, "No compute_binary_or_update_expression_gamma defined for operator: #{op}"}
     end
-  end
-
-  def gamma_for_computation(%ESTree.BinaryExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.UpdateExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.ExpressionStatement{ expression: expression }), do: gamma_for_computation(expression)
-  def gamma_for_computation(%ESTree.ReturnStatement{ argument: argument }), do: gamma_for_computation(argument)
-  def gamma_for_computation(%ESTree.VariableDeclaration{ declarations: declarations }), do: gamma_for_computation(declarations)
-  def gamma_for_computation(%ESTree.VariableDeclarator{ init: %{ value: value } }), do: calculate_gamma_for_declaration(value)
-  def gamma_for_computation(%ESTree.CallExpression{}), do: 0
-
-  def gamma_for_computation([first | rest]), do: gamma_for_computation(rest, [gamma_for_computation(first)])
-  def gamma_for_computation([first | rest], gamma_list), do: gamma_for_computation(rest, [gamma_for_computation(first) | gamma_list])
-  def gamma_for_computation([], gamma_list), do: Enum.reduce(gamma_list, fn gamma, acc -> acc + gamma end)
-
-  def gamma_for_computation(other) do
-    IO.warn "Gamma for computation not implemented for: #{other.type}"
-    # IEx.pry
-    0
   end
 
 end
