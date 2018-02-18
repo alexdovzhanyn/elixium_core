@@ -4,13 +4,6 @@ defmodule UltraDark.Contract do
     Parse, compile, and run javascript
   """
 
-  # Gamma costs are broken out into the following sets, with each item in @base costing
-  # 2 gamma, each in @low costing 3, @medium costing 5 and @medium_high costing 6
-  @base [:^, :==, :!=, :===, :!==, :<=, :<, :>, :>=, :instanceof, :|, :&, :"<<", :">>", :">>>", :in]
-  @low [:+, :-]
-  @medium [:*, :/, :%]
-  @medium_high [:++, :--]
-
   @doc """
     Call a method defined in the javascript source
   """
@@ -82,56 +75,18 @@ defmodule UltraDark.Contract do
     String.replace(path, ".js", ".bin")
   end
 
-  @doc """
-    Takes an arbitrary expression statement and returns the gamma cost needed
-    to evaluate the expression
-  """
-  @spec calculate_gamma_for_expression(ESTree.ExpressionStatement) :: number
-  def calculate_gamma_for_expression(%ESTree.ExpressionStatement{expression: expression}) do
-    case expression do
-      %ESTree.BinaryExpression{} -> compute_binary_or_update_expression_gamma(expression)
-      %ESTree.UpdateExpression{} -> compute_binary_or_update_expression_gamma(expression)
-      _ -> expression
-    end
-  end
-
-  @doc """
-    Takes in a variable declaration and returns the gamma necessary to store the data
-    within the contract. The cost is mapped to 2500 gamma per byte
-  """
-  @spec calculate_gamma_for_declaration(ESTree.VariableDeclaration) :: number
-  def calculate_gamma_for_declaration(%ESTree.VariableDeclaration{declarations: [%{init: %{value: value}} | _]}) do
-    (value |> :erlang.term_to_binary |> byte_size) * 2500 # Is there a cleaner way to calculate the memory size of any var?
-  end
-
-  @doc """
-    Takes in a binary tree expression and returns the amount of gamma necessary
-    in order to perform the expression
-  """
-  @spec compute_binary_or_update_expression_gamma(ESTree.BinaryExpression | ESTree.UpdateExpression) :: number | {:error, String.t}
-  defp compute_binary_or_update_expression_gamma(%{operator: operator}) do
-    case operator do
-      op when op in @base -> 2
-      op when op in @low -> 3
-      op when op in @medium -> 5
-      op when op in @medium_high -> 6
-      op -> {:error, "No compute_binary_or_update_expression_gamma defined for operator: #{op}"}
-    end
-  end
-
-
   def test_the_contract do
-    {:ok, bin} = File.read("test.bin")
+    {:ok, src} = File.read("test.js")
 
     context =
-      bin
-      |> :erlang.binary_to_term
+      src
       |> UltraDark.AST.generate_from_source
       |> UltraDark.AST.remap_with_gamma
       |> ESTree.Tools.Generator.generate
+      |> IO.inspect
       |> UltraDark.Contract.prepare_executable
       |> Execjs.compile
 
-    Execjs.exec context.("let c = new MyContract(); return gamma;")
+    Execjs.exec context.("let c = new MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.main(), gamma];")
   end
 end
