@@ -22,7 +22,9 @@ defmodule Miner do
 
     difficulty =
       if rem(block.index, Blockchain.diff_rebalance_offset) == 0 do
-        Blockchain.recalculate_difficulty(chain) + difficulty
+        new_difficulty = Blockchain.recalculate_difficulty(chain) + difficulty
+        IO.puts "Difficulty recalculated! Changed from #{difficulty} to #{new_difficulty}"
+        new_difficulty
       else
         difficulty
       end
@@ -44,7 +46,7 @@ defmodule Miner do
     clear = "\e[0m"
     elapsed = (:os.system_time - before) / 1000000000
 
-    IO.puts "#{blue}index:#{clear} #{block.index} #{blue}hash:#{clear} #{block.hash} #{blue}nonce:#{clear} #{block.nonce} #{blue}elapsed:#{clear} #{elapsed}s"
+    IO.puts "#{blue}Index:#{clear} #{block.index} #{blue}Hash:#{clear} #{block.hash} #{blue}Nonce:#{clear} #{block.nonce} #{blue}Elapsed:#{clear} #{elapsed}s #{blue}Hashrate:#{clear} #{block.nonce / elapsed}H/s"
 
     case Validator.is_block_valid?(block, chain, difficulty) do
       :ok -> main(Blockchain.add_block(chain, block), address, difficulty)
