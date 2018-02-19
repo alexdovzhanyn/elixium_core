@@ -6,7 +6,7 @@ defmodule BlockTest do
     genesis = Block.initialize
 
     assert genesis.index == 0
-    assert hash = "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA"
+    assert genesis.hash == "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA"
   end
 
   test "can create a new empty block" do

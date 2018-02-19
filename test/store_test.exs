@@ -5,7 +5,7 @@ defmodule StoreTest do
 
   @store ".teststore"
 
-  setup context do
+  setup _ do
     on_exit fn -> File.rm_rf!(@store) end
     :ok
   end
