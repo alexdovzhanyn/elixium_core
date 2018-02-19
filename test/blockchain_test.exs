@@ -27,7 +27,7 @@ defmodule BlockchainTest do
   end
 
   test "properly recalculates difficulty" do
-    {chain, _} = Code.eval_file("../../test/fixtures/chain.exs")
+    {chain, _} = Code.eval_file("test/fixtures/chain.exs")
     assert Blockchain.recalculate_difficulty(chain) == 4.529592161075461
   end
 
