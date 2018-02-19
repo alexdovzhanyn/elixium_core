@@ -1,6 +1,6 @@
 defmodule KeyPairTest do
   alias UltraDark.KeyPair
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   setup context do
     on_exit fn -> File.rm_rf!(".keys") end

@@ -1,6 +1,6 @@
 defmodule BlockTest do
   alias UltraDark.Blockchain.Block
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   test "can create a genesis block" do
     genesis = Block.initialize

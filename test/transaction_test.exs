@@ -1,6 +1,6 @@
 defmodule TransactionTest do
   alias UltraDark.Transaction
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   test "can generate a coinbase transaction" do
     %{
@@ -57,7 +57,7 @@ defmodule TransactionTest do
           txoid: "03E4C4FC8EFCB9F5C03CA73E9A7AA3D60A258B5FC52D7A75C7D0DEF69322A93F:1"
         }
       ]
-    } 
+    }
 
     assert Transaction.calculate_outputs(tx) == expected_outputs
   end

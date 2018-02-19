@@ -1,7 +1,7 @@
 defmodule StoreTest do
   alias UltraDark.Store
   require Exleveldb
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   @store ".teststore"
 
