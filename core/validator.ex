@@ -8,15 +8,16 @@ defmodule UltraDark.Validator do
     the previous_hash is equal to the hash of the previous block, and the hash of the block,
     when recalculated, is the same as what the listed block hash is
   """
-  @spec is_block_valid?(Block, list) :: :ok | {:error, String.t}
-  def is_block_valid?(block, chain) do
+  @spec is_block_valid?(Block, list, number) :: :ok | {:error, String.t}
+  def is_block_valid?(block, chain, difficulty) do
     last_block = List.first(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
        :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
        :ok <- valid_hash(block),
        :ok <- valid_coinbase?(block),
-       :ok <- valid_transactions?(block)
+	   :ok <- valid_transactions?(block),
+	   :ok <- valid_difficulty?(block, difficulty)
     do
       :ok
     else
@@ -76,5 +77,10 @@ defmodule UltraDark.Validator do
 
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
     if Block.total_block_fees(transactions) + Block.calculate_block_reward(block_index) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
+  end
+
+  @spec valid_difficulty?(Block, number) :: :ok | {:error, String.t}
+  def valid_difficulty?(%{difficulty: difficulty}, diff) do
+	if difficulty == diff, do: :ok, else: {:error, "Invalid difficulty. Got #{difficulty}, want #{diff}"}
   end
 end
