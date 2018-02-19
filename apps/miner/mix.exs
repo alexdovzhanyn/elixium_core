@@ -12,7 +12,8 @@ defmodule Miner.Mixfile do
       elixir: "~> 1.5",
       elixirc_paths: ["lib", "../../core"],
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      test_paths: ["../../test"]
     ]
   end
 
