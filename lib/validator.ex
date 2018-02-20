@@ -35,7 +35,7 @@ defmodule UltraDark.Validator do
 
   defp valid_hash(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash, merkle_root: merkle_root, difficulty: difficulty}) do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
-       :ok <- fn -> if Block.hash_beat_target?(hash, difficulty), do: :ok, else: {:error, "Hash did not beat target"} end
+       :ok <- fn -> if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, "Hash did not beat target"} end
     do :ok
 	  else err -> err
 	  end
