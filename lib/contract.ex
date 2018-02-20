@@ -66,27 +66,12 @@ defmodule UltraDark.Contract do
   """
   @spec prepare_executable(String.t) :: String.t
   def prepare_executable(source) do
-    {:ok, ultradarkjs} = File.read("core/contracts/Contract.js")
+    {:ok, ultradarkjs} = File.read("lib/contracts/Contract.js")
     ultradarkjs <> source
   end
 
   @spec binary_path(String.t) :: String.t
   defp binary_path(path) do
     String.replace(path, ".js", ".bin")
-  end
-
-  def test_the_contract do
-    {:ok, src} = File.read("test.js")
-
-    context =
-      src
-      |> UltraDark.AST.generate_from_source
-      |> UltraDark.AST.remap_with_gamma
-      |> ESTree.Tools.Generator.generate
-      |> IO.inspect
-      |> UltraDark.Contract.prepare_executable
-      |> Execjs.compile
-
-    Execjs.exec context.("let c = new MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.main(), gamma];")
   end
 end
