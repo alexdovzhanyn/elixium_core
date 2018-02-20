@@ -11,7 +11,8 @@ defmodule UltraDark.Mixfile do
       deps: deps(),
       name: "UltraDark Core",
       description: description(),
-      source_url: "https://github.com/ultradark/ultradark_core"
+      source_url: "https://github.com/ultradark/ultradark_core",
+      package: package()
     ]
   end
 
@@ -19,18 +20,19 @@ defmodule UltraDark.Mixfile do
   defp deps do
     [
       {:exleveldb, "~> 0.12.2"},
-      {:keccakf1600, "~> 2.0.0"}
+      {:keccakf1600, "~> 2.0.0"},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
     ]
   end
 
   defp description do
-    "A description"
+    "The core package for the UltraDark blockchain, containing all the modules needed to run the chain"
   end
 
   defp package() do
     [
       name: "ultradark_core",
-      files: ["lib", "mix.exs", "README*", "readme*", "LICENSE*", "license*"],
+      files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/ultradark/ultradark_core"}
