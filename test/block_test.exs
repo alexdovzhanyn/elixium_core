@@ -1,5 +1,6 @@
 defmodule BlockTest do
   alias UltraDark.Blockchain.Block
+  alias Decimal, as: D
   use ExUnit.Case, async: true
 
   test "can create a genesis block" do
@@ -74,30 +75,30 @@ defmodule BlockTest do
   end
 
   test "can correctly calculate block reward" do
-    assert Block.calculate_block_reward(1) == 100
-    assert Block.calculate_block_reward(200000) == 50
-    assert Block.calculate_block_reward(175000) == 100
-    assert Block.calculate_block_reward(3000000) == 0.0030517578125
+    assert D.equal? Block.calculate_block_reward(1), D.new(100)
+    assert D.equal? Block.calculate_block_reward(200000), D.new(50)
+    assert D.equal? Block.calculate_block_reward(175000), D.new(100)
+    assert D.equal? Block.calculate_block_reward(3000000), D.new(0.0030517578125)
   end
 
   test "can calculate block fees" do
-    transactions = [
+    _transactions = [
       %{
         inputs: [
-          %{txoid: "sometxoid", amount: 21},
-          %{txoid: "othertxoid", amount: 123.23}
+          %{txoid: "sometxoid", amount: D.new(21)},
+          %{txoid: "othertxoid", amount: D.new(123.23)}
         ],
         outputs: [
-          %{txoid: "atxoid", amount: 112},
+          %{txoid: "atxoid", amount: D.new(112)},
         ]
       },
       %{
         inputs: [
-          %{txoid: "bleh", amount: 1},
-          %{txoid: "meh", amount: 13}
+          %{txoid: "bleh", amount: D.new(1)},
+          %{txoid: "meh", amount: D.new(13)}
         ],
         outputs: [
-          %{txoid: "atxoid", amount:  14},
+          %{txoid: "atxoid", amount: D.new(14)},
         ]
       }
     ]
