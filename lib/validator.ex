@@ -2,6 +2,7 @@ defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
   alias UltraDark.KeyPair
+  alias Decimal, as: D
 
   @moduledoc """
     Responsible for implementing the consensus rules to all blocks and transactions
