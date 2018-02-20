@@ -8,7 +8,6 @@ defmodule UltraDark.Utilities do
     |> Base.encode16
   end
 
-
   @doc """
     The merkle root lets us represent a large dataset using only one string. We can be confident that
     if any of the data changes, the merkle root will be different, which invalidates the dataset
