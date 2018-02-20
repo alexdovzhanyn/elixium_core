@@ -1,5 +1,4 @@
 defmodule UltraDark.Utilities do
-
   def sha_base16(input), do: :crypto.hash(:sha256, input) |> Base.encode16
 
   def sha3_base16(list) when is_list(list), do: sha3_base16(Enum.join(list))
