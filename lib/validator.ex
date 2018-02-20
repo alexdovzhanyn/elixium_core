@@ -79,7 +79,7 @@ defmodule UltraDark.Validator do
   end
 
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
-    if Block.total_block_fees(transactions) + Block.calculate_block_reward(block_index) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
+    if D.add(Block.total_block_fees(transactions), Block.calculate_block_reward(block_index)) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
   end
 
   @spec valid_difficulty?(Block, number) :: :ok | {:error, String.t}
