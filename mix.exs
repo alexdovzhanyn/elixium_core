@@ -3,9 +3,16 @@ defmodule UltraDark.Mixfile do
 
   def project do
     [
-      apps_path: "apps",
+      app: :ultradark_core,
+      version: "0.1.0",
+      elixir: "~> 1.5",
+      elixirc_paths: ["lib"],
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      name: "UltraDark Core",
+      description: description(),
+      source_url: "https://github.com/ultradark/ultradark_core",
+      package: package()
     ]
   end
 
@@ -15,7 +22,22 @@ defmodule UltraDark.Mixfile do
       {:exleveldb, "~> 0.12.2"},
       {:keccakf1600, "~> 2.0.0"},
       {:execjs, github: "UltraDark/execjs"},
-      {:estree, "~>2.6.1"}
+      {:estree, "~>2.6.1"},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
+    ]
+  end
+
+  defp description do
+    "The core package for the UltraDark blockchain, containing all the modules needed to run the chain"
+  end
+
+  defp package() do
+    [
+      name: "ultradark_core",
+      files: ["lib", "mix.exs", "README*", "LICENSE*"],
+      maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/ultradark/ultradark_core"}
     ]
   end
 end
