@@ -6,6 +6,7 @@ defmodule UltraDark.AST do
   @low [:+, :-]
   @medium [:*, :/, :%]
   @medium_high [:++, :--]
+  @sanitize_prefix "sanitized_"
 
   @doc """
     AST lets us analyze the structure of the contract, this is used to determine
@@ -33,14 +34,13 @@ defmodule UltraDark.AST do
     end
   end
 
-  def remap_with_gamma([component | rest], new_ast \\ []) do
-    comp = remap_with_gamma(component)
-    new_ast = [comp | new_ast]
+  def remap_with_gamma([computation | rest], new_ast \\ []) do
+    comp = remap_with_gamma(computation)
 
     case comp do
-      %ESTree.MethodDefinition{} -> remap_with_gamma(rest, new_ast)
-      %ESTree.ClassDeclaration{} -> remap_with_gamma(rest, new_ast)
-      _ -> remap_with_gamma(rest, [generate_gamma_charge(comp) | new_ast])
+      %ESTree.MethodDefinition{} -> remap_with_gamma(rest, new_ast ++ [comp])
+      %ESTree.ClassDeclaration{} -> remap_with_gamma(rest, new_ast ++ [comp])
+      _ -> remap_with_gamma(rest, (new_ast ++ [generate_gamma_charge(comp), sanitize_computation(comp)]))
     end
   end
 
@@ -49,7 +49,6 @@ defmodule UltraDark.AST do
   def generate_gamma_charge(computation) do
     computation
     |> gamma_for_computation
-    |> IO.inspect
     |> (&(generate_from_source("UltraDark.Contract.charge_gamma(#{&1})").body)).()
     |> List.first
   end
@@ -60,6 +59,7 @@ defmodule UltraDark.AST do
   def gamma_for_computation(%ESTree.ReturnStatement{ argument: argument }), do: gamma_for_computation(argument)
   def gamma_for_computation(%ESTree.VariableDeclaration{ declarations: declarations }), do: gamma_for_computation(declarations)
   def gamma_for_computation(%ESTree.VariableDeclarator{ init: %{ value: value } }), do: calculate_gamma_for_declaration(value)
+  # def gamma_for_computation(%ESTree.AssignmentExpression{ left: left }), do: IEx.pry
   def gamma_for_computation(%ESTree.CallExpression{}), do: 0
 
   def gamma_for_computation([first | rest]), do: gamma_for_computation(rest, [gamma_for_computation(first)])
@@ -96,4 +96,6 @@ defmodule UltraDark.AST do
     end
   end
 
+  def sanitize_computation(%ESTree.Identifier{ name: name } = computation), do: %{computation | name: "#{@sanitize_prefix}#{name}"}
+  def sanitize_computation(computation), do: computation
 end
