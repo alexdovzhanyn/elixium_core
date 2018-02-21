@@ -1,5 +1,6 @@
 defmodule BlockTest do
   alias UltraDark.Blockchain.Block
+  alias UltraDark.Transaction
   alias Decimal, as: D
   use ExUnit.Case, async: true
 
@@ -82,8 +83,8 @@ defmodule BlockTest do
   end
 
   test "can calculate block fees" do
-    _transactions = [
-      %{
+    transactions = [
+      %Transaction{
         inputs: [
           %{txoid: "sometxoid", amount: D.new(21)},
           %{txoid: "othertxoid", amount: D.new(123.23)}
@@ -92,7 +93,7 @@ defmodule BlockTest do
           %{txoid: "atxoid", amount: D.new(112)},
         ]
       },
-      %{
+      %Transaction{
         inputs: [
           %{txoid: "bleh", amount: D.new(1)},
           %{txoid: "meh", amount: D.new(13)}
@@ -103,9 +104,6 @@ defmodule BlockTest do
       }
     ]
 
-    # TODO -- we need to represent shades as decimal instead of float because of
-    # float arithmetic precision errors in the stdlib
-
-    # assert Block.total_block_fees(transactions) ==
+    assert D.equal? Block.total_block_fees(transactions), D.new(158.23)
   end
 end
