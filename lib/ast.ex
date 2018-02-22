@@ -35,12 +35,14 @@ defmodule UltraDark.AST do
   end
 
   def remap_with_gamma([computation | rest], new_ast \\ []) do
-    comp = remap_with_gamma(computation)
+    comp =
+      computation
+      |> remap_with_gamma
 
     case comp do
       %ESTree.MethodDefinition{} -> remap_with_gamma(rest, new_ast ++ [comp])
       %ESTree.ClassDeclaration{} -> remap_with_gamma(rest, new_ast ++ [comp])
-      _ -> remap_with_gamma(rest, (new_ast ++ [generate_gamma_charge(comp), sanitize_computation(comp)]))
+      _ -> remap_with_gamma(rest, (new_ast ++ [generate_gamma_charge(comp), comp]))
     end
   end
 
@@ -85,17 +87,24 @@ defmodule UltraDark.AST do
     Takes in a binary tree expression and returns the amount of gamma necessary
     in order to perform the expression
   """
-  @spec compute_gamma_for_operator(atom) :: number | {:error, String.t}
-  defp compute_gamma_for_operator(operator) do
-    case operator do
-      op when op in @base -> 2
-      op when op in @low -> 3
-      op when op in @medium -> 5
-      op when op in @medium_high -> 6
-      op -> {:error, "No compute_binary_or_update_expression_gamma defined for operator: #{op}"}
-    end
-  end
+  @spec compute_gamma_for_operator(atom) :: number | {:error, tuple}
+  defp compute_gamma_for_operator(operator) when operator in @base, do: 2
+  defp compute_gamma_for_operator(operator) when operator in @low, do: 3
+  defp compute_gamma_for_operator(operator) when operator in @medium, do: 5
+  defp compute_gamma_for_operator(operator) when operator in @medium_high, do: 6
+  defp compute_gamma_for_operator(operator), do: {:error, {:no_compute_or_update_expression_gamma, operator}}
 
-  def sanitize_computation(%ESTree.Identifier{ name: name } = computation), do: %{computation | name: "#{@sanitize_prefix}#{name}"}
+  def sanitize_computation(%ESTree.Identifier{ name: name } = computation), do: %{computation | name: @sanitize_prefix <> name}
+  def sanitize_computation(map) when is_map(map) do
+    Map.keys(map)
+    |> Enum.map(fn key -> %{key => sanitize_computation(Map.get(map, key))} end)
+    |> Enum.reduce(map, fn (mapping , acc) ->
+      [{k, v}] = Map.to_list(mapping)
+      %{acc | k => v}
+    end)
+  end
+  def sanitize_computation(list) when is_list(list), do: sanitize_computation(list, [])
+  def sanitize_computation([first | rest], sanitized), do: sanitize_computation(rest, sanitized ++ [sanitize_computation(first)])
+  def sanitize_computation([], sanitized), do: sanitized
   def sanitize_computation(computation), do: computation
 end

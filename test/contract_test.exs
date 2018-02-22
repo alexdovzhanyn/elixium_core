@@ -7,12 +7,13 @@ defmodule ContractTest do
     context =
       src
       |> UltraDark.AST.generate_from_source
+      |> UltraDark.AST.sanitize_computation
       |> UltraDark.AST.remap_with_gamma
       |> ESTree.Tools.Generator.generate
-      |> IO.inspect
       |> UltraDark.Contract.prepare_executable
+      |> IO.inspect
       |> Execjs.compile
 
-    Execjs.exec context.("let c = new MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.main(), gamma];")
+    assert [3, 3] = Execjs.exec context.("let c = new MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.main(), gamma];")
   end
 end
