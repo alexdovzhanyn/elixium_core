@@ -20,7 +20,7 @@ defmodule UltraDark.Ledger do
   @doc """
     Given a block hash, return its contents
   """
-  @spec retrieve_block(String.t) :: Block
+  @spec retrieve_block(String.t()) :: Block
   def retrieve_block(hash) do
     fn ref ->
       {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))
@@ -35,7 +35,7 @@ defmodule UltraDark.Ledger do
   def retrieve_chain do
     fn ref ->
       Exleveldb.map(ref, fn {_, block} -> :erlang.binary_to_term(block) end)
-      |> Enum.sort_by(&(&1.index),&>=/2)
+      |> Enum.sort_by(& &1.index, &>=/2)
     end
     |> Store.transact(@store_dir)
   end

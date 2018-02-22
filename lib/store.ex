@@ -2,8 +2,10 @@ defmodule UltraDark.Store do
   require Exleveldb
 
   def initialize(store) do
-    {:ok, ref} = Exleveldb.open(store) # Generate a new leveldb instance if none exists
-    Exleveldb.close(ref) # Immediately close after ensuring creation, we don't need it constantly open
+    # Generate a new leveldb instance if none exists
+    {:ok, ref} = Exleveldb.open(store)
+    # Immediately close after ensuring creation, we don't need it constantly open
+    Exleveldb.close(ref)
   end
 
   @doc """
@@ -18,7 +20,7 @@ defmodule UltraDark.Store do
   end
 
   def is_empty?(store) do
-    fn ref -> Exleveldb.is_empty? ref end
+    fn ref -> Exleveldb.is_empty?(ref) end
     |> transact(store)
   end
 end

@@ -8,7 +8,6 @@ defmodule TransactionTest do
       outputs: outputs
     } = Transaction.generate_coinbase(1223, "some miner address")
 
-
     assert txtype == "COINBASE"
     assert length(outputs) == 1
     assert List.first(outputs).amount == 1223
@@ -43,7 +42,7 @@ defmodule TransactionTest do
 
     tx = %{tx | id: Transaction.calculate_hash(tx)}
 
-    expected_outputs =  %{
+    expected_outputs = %{
       fee: 37.44999999999999,
       outputs: [
         %{

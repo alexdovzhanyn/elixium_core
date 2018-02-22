@@ -6,7 +6,7 @@ defmodule StoreTest do
   @store ".teststore"
 
   setup _ do
-    on_exit fn -> File.rm_rf!(@store) end
+    on_exit(fn -> File.rm_rf!(@store) end)
     :ok
   end
 
@@ -31,5 +31,4 @@ defmodule StoreTest do
 
     assert res == :ok
   end
-
 end
