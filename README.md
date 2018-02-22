@@ -1,5 +1,5 @@
 [![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![Build Status](https://travis-ci.org/UltraDark/UltraDark.svg?branch=master)](https://travis-ci.org/UltraDark/UltraDark)
+[![Build Status](https://travis-ci.org/UltraDark/ultradark_core.svg?branch=master)](https://travis-ci.org/UltraDark/ultradark_core)
 [![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/ultradark/Lobby)
 
 # UltraDark
