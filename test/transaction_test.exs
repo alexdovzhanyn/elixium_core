@@ -9,7 +9,6 @@ defmodule TransactionTest do
       outputs: outputs
     } = Transaction.generate_coinbase(1223, "some miner address")
 
-
     assert txtype == "COINBASE"
     assert length(outputs) == 1
     assert List.first(outputs).amount == 1223

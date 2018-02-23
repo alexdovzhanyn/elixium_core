@@ -5,30 +5,30 @@ defmodule BlockTest do
   use ExUnit.Case, async: true
 
   test "can create a genesis block" do
-    genesis = Block.initialize
+    genesis = Block.initialize()
 
     assert genesis.index == 0
     assert genesis.hash == "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA"
   end
 
   test "can create a new empty block" do
-    genesis = Block.initialize
+    genesis = Block.initialize()
 
     block =
       genesis
-      |> Block.initialize
+      |> Block.initialize()
 
     assert block.index == genesis.index + 1
     assert block.previous_hash == genesis.hash
   end
 
   test "can mine a block" do
-    genesis = Block.initialize
+    genesis = Block.initialize()
 
     block =
       genesis
-      |> Block.initialize
-      |> Block.mine
+      |> Block.initialize()
+      |> Block.mine()
 
     assert block.hash != nil
   end
@@ -36,18 +36,18 @@ defmodule BlockTest do
   test "can properly calculate target with integer difficulty" do
     difficulty0 =
       Block.calculate_target(0)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     difficulty1 =
       Block.calculate_target(1)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     difficulty2 =
       Block.calculate_target(2)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     assert difficulty0 == "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
     assert difficulty1 == "0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
@@ -57,18 +57,18 @@ defmodule BlockTest do
   test "can properly calculate target with float difficulty" do
     difficulty0 =
       Block.calculate_target(1.32)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     difficulty1 =
       Block.calculate_target(6.82243)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     difficulty2 =
       Block.calculate_target(62.2)
-      |> :binary.encode_unsigned
-      |> Base.encode16
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
 
     assert difficulty0 == "0696B6E3238C7B7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
     assert difficulty1 == "1A2D8DDEF4082AFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
@@ -90,7 +90,7 @@ defmodule BlockTest do
           %{txoid: "othertxoid", amount: D.new(123.23)}
         ],
         outputs: [
-          %{txoid: "atxoid", amount: D.new(112)},
+          %{txoid: "atxoid", amount: D.new(112)}
         ]
       },
       %Transaction{
@@ -99,7 +99,7 @@ defmodule BlockTest do
           %{txoid: "meh", amount: D.new(13)}
         ],
         outputs: [
-          %{txoid: "atxoid", amount: D.new(14)},
+          %{txoid: "atxoid", amount: D.new(14)}
         ]
       }
     ]
