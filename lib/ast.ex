@@ -2,7 +2,7 @@ defmodule UltraDark.AST do
   require IEx
   # Gamma costs are broken out into the following sets, with each item in @base costing
   # 2 gamma, each in @low costing 3, @medium costing 5 and @medium_high costing 6
-  @base [:^, :==, :!=, :===, :!==, :<=, :<, :>, :>=, :instanceof, :|, :&, :"<<", :">>", :">>>", :in]
+  @base [:^, :==, :!=, :===, :!==, :<=, :<, :>, :>=, :instanceof, :|, :&, :"<<", :">>", :>>>, :in]
   @low [:+, :-]
   @medium [:*, :/, :%]
   @medium_high [:++, :--]
@@ -12,10 +12,10 @@ defmodule UltraDark.AST do
     AST lets us analyze the structure of the contract, this is used to determine
     the computational intensity needed to run the contract
   """
-  @spec generate_from_source(String.t) :: Map
+  @spec generate_from_source(String.t()) :: Map
   def generate_from_source(source) do
     Execjs.eval("var e = require('esprima'); e.parse(`#{source}`)")
-    |> ESTree.Tools.ESTreeJSONTransformer.convert
+    |> ESTree.Tools.ESTreeJSONTransformer.convert()
   end
 
   @doc """
@@ -42,7 +42,7 @@ defmodule UltraDark.AST do
     case comp do
       %ESTree.MethodDefinition{} -> remap_with_gamma(rest, new_ast ++ [comp])
       %ESTree.ClassDeclaration{} -> remap_with_gamma(rest, new_ast ++ [comp])
-      _ -> remap_with_gamma(rest, (new_ast ++ [generate_gamma_charge(comp), comp]))
+      _ -> remap_with_gamma(rest, new_ast ++ [generate_gamma_charge(comp), comp])
     end
   end
 
@@ -51,25 +51,23 @@ defmodule UltraDark.AST do
   def generate_gamma_charge(computation) do
     computation
     |> gamma_for_computation
-    |> (&(generate_from_source("UltraDark.Contract.charge_gamma(#{&1})").body)).()
-    |> List.first
+    |> (&generate_from_source("UltraDark.Contract.charge_gamma(#{&1})").body).()
+    |> List.first()
   end
 
-  def gamma_for_computation(%ESTree.BinaryExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.UpdateExpression{ operator: operator }), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.ExpressionStatement{ expression: expression }), do: gamma_for_computation(expression)
-  def gamma_for_computation(%ESTree.ReturnStatement{ argument: argument }), do: gamma_for_computation(argument)
-  def gamma_for_computation(%ESTree.VariableDeclaration{ declarations: declarations }), do: gamma_for_computation(declarations)
-  def gamma_for_computation(%ESTree.VariableDeclarator{ init: %{ value: value } }), do: calculate_gamma_for_declaration(value)
+  def gamma_for_computation(%ESTree.BinaryExpression{operator: operator}), do: compute_gamma_for_operator(operator)
+  def gamma_for_computation(%ESTree.UpdateExpression{operator: operator}), do: compute_gamma_for_operator(operator)
+  def gamma_for_computation(%ESTree.ExpressionStatement{expression: expression}), do: gamma_for_computation(expression)
+  def gamma_for_computation(%ESTree.ReturnStatement{argument: argument}), do: gamma_for_computation(argument)
+  def gamma_for_computation(%ESTree.VariableDeclaration{declarations: declarations}), do: gamma_for_computation(declarations)
+  def gamma_for_computation(%ESTree.VariableDeclarator{init: %{value: value}}), do: calculate_gamma_for_declaration(value)
   # def gamma_for_computation(%ESTree.AssignmentExpression{ left: left }), do: IEx.pry
   def gamma_for_computation(%ESTree.CallExpression{}), do: 0
-
   def gamma_for_computation([first | rest]), do: gamma_for_computation(rest, [gamma_for_computation(first)])
   def gamma_for_computation([first | rest], gamma_list), do: gamma_for_computation(rest, [gamma_for_computation(first) | gamma_list])
   def gamma_for_computation([], gamma_list), do: Enum.reduce(gamma_list, fn gamma, acc -> acc + gamma end)
-
   def gamma_for_computation(other) do
-    IO.warn "Gamma for computation not implemented for: #{other.type}"
+    IO.warn("Gamma for computation not implemented for: #{other.type}")
     # IEx.pry
     0
   end
@@ -80,7 +78,8 @@ defmodule UltraDark.AST do
   """
   @spec calculate_gamma_for_declaration(any) :: number
   def calculate_gamma_for_declaration(value) do
-    (value |> :erlang.term_to_binary |> byte_size) * 2500 # Is there a cleaner way to calculate the memory size of any var?
+    # Is there a cleaner way to calculate the memory size of any var?
+    (value |> :erlang.term_to_binary() |> byte_size) * 2500
   end
 
   @doc """
@@ -94,11 +93,11 @@ defmodule UltraDark.AST do
   defp compute_gamma_for_operator(operator) when operator in @medium_high, do: 6
   defp compute_gamma_for_operator(operator), do: {:error, {:no_compute_or_update_expression_gamma, operator}}
 
-  def sanitize_computation(%ESTree.Identifier{ name: name } = computation), do: %{computation | name: @sanitize_prefix <> name}
+  def sanitize_computation(%ESTree.Identifier{name: name} = computation), do: %{computation | name: @sanitize_prefix <> name}
   def sanitize_computation(map) when is_map(map) do
     Map.keys(map)
     |> Enum.map(fn key -> %{key => sanitize_computation(Map.get(map, key))} end)
-    |> Enum.reduce(map, fn (mapping , acc) ->
+    |> Enum.reduce(map, fn mapping, acc ->
       [{k, v}] = Map.to_list(mapping)
       %{acc | k => v}
     end)

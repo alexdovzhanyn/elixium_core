@@ -50,7 +50,7 @@ defmodule UltraDark.Transaction do
     the block reward plus any transaction fees from within the transaction
   """
 
-  @spec generate_coinbase(Decimal, String.t) :: Transaction
+  @spec generate_coinbase(Decimal, String.t()) :: Transaction
   def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now() |> DateTime.to_string()
     txid = Utilities.sha_base16(miner_address <> timestamp)
@@ -67,7 +67,7 @@ defmodule UltraDark.Transaction do
 
   @spec sum_inputs(list) :: Decimal
   def sum_inputs(inputs) do
-    Enum.reduce(inputs, D.new(0), fn (%{amount: amount}, acc) -> D.add(amount, acc) end)
+    Enum.reduce(inputs, D.new(0), fn %{amount: amount}, acc -> D.add(amount, acc) end)
   end
 
   @spec calculate_fee(Transaction) :: Decimal

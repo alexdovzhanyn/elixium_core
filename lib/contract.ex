@@ -1,5 +1,6 @@
 defmodule UltraDark.Contract do
   alias UltraDark.Ledger
+
   @moduledoc """
     Parse, compile, and run javascript
   """
@@ -7,11 +8,11 @@ defmodule UltraDark.Contract do
   @doc """
     Call a method defined in the javascript source
   """
-  @spec call_method(String.t, binary, List) :: any
+  @spec call_method(String.t(), binary, List) :: any
   def call_method(method, binary, opts \\ []) do
     :erlang.binary_to_term(binary)
     |> prepare_executable
-    |> Execjs.compile
+    |> Execjs.compile()
     |> Execjs.call(method, opts)
   end
 
@@ -19,27 +20,28 @@ defmodule UltraDark.Contract do
     Takes a binary javascript file, and adds a given script to the end of the file, then runs it
     E.G. run_in_context("return new MyContract().main()", bin)
   """
-  @spec run_in_context(String.t, binary) :: any
+  @spec run_in_context(String.t(), binary) :: any
   def run_in_context(script, binary) do
     context =
       binary
-      |> :erlang.binary_to_term
+      |> :erlang.binary_to_term()
       |> prepare_executable
-      |> Execjs.compile
-    Execjs.exec context.(script)
+      |> Execjs.compile()
+
+    Execjs.exec(context.(script))
   end
 
   @doc """
     Given a contract address, call a method within that contract
   """
-  @spec run_contract(String.t, String.t, List) :: any
+  @spec run_contract(String.t(), String.t(), List) :: any
   def run_contract(contract_address, method, opts \\ []) do
     [block_hash, transaction_id] =
       contract_address
       |> (fn address ->
-        {:ok, val} = Base.decode16(address)
-        val
-      end).()
+          {:ok, val} = Base.decode16(address)
+          val
+        end).()
       |> String.split(":")
 
     transaction =
@@ -64,13 +66,13 @@ defmodule UltraDark.Contract do
     Combine the source file with the contents of our contract js file, which specifies
     the structure for contracts
   """
-  @spec prepare_executable(String.t) :: String.t
+  @spec prepare_executable(String.t()) :: String.t()
   def prepare_executable(source) do
     {:ok, ultradarkjs} = File.read("lib/contracts/Contract.js")
     ultradarkjs <> source
   end
 
-  @spec binary_path(String.t) :: String.t
+  @spec binary_path(String.t()) :: String.t()
   defp binary_path(path) do
     String.replace(path, ".js", ".bin")
   end
