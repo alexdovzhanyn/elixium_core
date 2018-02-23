@@ -36,7 +36,7 @@ defmodule UltraDark.Validator do
 
   defp valid_hash?(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash, merkle_root: merkle_root, difficulty: difficulty}) do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
-       :ok <- fn -> if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, "Hash did not beat target"} end
+       :ok <- check_hash_beat_target(hash, difficulty)
     do :ok
 	  else err -> err
 	  end
@@ -44,6 +44,10 @@ defmodule UltraDark.Validator do
 
   defp compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash) do
     if Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]) == hash, do: :ok, else: {:error, "Computed hash doesnt match privided hash"}
+  end
+
+  defp check_hash_beat_target(hash, difficulty) do
+    if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, "Hash did not beat target"}
   end
 
   @spec valid_coinbase?(Block) :: :ok | {:error, String.t}
