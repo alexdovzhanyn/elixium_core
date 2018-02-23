@@ -11,13 +11,12 @@ defmodule ContractTest do
       |> UltraDark.AST.remap_with_gamma()
       |> ESTree.Tools.Generator.generate()
       |> UltraDark.Contract.prepare_executable()
-      |> IO.inspect()
       |> Execjs.compile()
 
-    assert [3, 3] =
+    assert ["The hash is: wfwefwfwfwfewwf", 7506] =
      Execjs.exec(
        context.(
-         "let c = new MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.main(), gamma];"
+         "let c = new sanitized_MyContract({block_hash: 'wfwefwfwfwfewwf'}); return [c.sanitized_main(), gamma];"
        )
      )
   end

@@ -94,6 +94,8 @@ defmodule UltraDark.AST do
   defp compute_gamma_for_operator(operator), do: {:error, {:no_compute_or_update_expression_gamma, operator}}
 
   def sanitize_computation(%ESTree.Identifier{name: name} = computation), do: %{computation | name: @sanitize_prefix <> name}
+  def sanitize_computation(%ESTree.MemberExpression{object: %{name: "UltraDark"}, property: %{name: "Contract"}} = computation), do: computation
+
   def sanitize_computation(map) when is_map(map) do
     Map.keys(map)
     |> Enum.map(fn key -> %{key => sanitize_computation(Map.get(map, key))} end)
@@ -102,6 +104,7 @@ defmodule UltraDark.AST do
       %{acc | k => v}
     end)
   end
+
   def sanitize_computation(list) when is_list(list), do: sanitize_computation(list, [])
   def sanitize_computation([first | rest], sanitized), do: sanitize_computation(rest, sanitized ++ [sanitize_computation(first)])
   def sanitize_computation([], sanitized), do: sanitized
