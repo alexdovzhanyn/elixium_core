@@ -1,5 +1,4 @@
 defmodule UltraDark.Utilities do
-
   def sha_base16(input), do: :crypto.hash(:sha256, input) |> Base.encode16
 
   def sha3_base16(list) when is_list(list), do: sha3_base16(Enum.join(list))
@@ -8,7 +7,6 @@ defmodule UltraDark.Utilities do
     :keccakf1600.hash(:sha3_256, input)
     |> Base.encode16
   end
-
 
   @doc """
     The merkle root lets us represent a large dataset using only one string. We can be confident that

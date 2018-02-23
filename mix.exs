@@ -21,6 +21,7 @@ defmodule UltraDark.Mixfile do
     [
       {:exleveldb, "~> 0.12.2"},
       {:keccakf1600, "~> 2.0.0"},
+      {:decimal, "~> 1.0"},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false}
     ]
   end

@@ -2,6 +2,7 @@ defmodule UltraDark.Validator do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
   alias UltraDark.KeyPair
+  alias Decimal, as: D
 
   @moduledoc """
     Responsible for implementing the consensus rules to all blocks and transactions
@@ -79,7 +80,10 @@ defmodule UltraDark.Validator do
   end
 
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
-    if Block.total_block_fees(transactions) + Block.calculate_block_reward(block_index) == List.first(coinbase.outputs).amount, do: :ok, else: {:error, "Coinbase output is invalid"}
+    total_fees = Block.total_block_fees(transactions)
+    reward = Block.calculate_block_reward(block_index)
+    amount = List.first(coinbase.outputs).amount
+    if D.equal?(D.add(total_fees, reward), amount), do: :ok, else: {:error, "Coinbase output is invalid"}
   end
 
   @spec valid_difficulty?(Block, number) :: :ok | {:error, String.t}
