@@ -2,6 +2,7 @@ defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
   alias UltraDark.Transaction
+  alias Decimal, as: D
 
   defstruct index: nil,
             hash: nil,
@@ -108,12 +109,13 @@ defmodule UltraDark.Blockchain.Block do
     (round(:math.pow(16, 64 - difficulty))) - 1
   end
 
-  @spec calculate_block_reward(number) :: number
+  @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
-    100 / :math.pow(2, Integer.floor_div(block_index, 200_000))
+    D.div(D.new(100), D.new(:math.pow(2, Integer.floor_div(block_index, 200000))))
   end
 
+  @spec total_block_fees(list) :: Decimal
   def total_block_fees(transactions) do
-    transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
+    transactions |> Enum.reduce(D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
   end
 end

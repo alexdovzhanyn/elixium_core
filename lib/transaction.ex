@@ -1,6 +1,7 @@
 defmodule UltraDark.Transaction do
   alias UltraDark.Transaction
   alias UltraDark.Utilities
+  alias Decimal, as: D
 
   defstruct id: nil,
             inputs: [],
@@ -11,7 +12,7 @@ defmodule UltraDark.Transaction do
             # Most transactions will be pay-to-public-key
             txtype: "P2PK"
 
-  @spec calculate_outputs(Transaction) :: %{outputs: list, fee: float}
+  @spec calculate_outputs(Transaction) :: %{outputs: list, fee: Decimal}
   def calculate_outputs(transaction) do
     %{designations: designations} = transaction
 
@@ -48,7 +49,8 @@ defmodule UltraDark.Transaction do
     This coinbase has a single output, designated to the address of the miner, and the output amount is
     the block reward plus any transaction fees from within the transaction
   """
-  @spec generate_coinbase(float, String.t()) :: Transaction
+
+  @spec generate_coinbase(Decimal, String.t) :: Transaction
   def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now() |> DateTime.to_string()
     txid = Utilities.sha_base16(miner_address <> timestamp)
@@ -63,13 +65,13 @@ defmodule UltraDark.Transaction do
     }
   end
 
-  @spec sum_inputs(list) :: number
+  @spec sum_inputs(list) :: Decimal
   def sum_inputs(inputs) do
-    Enum.reduce(inputs, 0, fn %{amount: amount}, acc -> amount + acc end)
+    Enum.reduce(inputs, D.new(0), fn (%{amount: amount}, acc) -> D.add(amount, acc) end)
   end
 
-  @spec calculate_fee(Transaction) :: float
+  @spec calculate_fee(Transaction) :: Decimal
   def calculate_fee(transaction) do
-    sum_inputs(transaction.inputs) - sum_inputs(transaction.designations)
+    D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.designations))
   end
 end

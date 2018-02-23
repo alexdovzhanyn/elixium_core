@@ -1,4 +1,5 @@
 defmodule UltraDark.Utilities do
+
   def sha_base16(input) do
     :sha256
     |> :crypto.hash(input)
