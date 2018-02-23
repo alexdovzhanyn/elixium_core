@@ -17,14 +17,13 @@ defmodule UltraDark.Validator do
     last_block = List.first(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
-         :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
-         :ok <- valid_hash(block),
-         :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block),
-         :ok <- valid_difficulty?(block, difficulty) do
-      :ok
-    else
-      err -> err
+       :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
+       :ok <- valid_hash?(block),
+       :ok <- valid_coinbase?(block),
+  	   :ok <- valid_transactions?(block),
+  	   :ok <- valid_difficulty?(block, difficulty)
+    do :ok
+    else err -> err
     end
   end
 
@@ -33,20 +32,10 @@ defmodule UltraDark.Validator do
   defp valid_index(index, prev_index) when index <= prev_index,
     do: {:error, "Block has invalid index"}
 
-  defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
+  defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
+  defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash != last_block_hash, do: {:error, "Blocks prev_hash is not equal to the last block's hash"}
 
-  defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash != last_block_hash,
-    do: {:error, "Blocks prev_hash is not equal to the last block's hash"}
-
-  defp valid_hash(%{
-         index: index,
-         previous_hash: previous_hash,
-         timestamp: timestamp,
-         nonce: nonce,
-         hash: hash,
-         merkle_root: merkle_root,
-         difficulty: difficulty
-       }) do
+  defp valid_hash?(%{index: index, previous_hash: previous_hash, timestamp: timestamp, nonce: nonce, hash: hash, merkle_root: merkle_root, difficulty: difficulty}) do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
          :ok <- fn ->
            if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}),
