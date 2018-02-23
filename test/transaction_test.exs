@@ -1,5 +1,6 @@
 defmodule TransactionTest do
   alias UltraDark.Transaction
+  alias Decimal, as: D
   use ExUnit.Case, async: true
 
   test "can generate a coinbase transaction" do
@@ -7,7 +8,6 @@ defmodule TransactionTest do
       txtype: txtype,
       outputs: outputs
     } = Transaction.generate_coinbase(1223, "some miner address")
-
 
     assert txtype == "COINBASE"
     assert length(outputs) == 1
@@ -31,29 +31,29 @@ defmodule TransactionTest do
   test "can generate outputs from designations" do
     tx = %Transaction{
       inputs: [
-        %{txoid: "wfwe1d:0", amount: 123.12},
-        %{txoid: "wfwe1d:4", amount: 31.33},
-        %{txoid: "wfwe1d:1", amount: 18}
+        %{txoid: "wfwe1d:0", amount: D.new(123.12)},
+        %{txoid: "wfwe1d:4", amount: D.new(31.33)},
+        %{txoid: "wfwe1d:1", amount: D.new(18)}
       ],
       designations: [
-        %{addr: "reciever1", amount: 3},
-        %{addr: "reciever2", amount: 132}
+        %{addr: "reciever1", amount: D.new(3)},
+        %{addr: "reciever2", amount: D.new(132)}
       ]
     }
 
     tx = %{tx | id: Transaction.calculate_hash(tx)}
 
     expected_outputs =  %{
-      fee: 37.44999999999999,
+      fee: D.new(37.45),
       outputs: [
         %{
           addr: "reciever1",
-          amount: 3,
+          amount: D.new(3),
           txoid: "03E4C4FC8EFCB9F5C03CA73E9A7AA3D60A258B5FC52D7A75C7D0DEF69322A93F:0"
         },
         %{
           addr: "reciever2",
-          amount: 132,
+          amount: D.new(132),
           txoid: "03E4C4FC8EFCB9F5C03CA73E9A7AA3D60A258B5FC52D7A75C7D0DEF69322A93F:1"
         }
       ]

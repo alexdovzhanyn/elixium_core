@@ -2,17 +2,16 @@ defmodule UltraDark.Blockchain.Block do
   alias UltraDark.Blockchain.Block
   alias UltraDark.Utilities
   alias UltraDark.Transaction
+  alias Decimal, as: D
 
-  defstruct [
-    index: nil,
-    hash: nil,
-    previous_hash: nil,
-    difficulty: nil,
-    nonce: 0,
-    timestamp: nil,
-    merkle_root: nil,
-    transactions: []
-  ]
+  defstruct index: nil,
+            hash: nil,
+            previous_hash: nil,
+            difficulty: nil,
+            nonce: 0,
+            timestamp: nil,
+            merkle_root: nil,
+            transactions: []
 
   @doc """
     When the first node on the UltraDark network spins up, there won't be any blocks in the chain.
@@ -26,7 +25,7 @@ defmodule UltraDark.Blockchain.Block do
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
       difficulty: 4.0,
-      timestamp: DateTime.utc_now |> DateTime.to_string,
+      timestamp: DateTime.utc_now() |> DateTime.to_string(),
       transactions: [
         %{
           data: "GENESIS BLOCK",
@@ -52,7 +51,7 @@ defmodule UltraDark.Blockchain.Block do
       index: index + 1,
       previous_hash: previous_hash,
       difficulty: 4.0,
-      timestamp: DateTime.utc_now |> DateTime.to_string
+      timestamp: DateTime.utc_now() |> DateTime.to_string()
     }
   end
 
@@ -72,12 +71,22 @@ defmodule UltraDark.Blockchain.Block do
       merkle_root: merkle_root
     } = block
 
-    block = %{block | hash: Utilities.sha3_base16([Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root])}
+    block = %{
+      block
+      | hash:
+          Utilities.sha3_base16([
+            Integer.to_string(index),
+            previous_hash,
+            timestamp,
+            Integer.to_string(nonce),
+            merkle_root
+          ])
+    }
 
-    if hash_beat_target? block do
+    if hash_beat_target?(block) do
       block
     else
-      mine %{block | nonce: block.nonce + 1}
+      mine(%{block | nonce: block.nonce + 1})
     end
   end
 
@@ -97,15 +106,16 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec calculate_target(float) :: number
   def calculate_target(difficulty) do
-    (:math.pow(16, 64 - difficulty) |> round) - 1
+    (round(:math.pow(16, 64 - difficulty))) - 1
   end
 
-  @spec calculate_block_reward(number) :: number
+  @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
-    100 / :math.pow(2, Integer.floor_div(block_index, 200000))
+    D.div(D.new(100), D.new(:math.pow(2, Integer.floor_div(block_index, 200000))))
   end
 
+  @spec total_block_fees(list) :: Decimal
   def total_block_fees(transactions) do
-    transactions |> Enum.reduce(0, fn tx, acc -> acc + Transaction.calculate_fee(tx) end)
+    transactions |> Enum.reduce(D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
   end
 end

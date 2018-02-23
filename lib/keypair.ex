@@ -18,7 +18,7 @@ defmodule UltraDark.KeyPair do
   @doc """
     Reads in a private key from the given file, and returns a tuple with the public and private key
   """
-  @spec get_from_file(String.t) :: {binary, binary}
+  @spec get_from_file(String.t()) :: {binary, binary}
   def get_from_file(path) do
     {:ok, private} = File.read(path)
 
@@ -28,18 +28,18 @@ defmodule UltraDark.KeyPair do
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
-    if (!File.dir? ".keys"), do: File.mkdir ".keys"
+    if !File.dir?(".keys"), do: File.mkdir(".keys")
 
-    pub_hex = public |> Base.encode16
+    pub_hex = public |> Base.encode16()
     File.write(".keys/#{pub_hex}.key", private)
   end
 
-  @spec sign(binary, String.t) :: String.t
+  @spec sign(binary, String.t()) :: String.t()
   def sign(private_key, data) do
     :crypto.sign(@sigtype, @hashtype, data, [private_key, @curve])
   end
 
-  @spec verify_signature(binary, binary, String.t) :: boolean
+  @spec verify_signature(binary, binary, String.t()) :: boolean
   def verify_signature(public_key, signature, data) do
     :crypto.verify(@sigtype, @hashtype, data, signature, [public_key, @curve])
   end

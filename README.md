@@ -1,5 +1,5 @@
 [![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![Build Status](https://travis-ci.org/UltraDark/UltraDark.svg?branch=master)](https://travis-ci.org/UltraDark/UltraDark)
+[![Build Status](https://travis-ci.org/UltraDark/ultradark_core.svg?branch=master)](https://travis-ci.org/UltraDark/ultradark_core)
 [![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/ultradark/Lobby)
 
 # UltraDark
@@ -9,11 +9,11 @@ you need a reference/starting point for the project.
 
 ## Features
 Although UltraDark is still in early development, we have a rough roadmap of features that are intended to be included. The following list describes features that may or may not be
-implemented as right now:
+implemented as of right now:
 
 ### 1. Anonymity
   * The UltraDark Core Wallet automatically performs a key rotation every 720 blocks (roughly 24 hours) _or_ whenever you receive a transaction, meaning that you are not trackable by public key
-  * Using zkSNARKS technology, UltraDark is able to ensure that no you can not be identified based on transaction patterns, addresses, or contents.
+  * Using zkSNARKS technology, UltraDark is able to ensure that you cannot be identified based on transaction patterns, addresses, or contents.
 ### 2. Smart Contracts
   * Easily create and deploy smart contracts to facilitate intelligent exchanges of funds
   * Deploy decentralized applications with low fees, running on the UltraDark network
