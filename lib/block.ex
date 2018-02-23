@@ -105,7 +105,7 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec calculate_target(float) :: number
   def calculate_target(difficulty) do
-    (:math.pow(16, 64 - difficulty) |> round) - 1
+    (round(:math.pow(16, 64 - difficulty))) - 1
   end
 
   @spec calculate_block_reward(number) :: number

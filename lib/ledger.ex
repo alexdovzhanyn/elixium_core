@@ -34,7 +34,8 @@ defmodule UltraDark.Ledger do
   """
   def retrieve_chain do
     fn ref ->
-      Exleveldb.map(ref, fn {_, block} -> :erlang.binary_to_term(block) end)
+      ref
+      |> Exleveldb.map(fn {_, block} -> :erlang.binary_to_term(block) end)
       |> Enum.sort_by(& &1.index, &>=/2)
     end
     |> Store.transact(@store_dir)

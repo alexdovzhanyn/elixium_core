@@ -12,4 +12,4 @@ install:
   - mix deps.get
 
 script:
-  - make test
+  - make testing

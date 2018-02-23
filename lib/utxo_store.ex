@@ -64,7 +64,8 @@ defmodule UltraDark.UtxoStore do
   @spec find_by_address(String.t()) :: list
   def find_by_address(public_key) do
     fn ref ->
-      Exleveldb.map(ref, fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
+      ref
+      |> Exleveldb.map(fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
       |> Enum.filter(&(&1.addr == public_key))
     end
     |> Store.transact(@store_dir)
