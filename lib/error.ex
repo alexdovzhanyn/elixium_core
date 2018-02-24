@@ -10,7 +10,7 @@ defmodule UltraDark.Error do
   def to_string({:error, err}), do: str(err)
   def to_string(err), do: "error #{err} isn't a valid error tuple"
 
-  defp str({:invalid_index, prev, index}), do: "invalid index #{index}, expected #{prev+1}"
+  defp str({:invalid_index, prev, index}), do: "invalid index #{index}, expected >#{prev}"
   defp str({:wrong_hash, reason}), do: "invalid hash: #{hash_err reason}"
   defp str(:no_coinbase), do: "no coinbase found in a block"
   defp str(:invalid_inputs), do: "invalid transaction inputs"
