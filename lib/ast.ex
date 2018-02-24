@@ -93,6 +93,7 @@ defmodule UltraDark.AST do
   defp compute_gamma_for_operator(operator) when operator in @medium_high, do: 6
   defp compute_gamma_for_operator(operator), do: {:error, {:no_compute_or_update_expression_gamma, operator}}
 
+  def sanitize_computation(%ESTree.Identifier{name: "constructor"} = computation), do: computation
   def sanitize_computation(%ESTree.Identifier{name: name} = computation), do: %{computation | name: @sanitize_prefix <> name}
   def sanitize_computation(%ESTree.MemberExpression{object: %{name: "UltraDark"}, property: %{name: "Contract"}} = computation), do: computation
 

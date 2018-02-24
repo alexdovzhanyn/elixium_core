@@ -1,4 +1,4 @@
-class MyContract extends UltraDark.Contract {
+class ThisIsAContract extends UltraDark.Contract {
   constructor(opts) {
     super(opts)
   }
@@ -13,7 +13,7 @@ class MyContract extends UltraDark.Contract {
       x -= 2
     }
 
-    return "The hash is: " + this.block_hash
+    return "The hash is: " + this.block_hash + ", but the transaction id is: " + this.transaction_id
   }
 
   otherFunction(value) {
