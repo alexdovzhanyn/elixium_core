@@ -23,7 +23,11 @@ defmodule UltraDark.Mixfile do
       {:keccakf1600, "~> 2.0.0"},
       {:credo, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
-      {:decimal, "~> 1.0"}
+      {:decimal, "~> 1.0"},
+      {:jsonrpc2, "~> 1.0"},
+      {:poison, "~> 3.1"},
+      {:shackle, "~> 0.5"},
+      {:ranch, "~> 1.3"}
     ]
   end
 
