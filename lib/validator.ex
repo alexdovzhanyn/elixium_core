@@ -42,7 +42,7 @@ defmodule UltraDark.Validator do
   defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash != last_block_hash,
     do: {:error, {:wrong_hash, {:doesnt_match_last, prev_hash, last_block_hash}}}
 
-  @spec valid_hash(Block) :: :ok | {:error, {:wrong_hash, {:too_low, String.t(), number}}}
+  @spec valid_hash(Block) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
   defp valid_hash(%{
          index: index,
          previous_hash: previous_hash,
@@ -56,7 +56,7 @@ defmodule UltraDark.Validator do
          :ok <- fn ->
            if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}),
              do: :ok,
-             else: {:error, {:wrong_hash, {:too_low, hash, difficulty}}}
+             else: {:error, {:wrong_hash, {:too_high, hash, difficulty}}}
          end do
       :ok
     else
@@ -118,7 +118,12 @@ defmodule UltraDark.Validator do
     total_fees = Block.total_block_fees(transactions)
     reward = Block.calculate_block_reward(block_index)
     amount = List.first(coinbase.outputs).amount
-    if D.equal?(D.add(total_fees, reward), amount), do: :ok, else: {:error, :invalid_coinbase}
+
+    if D.equal?(D.add(total_fees, reward), amount) do
+      :ok
+    else
+      {:error, {:invalid_coinbase, total_fees, reward, amount}}
+    end
   end
 
   @spec valid_difficulty?(Block, number) :: :ok | {:error, {:invalid_difficulty, number, number}}
