@@ -10,7 +10,7 @@ defmodule UltraDark.Blockchain do
     Creates a List with a genesis block in it or returns the existing blockchain
   """
   def initialize do
-    if Ledger.is_empty?() do
+    if Ledger.empty?() do
       add_block([], Block.initialize())
     else
       Ledger.retrieve_chain()

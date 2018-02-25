@@ -1,7 +1,7 @@
 defmodule UltraDark.RPC.Client do
   alias JSONRPC2.Clients.TCP
 
-  @doc """
+  @moduledoc """
     Example Usage of RPC Client / Server communication
     This assumes two IEX sessions (one for each node)
 
@@ -15,7 +15,7 @@ defmodule UltraDark.RPC.Client do
     ### We start node 1 on Port 9000 and wait for connections
     ```
     JSONRPC2.Servers.TCP.start_listener(Handler, 9000)
-    Handler.start([])
+    Peers.start_link([])
     ```
 
     ## Node 2
@@ -23,7 +23,7 @@ defmodule UltraDark.RPC.Client do
     ```
     JSONRPC2.Servers.TCP.start_listener(Handler, 8000)
     Client.start("localhost", 8000)
-    Handler.start([["localhost", 9000]])
+    Peers.start_link([["localhost", 9000]])
 
     ### On start up, we call Client.connect to let other nodes that our node is up and running
     # Let all peers know that this node is online

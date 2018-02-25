@@ -2,15 +2,22 @@ defmodule UltraDark.RPC.Peers do
   use Agent
   alias UltraDark.RPC.{Client}
 
-  def start_link(_) do
+  def start_link(trusted_nodes) do
     Agent.start_link(fn -> [] end, name: __MODULE__)
+    Enum.each(trusted_nodes,
+      fn ([host, port]) ->
+        add_node([host, port])
+      end)
   end
 
   def add_node([host, port]) do
     name = node_name([host, port])
-    Client.start(host, port, name)
-    Agent.update(__MODULE__, fn state -> [name | state] end)
-
+  
+    unless node_exists?(name) do
+      Client.start(host, port, name)
+      Agent.update(__MODULE__, fn state -> [name | state] end)
+    end
+    
     name
   end
 
@@ -20,5 +27,9 @@ defmodule UltraDark.RPC.Peers do
 
   defp node_name([host, port]) do
     :"#{host}:#{port}"
+  end
+
+  defp node_exists?(name) do
+    Enum.member?(nodes(), name)
   end
 end

@@ -41,7 +41,7 @@ defmodule UltraDark.Ledger do
     |> Store.transact(@store_dir)
   end
 
-  def is_empty? do
+  def empty? do
     Store.is_empty?(@store_dir)
   end
 end

@@ -2,14 +2,6 @@ defmodule UltraDark.RPC.Handler do
   use JSONRPC2.Server.Handler
   alias UltraDark.RPC.{Client, Peers}
 
-  def start(trusted_nodes) do
-    Peers.start_link(nil) # TODO Move to supervisor
-    Enum.each(trusted_nodes,
-      fn ([host, port]) ->
-        Peers.add_node([host, port])
-      end)
-  end
-
   @doc """
     Accept incoming connection from a node.
     Adds it to Peers.nodes for future broadcasting

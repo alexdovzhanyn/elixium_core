@@ -40,8 +40,8 @@ defmodule UltraDark.Validator do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
        :ok <- check_hash_beat_target(hash, difficulty)
     do :ok
-	  else err -> err
-	  end
+    else err -> err
+    end
   end
 
   defp compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash) do
