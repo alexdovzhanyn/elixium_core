@@ -32,7 +32,7 @@ defmodule UltraDark.Error do
   defp hash_err({:doesnt_match_last, prev, hash}),
     do: "Doesn't match last hash. expected #{prev}, got #{hash}"
 
-  defp hash_err({:too_low, hash, difficulty}),
+  defp hash_err({:too_high, hash, difficulty}),
     do: "Hash #{hash} is too high for a difficulty of #{difficulty}"
 
   defp hash_err({:doesnt_match_provided, computed, hash}),
