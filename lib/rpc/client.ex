@@ -2,33 +2,33 @@ defmodule UltraDark.RPC.Client do
   alias JSONRPC2.Clients.TCP
 
   @moduledoc """
-    Example Usage of RPC Client / Server communication  
-    This assumes two IEX sessions (one for each node)
+  Example Usage of RPC Client / Server communication  
+  This assumes two IEX sessions (one for each node)
 
-    ```
-    Application.ensure_all_started(:ranch)
-    Application.ensure_all_started(:shackle)
-    alias UltraDark.RPC.{Client, Peers, Handler}
-    ```
+  ```
+  Application.ensure_all_started(:ranch)
+  Application.ensure_all_started(:shackle)
+  alias UltraDark.RPC.{Client, Peers, Handler}
+  ```
 
-    ## Node 1
-    ### We start node 1 on Port 9000 and wait for connections
-    ```
-    JSONRPC2.Servers.TCP.start_listener(Handler, 9000)
-    Peers.start_link([])
-    ```
+  ## Node 1
+  ### We start node 1 on Port 9000 and wait for connections
+  ```
+  JSONRPC2.Servers.TCP.start_listener(Handler, 9000)
+  Peers.start_link([])
+  ```
 
-    ## Node 2
-    ### We start node 2 on Port 8000, and set node 1 as a trusted host.
-    ```
-    JSONRPC2.Servers.TCP.start_listener(Handler, 8000)
-    Client.start("localhost", 8000)
-    Peers.start_link([["localhost", 9000]])
+  ## Node 2
+  ### We start node 2 on Port 8000, and set node 1 as a trusted host.
+  ```
+  JSONRPC2.Servers.TCP.start_listener(Handler, 8000)
+  Client.start("localhost", 8000)
+  Peers.start_link([["localhost", 9000]])
 
-    ### On start up, we call Client.connect to let other nodes that our node is up and running
-    # Let all peers know that this node is online
-    Client.connect("localhost", 8000)
-    ```
+  ### On start up, we call Client.connect to let other nodes that our node is up and running
+  # Let all peers know that this node is online
+  Client.connect("localhost", 8000)
+  ```
   """
 
 
