@@ -18,6 +18,12 @@ defmodule UltraDark.Contract do
     |> run_in_context(source)
   end
 
+  @doc """
+    Create a javascript snipped that initializes the class defined within a contract
+    and call a given method on it. This also returns the gamma cost expended while
+    running the computation.
+  """
+  @spec generate_javascript_contract_snippet(String.t(), String.t(), list) :: String.t()
   defp generate_javascript_contract_snippet(class, method, opts) do
     opts = Poison.encode!(opts, encode: :javascript)
     constructor_args = generate_contract_parameters("fwe", 13, 123, "wfe")
@@ -68,6 +74,7 @@ defmodule UltraDark.Contract do
     Compile a javascript source file to binary (to be used by Execjs later). The output
     file name will be the same as the input, except with a .bin extension
   """
+  @spec compile(String.t()) :: binary
   def compile(path) do
     {:ok, src} = File.read(path)
 
@@ -102,6 +109,7 @@ defmodule UltraDark.Contract do
     ultradarkjs <> source
   end
 
+  @spec generate_contract_parameters(String.t(), integer, integer, String.t()) :: String.t()
   defp generate_contract_parameters(block_hash, block_index, block_nonce, transaction_id) do
     "{
       block_hash: '#{block_hash}',
