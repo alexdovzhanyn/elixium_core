@@ -8,7 +8,7 @@ defmodule UltraDark.Error do
   """
   @spec to_string({:error, any}) :: String.t()
   def to_string({:error, err}), do: str(err)
-  def to_string(err), do: "Error `#{err}` isn't a valid error tuple"
+  def to_string(err), do: "Error `#{inspect(err)}` isn't a valid error tuple"
 
   defp str({:invalid_index, prev, index}), do: "Invalid index #{index}, expected >#{prev}"
   defp str({:wrong_hash, reason}), do: "Invalid hash: #{hash_err(reason)}"
