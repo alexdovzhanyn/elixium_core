@@ -5,13 +5,13 @@ defmodule UltraDark.RPC.Peers do
   def start_link(trusted_nodes) do
     Agent.start_link(fn -> [] end, name: __MODULE__)
     Enum.each(trusted_nodes,
-      fn ([host, port]) ->
-        add_node([host, port])
+      fn (node) ->
+        add_node(node)
       end)
   end
 
-  def add_node([host, port]) do
-    name = node_name([host, port])
+  def add_node({host, port}) do
+    name = node_name({host, port})
   
     unless node_exists?(name) do
       Client.start(host, port, name)
@@ -25,7 +25,7 @@ defmodule UltraDark.RPC.Peers do
     Agent.get(__MODULE__, fn state -> state end)
   end
 
-  defp node_name([host, port]) do
+  defp node_name({host, port}) do
     :"#{host}:#{port}"
   end
 

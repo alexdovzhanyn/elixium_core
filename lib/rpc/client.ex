@@ -2,7 +2,7 @@ defmodule UltraDark.RPC.Client do
   alias JSONRPC2.Clients.TCP
 
   @moduledoc """
-    Example Usage of RPC Client / Server communication
+    Example Usage of RPC Client / Server communication  
     This assumes two IEX sessions (one for each node)
 
     ```
@@ -36,20 +36,20 @@ defmodule UltraDark.RPC.Client do
     Start connection to remote node of `name`
   """
   def start(host, port, name) do
-    TCP.start(host, port, name)
+    TCP.start(host, port, name, [reconnect: false], [pool_size: 1])
   end
 
   @doc """
     Start connection to your local node
   """
   def start(host, port) do
-    TCP.start(host, port, __MODULE__)
+    start(host, port, __MODULE__)
   end
 
   @doc """
     Broadcast the addition of a node to the named node
   """
-  def add_node([host, port], to) do
+  def add_node({host, port}, to) do
     TCP.notify(to, "add_node", [host, port])
   end
 

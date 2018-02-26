@@ -7,16 +7,16 @@ defmodule UltraDark.RPC.Handler do
     Adds it to Peers.nodes for future broadcasting
   """
   def handle_request("add_node", [host, port]) do
-    node_name = Peers.add_node([host, port])
+    node_name = Peers.add_node({host, port})
     IO.puts "Connected to #{node_name}"
   end
 
   @doc """
     Broadcasts your node to other nodes
   """  
-  def handle_request("connect", connecting_node) do
+  def handle_request("connect", [con_host, con_port]) do
     Enum.each(Peers.nodes, fn peer_node -> 
-      Client.add_node(connecting_node, peer_node)
+      Client.add_node({con_host, con_port}, peer_node)
     end)
   end
 end
