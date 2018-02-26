@@ -4,24 +4,24 @@ defmodule BlockchainTest do
   use ExUnit.Case, async: true
 
   setup _ do
-    on_exit fn ->
+    on_exit(fn ->
       File.rm_rf!(".chaindata")
       File.rm_rf!(".utxo")
-    end
+    end)
   end
 
   test "can initialize a chain" do
-    chain = Blockchain.initialize
+    chain = Blockchain.initialize()
     assert [_ | _] = chain
   end
 
   test "can add block to chain" do
-    chain = Blockchain.initialize
+    chain = Blockchain.initialize()
 
     block =
       List.first(chain)
-      |> Block.initialize
-      |> Block.mine
+      |> Block.initialize()
+      |> Block.mine()
 
     assert [block | chain] == Blockchain.add_block(chain, block)
   end
@@ -30,5 +30,4 @@ defmodule BlockchainTest do
     {chain, _} = Code.eval_file("test/fixtures/chain.exs")
     assert Blockchain.recalculate_difficulty(chain) == 4.529592161075461
   end
-
 end

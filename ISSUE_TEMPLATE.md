@@ -1,7 +1,7 @@
 Before filing an issue, look over the following checklist:
 
 - [ ] Is this something you can **debug and fix**? Fill out the checklist below, create the issue, and send a pull request! Bug fixes and documentation fixes are welcome.
-- [ ] Have a usage question? Ask your question on [Gitter](https://gitter.im/ultradark/Lobby). We normally hang out on gitter and that's where you're likely to get the fastest response.
+- [ ] Have a usage question? Ask your question on [Gitter](https://gitter.im/ultradark/help). We normally hang out on gitter and that's where you're likely to get the fastest response.
 - [ ] Have an idea for a feature? Label the issue as `enhancement`
 
 

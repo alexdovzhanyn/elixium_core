@@ -7,7 +7,7 @@ defmodule UltraDark.Mixfile do
       version: "0.1.0",
       elixir: "~> 1.5",
       elixirc_paths: ["lib"],
-      start_permanent: Mix.env == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "UltraDark Core",
       description: description(),
@@ -21,8 +21,9 @@ defmodule UltraDark.Mixfile do
     [
       {:exleveldb, "~> 0.12.2"},
       {:keccakf1600, "~> 2.0.0"},
-      {:decimal, "~> 1.0"},
-      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
+      {:credo, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
+      {:decimal, "~> 1.0"}
     ]
   end
 

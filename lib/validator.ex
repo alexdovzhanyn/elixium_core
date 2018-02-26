@@ -18,14 +18,13 @@ defmodule UltraDark.Validator do
     last_block = List.first(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
-         :ok <- valid_prev_hash(block.previous_hash, last_block.hash),
-         :ok <- valid_hash(block),
-         :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block),
-         :ok <- valid_difficulty?(block, difficulty) do
-      :ok
-    else
-      err -> err
+       :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
+       :ok <- valid_hash?(block),
+       :ok <- valid_coinbase?(block),
+  	   :ok <- valid_transactions?(block),
+  	   :ok <- valid_difficulty?(block, difficulty)
+    do :ok
+    else err -> err
     end
   end
 
@@ -35,15 +34,15 @@ defmodule UltraDark.Validator do
   defp valid_index(index, prev_index) when index <= prev_index,
     do: {:error, {:invalid_index, prev_index, index}}
 
-  @spec valid_prev_hash(String.t(), String.t()) ::
+  @spec valid_prev_hash?(String.t(), String.t()) ::
           :ok | {:error, {:wrong_hash, {:doesnt_match_last, String.t(), String.t()}}}
-  defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
+  defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
 
-  defp valid_prev_hash(prev_hash, last_block_hash) when prev_hash != last_block_hash,
+  defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash != last_block_hash,
     do: {:error, {:wrong_hash, {:doesnt_match_last, prev_hash, last_block_hash}}}
 
-  @spec valid_hash(Block) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
-  defp valid_hash(%{
+  @spec valid_hash?(Block) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
+  defp valid_hash?(%{
          index: index,
          previous_hash: previous_hash,
          timestamp: timestamp,
