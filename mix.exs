@@ -4,7 +4,7 @@ defmodule UltraDark.Mixfile do
   def project do
     [
       app: :ultradark_core,
-      version: "0.1.0",
+      version: "0.1.2",
       elixir: "~> 1.5",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
