@@ -23,11 +23,11 @@ defmodule UltraDark.Contract do
     and call a given method on it. This also returns the gamma cost expended while
     running the computation.
   """
-  @spec generate_javascript_contract_snippet(String.t(), String.t(), list) :: String.t()
-  defp generate_javascript_contract_snippet(class, method, opts) do
+  @spec generate_javascript_contract_snippet(String.t(), {String.t(), list}, map) :: String.t()
+  defp generate_javascript_contract_snippet(class, {method, opts}, parameters) do
     opts = Poison.encode!(opts, encode: :javascript)
-    constructor_args = generate_contract_parameters("fwe", 13, 123, "wfe")
-    max_gamma = 7506
+    constructor_args = generate_contract_parameters(parameters)
+    max_gamma = parameters.max_gamma
 
     "
       UltraDark.charge_gamma = UltraDark.charge_gamma(#{max_gamma})
@@ -117,8 +117,8 @@ defmodule UltraDark.Contract do
     ultradarkjs <> source
   end
 
-  @spec generate_contract_parameters(String.t(), integer, integer, String.t()) :: String.t()
-  defp generate_contract_parameters(block_hash, block_index, block_nonce, transaction_id) do
+  @spec generate_contract_parameters(map) :: String.t()
+  defp generate_contract_parameters(%{block_hash: block_hash, block_index: block_index, block_nonce: block_nonce, transaction_id: transaction_id}) do
     "{
       block_hash: '#{block_hash}',
       block_index: #{block_index},

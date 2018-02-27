@@ -19,4 +19,16 @@ class ThisIsAContract extends UltraDark.Contract {
   otherFunction(value) {
     return value + value + value
   }
+
+  reallyExpensiveFunction() {
+    let a = 1
+    let b = 2
+    let c = 3
+
+    a = a + b
+    b = a + c
+    c = a + b
+
+    return c
+  }
 }
