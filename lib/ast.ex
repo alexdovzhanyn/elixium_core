@@ -12,6 +12,7 @@ defmodule UltraDark.AST do
   @low [:+, :-]
   @medium [:*, :/, :%]
   @medium_high [:++, :--]
+  @excluded_identifiers ["constructor", "push"]
   @sanitize_prefix "sanitized_"
 
   @doc """
@@ -113,7 +114,7 @@ defmodule UltraDark.AST do
     the variable `gamma` in the contract would be compiled to `sanitized_gamma`
     before the contract is run.
   """
-  def sanitize_computation(%ESTree.Identifier{name: "constructor"} = computation), do: computation
+  def sanitize_computation(%ESTree.Identifier{name: name} = computation) when name in @excluded_identifiers, do: computation
   def sanitize_computation(%ESTree.Identifier{name: name} = computation), do: %{computation | name: @sanitize_prefix <> name}
   def sanitize_computation(%ESTree.MemberExpression{object: %{name: "UltraDark"}, property: %{name: "Contract"}} = computation), do: computation
 
