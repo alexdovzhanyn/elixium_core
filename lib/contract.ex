@@ -27,10 +27,18 @@ defmodule UltraDark.Contract do
   defp generate_javascript_contract_snippet(class, method, opts) do
     opts = Poison.encode!(opts, encode: :javascript)
     constructor_args = generate_contract_parameters("fwe", 13, 123, "wfe")
+    max_gamma = 7506
 
     "
+      UltraDark.charge_gamma = UltraDark.charge_gamma(#{max_gamma})
       let contractInstance = new #{class}(#{constructor_args});
-      return [contractInstance.sanitized_#{method}.apply(contractInstance, #{opts}), gamma];
+
+      try {
+        let comp = contractInstance.sanitized_#{method}.apply(contractInstance, #{opts})
+        return [comp, gamma];
+      } catch (e) {
+        return e
+      }
     "
   end
 

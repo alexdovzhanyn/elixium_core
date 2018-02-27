@@ -63,7 +63,7 @@ defmodule UltraDark.AST do
   def generate_gamma_charge(computation) do
     computation
     |> gamma_for_computation
-    |> (&generate_from_source("UltraDark.Contract.charge_gamma(#{&1})").body).()
+    |> (&generate_from_source("UltraDark.charge_gamma(#{&1})").body).()
     |> List.first()
   end
 
