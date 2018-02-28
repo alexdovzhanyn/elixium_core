@@ -1,6 +1,5 @@
 defmodule UltraDark.Contract do
-  alias UltraDark.Ledger
-  alias UltraDark.AST
+  alias UltraDark.{Ledger, AST, Utilities}
 
   @moduledoc """
     Parse, compile, and run javascript
@@ -127,8 +126,16 @@ defmodule UltraDark.Contract do
     }"
   end
 
-  @spec binary_path(String.t()) :: String.t()
-  defp binary_path(path) do
-    String.replace(path, ".js", ".bin")
+  @doc """
+    Deterministically generate a contract address. This uses the public key of the person
+    creating the contract, plus the binary code for the contract itself. It is possible to have
+    multiple contracts with the same contract address generated if the creator deploys
+    the same contract multiple times. This is fine though, since they're the same transaction
+    they'll have the same contents, so we can just get the first instance we find when
+    looking up based on the contract address.
+  """
+  @spec generate_contract_address(String.t(), binary) :: String.t()
+  def generate_contract_address(pubkey, contract) do
+    Utilities.sha3_base16([pubkey, contract])
   end
 end
