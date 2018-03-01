@@ -45,7 +45,10 @@ defmodule ErrorTest do
   end
 
   test "doesn't crash for invalid arguments" do
-    assert Error.to_string("not an error") == "Error `not an error` isn't a valid error tuple"
+    assert Error.to_string("not an error") == "Error \"not an error\" isn't a valid error tuple"
+
+    assert Error.to_string({:ok, "not an error"}) ==
+             "Error {:ok, \"not an error\"} isn't a valid error tuple"
 
     assert Error.to_string({:error, 10}) == "Unrecognized error: 10"
   end
