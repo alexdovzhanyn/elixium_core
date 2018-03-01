@@ -1,5 +1,5 @@
 defmodule UltraDark.Contract do
-  alias UltraDark.{Ledger, AST, Utilities}
+  alias UltraDark.{Ledger, AST, Utilities, ChainState}
 
   @moduledoc """
     Parse, compile, and run javascript
@@ -9,11 +9,11 @@ defmodule UltraDark.Contract do
     Call a method defined in the javascript source
   """
   @spec call_method(String.t(), binary, List) :: any
-  def call_method(binary, method, opts \\ []) do
+  def call_method(binary, method, parameters) do
     {class_name, source} = :erlang.binary_to_term(binary)
 
     class_name
-    |> generate_javascript_contract_snippet(method, opts)
+    |> generate_javascript_contract_snippet(method, parameters)
     |> run_in_context(source)
   end
 
@@ -34,7 +34,7 @@ defmodule UltraDark.Contract do
 
       try {
         let comp = contractInstance.sanitized_#{method}.apply(contractInstance, #{opts})
-        return [comp, gamma];
+        return [comp, gamma, chainstate];
       } catch (e) {
         return e
       }
@@ -59,23 +59,25 @@ defmodule UltraDark.Contract do
     Given a contract address, call a method within that contract
   """
   @spec run_contract(String.t(), String.t(), List) :: any
-  def run_contract(contract_address, method, opts \\ []) do
-    [block_hash, transaction_id] =
+  def run_contract(contract_address, method, parameters) do
+    execution_result =
       contract_address
-      |> (fn address ->
-          {:ok, val} = Base.decode16(address)
-          val
-        end).()
-      |> String.split(":")
+      |> retrieve_contract_by_address
+      |> call_method(method, parameters)
 
-    transaction =
-      Ledger.retrieve_block(block_hash).transactions
-      |> Enum.find(&(&1.id == transaction_id))
-
-    call_method(method, transaction.data, opts)
+    case execution_result do
+      [result, gamma, new_chainstate] ->
+        ChainState.update(contract_address, new_chainstate)
+        {:ok, result, gamma}
+      %{"error" => error} ->
+        {:error, error}
+    end
   end
 
-
+  @spec retrieve_contract_by_address(String.t()) :: binary
+  def retrieve_contract_by_address(contract_address) do
+    compile("test/fixtures/test_contract.js")
+  end
 
   @doc """
     Compile a javascript source file to binary (to be used by Execjs later). The output

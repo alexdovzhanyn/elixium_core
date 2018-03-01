@@ -6,6 +6,7 @@
 erl_crash.dump
 *.ez
 /.chaindata
+/.chainstate
 /.utxo
 /.keys
 node_modules/*

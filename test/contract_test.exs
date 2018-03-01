@@ -10,10 +10,9 @@ defmodule ContractTest do
       max_gamma: 10_000
     }
 
-    assert [_return_value, _gamma] =
+    assert {:ok, _result, _gamma} =
       "test/fixtures/test_contract.js"
-      |> UltraDark.Contract.compile()
-      |> UltraDark.Contract.call_method({"main", []}, contract_params)
+      |> UltraDark.Contract.run_contract({"main", []}, contract_params)
   end
 
   test "can call method from contract that exceeds gamma" do
@@ -27,10 +26,9 @@ defmodule ContractTest do
 
     error =
       "test/fixtures/test_contract.js"
-      |> UltraDark.Contract.compile()
-      |> UltraDark.Contract.call_method({"reallyExpensiveFunction", []}, contract_params)
+      |> UltraDark.Contract.run_contract({"reallyExpensiveFunction", []}, contract_params)
 
-    assert %{"error" => "Out of Gamma"} = error
+    assert {:error, "Out of Gamma"} = error
   end
 
   test "can call method from contract with exact gamma" do
@@ -42,9 +40,8 @@ defmodule ContractTest do
       max_gamma: 7506
     }
 
-    assert [_return_value, _gamma] =
+    assert {:ok, _result, _gamma} =
       "test/fixtures/test_contract.js"
-      |> UltraDark.Contract.compile()
-      |> UltraDark.Contract.call_method({"main", []}, contract_params)
+      |> UltraDark.Contract.run_contract({"main", []}, contract_params)
   end
 end

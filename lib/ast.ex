@@ -116,7 +116,7 @@ defmodule UltraDark.AST do
   """
   def sanitize_computation(%ESTree.Identifier{name: name} = computation) when name in @excluded_identifiers, do: computation
   def sanitize_computation(%ESTree.Identifier{name: name} = computation), do: %{computation | name: @sanitize_prefix <> name}
-  def sanitize_computation(%ESTree.MemberExpression{object: %{name: "UltraDark"}, property: %{name: "Contract"}} = computation), do: computation
+  def sanitize_computation(%ESTree.MemberExpression{object: %{name: "UltraDark"}} = computation), do: computation
 
   def sanitize_computation(map) when is_map(map) do
     Map.keys(map)
