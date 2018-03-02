@@ -4,13 +4,15 @@ defmodule UltraDark.Transaction do
   alias Decimal, as: D
 
   defstruct id: nil,
+        data: nil,
         inputs: [],
         outputs: [],
         fee: 0,
         designations: [],
         timestamp: nil,
         # Most transactions will be pay-to-public-key
-        txtype: "P2PK"
+        txtype: "P2PK",
+        max_gamma: 0
 
   @spec calculate_outputs(Transaction) :: %{outputs: list, fee: Decimal}
   def calculate_outputs(transaction) do

@@ -23,6 +23,7 @@ defmodule UltraDark.Utilities do
     if any of the data changes, the merkle root will be different, which invalidates the dataset
   """
   @spec calculate_merkle_root(list) :: String.t()
+  def calculate_merkle_root([]), do: nil
   def calculate_merkle_root(list) do
     list
     |> Enum.chunk_every(2)

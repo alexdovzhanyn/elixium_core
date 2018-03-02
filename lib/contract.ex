@@ -1,5 +1,5 @@
 defmodule UltraDark.Contract do
-  alias UltraDark.{Ledger, AST, Utilities, ChainState}
+  alias UltraDark.{Ledger, AST, Utilities, ChainState, Transaction}
 
   @moduledoc """
     Parse, compile, and run javascript
@@ -8,12 +8,12 @@ defmodule UltraDark.Contract do
   @doc """
     Call a method defined in the javascript source
   """
-  @spec call_method(String.t(), binary, List) :: any
-  def call_method(binary, method, parameters) do
+  @spec call_method({binary, map}, {String.t(), List}) :: any
+  def call_method({binary, contract_constants}, {method, parameters}) do
     {class_name, source} = :erlang.binary_to_term(binary)
 
     class_name
-    |> generate_javascript_contract_snippet(method, parameters)
+    |> generate_javascript_contract_snippet({method, parameters}, contract_constants)
     |> run_in_context(source)
   end
 
@@ -58,12 +58,15 @@ defmodule UltraDark.Contract do
   @doc """
     Given a contract address, call a method within that contract
   """
-  @spec run_contract(String.t(), String.t(), List) :: any
-  def run_contract(contract_address, method, parameters) do
-    execution_result =
+  @spec run_contract(String.t(), String.t(), Transaction) :: any
+  def run_contract(contract_address, method, interacting_transaction) do
+    {contract_bin, params} =
       contract_address
       |> retrieve_contract_by_address
-      |> call_method(method, parameters)
+
+    execution_result =
+      {contract_bin, Map.put(params, :max_gamma, interacting_transaction.max_gamma)}
+      |> call_method(method)
 
     case execution_result do
       [result, gamma, new_chainstate] ->
@@ -76,7 +79,14 @@ defmodule UltraDark.Contract do
 
   @spec retrieve_contract_by_address(String.t()) :: binary
   def retrieve_contract_by_address(contract_address) do
-    compile("test/fixtures/test_contract.js")
+    %{block_hash: block_hash, transaction_id: transaction_id} = params = ChainState.get(contract_address)
+
+    contract_bin =
+      Ledger.retrieve_block(block_hash).transactions
+      |> Enum.find(& &1.id == transaction_id)
+      |> (& &1.data).()
+
+    {contract_bin, params}
   end
 
   @doc """

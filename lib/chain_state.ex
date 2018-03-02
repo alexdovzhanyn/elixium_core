@@ -1,5 +1,5 @@
 defmodule UltraDark.ChainState do
-  alias UltraDark.Store
+  alias UltraDark.{Store, Block}
   require Exleveldb
 
   @moduledoc """
@@ -23,8 +23,9 @@ defmodule UltraDark.ChainState do
       end
 
       new_contract_state =
-        current_contract_state
+        current_contract_state.state
         |> Map.merge(new_state)
+        |> (&(%{current_contract_state | state: &1})).()
         |> :erlang.term_to_binary
 
       Exleveldb.put(ref, contract_address, new_contract_state)
@@ -36,6 +37,18 @@ defmodule UltraDark.ChainState do
     fn ref ->
       {:ok, bin} = Exleveldb.get(ref, contract_address)
       :erlang.binary_to_term(bin)
+    end
+    |> Store.transact(@store_dir)
+  end
+
+  @spec create_new(String.t(), String.t(), Block) :: :ok | {:error, any}
+  def create_new(contract_address, transaction_id, %{hash: hash, nonce: nonce, index: index}) do
+    fn ref ->
+      initial_state =
+        %{ block_hash: hash, transaction_id: transaction_id, block_nonce: nonce, block_index: index, state: %{} }
+        |> :erlang.term_to_binary
+
+      Exleveldb.put(ref, contract_address, initial_state)
     end
     |> Store.transact(@store_dir)
   end
