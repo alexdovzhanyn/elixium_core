@@ -1,6 +1,6 @@
 defmodule ContractTest do
   alias UltraDark.{Blockchain, Blockchain.Block, Transaction, Contract, ChainState}
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   test "can call method from contract with enough gamma" do
     chain = Blockchain.initialize
