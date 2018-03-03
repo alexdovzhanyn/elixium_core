@@ -1,6 +1,4 @@
 defmodule UltraDark.AST do
-  require IEx
-
   @moduledoc """
     Manipulate javascript as an abstract syntax tree. This module is responsible
     for sanitizing contracts and creating gamma charges within them

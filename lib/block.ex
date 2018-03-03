@@ -1,7 +1,5 @@
 defmodule UltraDark.Blockchain.Block do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Utilities
-  alias UltraDark.Transaction
+  alias UltraDark.{Blockchain.Block, Utilities, Transaction}
   alias Decimal, as: D
 
   defstruct index: nil,

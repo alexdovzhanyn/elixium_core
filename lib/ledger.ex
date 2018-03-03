@@ -1,6 +1,5 @@
 defmodule UltraDark.Ledger do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Store
+  alias UltraDark.{Blockchain.Block, Store}
   require Exleveldb
 
   @store_dir ".chaindata"

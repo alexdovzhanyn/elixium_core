@@ -1,6 +1,5 @@
 defmodule UltraDark.Transaction do
-  alias UltraDark.Transaction
-  alias UltraDark.Utilities
+  alias UltraDark.{Transaction, Utilities}
   alias Decimal, as: D
 
   defstruct id: nil,
