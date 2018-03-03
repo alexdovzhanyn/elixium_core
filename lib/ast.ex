@@ -66,6 +66,7 @@ defmodule UltraDark.AST do
     |> List.first()
   end
 
+  def gamma_for_computation(%ESTree.CallExpression{callee: %ESTree.MemberExpression{object: %ESTree.Identifier{name: "UltraDark"}}} = ultradark_source_call), do: gamma_for_contract_call(ultradark_source_call)
   def gamma_for_computation(%ESTree.BinaryExpression{operator: operator}), do: compute_gamma_for_operator(operator)
   def gamma_for_computation(%ESTree.UpdateExpression{operator: operator}), do: compute_gamma_for_operator(operator)
   def gamma_for_computation(%ESTree.ExpressionStatement{expression: expression}), do: gamma_for_computation(expression)
@@ -80,6 +81,11 @@ defmodule UltraDark.AST do
   def gamma_for_computation(other) do
     IO.warn("Gamma for computation not implemented for: #{other.type}")
     # IEx.pry
+    0
+  end
+
+  def gamma_for_contract_call(computation) do
+    # TODO: make this calculate an actual amount
     0
   end
 
