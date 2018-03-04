@@ -1,15 +1,10 @@
 defmodule UltraDark.AST do
+  alias UltraDark.GammaCalculator
   @moduledoc """
     Manipulate javascript as an abstract syntax tree. This module is responsible
     for sanitizing contracts and creating gamma charges within them
   """
 
-  # Gamma costs are broken out into the following sets, with each item in @base costing
-  # 2 gamma, each in @low costing 3, @medium costing 5 and @medium_high costing 6
-  @base [:^, :==, :!=, :===, :!==, :<=, :<, :>, :>=, :instanceof, :|, :&, :"<<", :">>", :>>>, :in]
-  @low [:+, :-]
-  @medium [:*, :/, :%]
-  @medium_high [:++, :--]
   @excluded_identifiers ["constructor", "push"]
   @sanitize_prefix "sanitized_"
 
@@ -54,62 +49,15 @@ defmodule UltraDark.AST do
 
   def remap_with_gamma([], new_ast), do: new_ast
 
-  @doc """
-    Takes in a computation provided by ESTree, and returns a call to the
-    `UltraDark.Contract.charge_gamma` function defined in contracts/Contract.js,
-    with an amount proportionate to the computational complexity of the computation.
-  """
-  def generate_gamma_charge(computation) do
+  # Takes in a computation provided by ESTree, and returns a call to the
+  # `UltraDark.Contract.charge_gamma` function defined in contracts/Contract.js,
+  # with an amount proportionate to the computational complexity of the computation.
+  defp generate_gamma_charge(computation) do
     computation
-    |> gamma_for_computation
+    |> GammaCalculator.gamma_for_computation
     |> (&generate_from_source("UltraDark.charge_gamma(#{&1})").body).()
     |> List.first()
   end
-
-  def gamma_for_computation(%ESTree.CallExpression{callee: %ESTree.MemberExpression{object: %ESTree.Identifier{name: "UltraDark"}}} = ultradark_source_call), do: gamma_for_contract_call(ultradark_source_call)
-  def gamma_for_computation(%ESTree.BinaryExpression{operator: operator}), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.UpdateExpression{operator: operator}), do: compute_gamma_for_operator(operator)
-  def gamma_for_computation(%ESTree.ExpressionStatement{expression: expression}), do: gamma_for_computation(expression)
-  def gamma_for_computation(%ESTree.ReturnStatement{argument: argument}), do: gamma_for_computation(argument)
-  def gamma_for_computation(%ESTree.VariableDeclaration{declarations: declarations}), do: gamma_for_computation(declarations)
-  def gamma_for_computation(%ESTree.VariableDeclarator{init: %{value: value}}), do: calculate_gamma_for_declaration(value)
-  # def gamma_for_computation(%ESTree.AssignmentExpression{ left: left }), do: IEx.pry
-  def gamma_for_computation(%ESTree.CallExpression{}), do: 0
-  def gamma_for_computation([first | rest]), do: gamma_for_computation(rest, [gamma_for_computation(first)])
-  def gamma_for_computation([first | rest], gamma_list), do: gamma_for_computation(rest, [gamma_for_computation(first) | gamma_list])
-  def gamma_for_computation([], gamma_list), do: Enum.reduce(gamma_list, fn gamma, acc -> acc + gamma end)
-  def gamma_for_computation(other) do
-    IO.warn("Gamma for computation not implemented for: #{other.type}")
-    # IEx.pry
-    0
-  end
-
-  def gamma_for_contract_call(computation) do
-    # TODO: make this calculate an actual amount
-    0
-  end
-
-  @doc """
-    Takes in a variable declaration and returns the gamma necessary to store the data
-    within the contract. The cost is mapped to 2500 gamma per byte
-  """
-  @spec calculate_gamma_for_declaration(any) :: number
-  def calculate_gamma_for_declaration(value) do
-    # Is there a cleaner way to calculate the memory size of any var?
-    (value |> :erlang.term_to_binary() |> byte_size) * 2500
-  end
-
-  @doc """
-    Takes in a binary tree expression and returns the amount of gamma necessary
-    in order to perform the expression
-  """
-  @spec compute_gamma_for_operator(atom) :: number | {:error, tuple}
-  defp compute_gamma_for_operator(operator) when operator in @base, do: 2
-  defp compute_gamma_for_operator(operator) when operator in @low, do: 3
-  defp compute_gamma_for_operator(operator) when operator in @medium, do: 5
-  defp compute_gamma_for_operator(operator) when operator in @medium_high, do: 6
-  defp compute_gamma_for_operator(operator), do: {:error, {:no_compute_or_update_expression_gamma, operator}}
-
 
   @doc """
     Sanitizes the names of variables and functions within a contract to ensure that

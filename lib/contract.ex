@@ -1,5 +1,6 @@
 defmodule UltraDark.Contract do
-  alias UltraDark.{Ledger, AST, Utilities, ChainState, Transaction}
+  alias UltraDark.{Ledger, AST, Utilities, ChainState, Transaction, GammaCalculator}
+  require IEx
 
   @moduledoc """
     Parse, compile, and run javascript
@@ -71,6 +72,8 @@ defmodule UltraDark.Contract do
     case execution_result do
       [result, gamma, new_chainstate] ->
         ChainState.update(contract_address, new_chainstate)
+
+        gamma = gamma + GammaCalculator.gamma_for_state_change(new_chainstate)
         {:ok, result, gamma}
       %{"error" => error} ->
         {:error, error}

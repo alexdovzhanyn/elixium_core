@@ -15,7 +15,13 @@ class ThisIsAContract extends UltraDark.Contract {
 
     UltraDark.updateChainState({
       somevalue: x,
-      othervalue: "boring other value"
+      othervalue: "boring other value",
+      third_val: {
+        wow: 12,
+        now: {
+          another: "abracadabra"
+        }
+      }
     })
 
     return "The hash is: " + this.block_hash + ", but the transaction id is: " + this.transaction_id
