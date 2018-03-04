@@ -14,7 +14,7 @@ defmodule ContractTest do
     transaction =
       %Transaction{
         data: contract_bin,
-        txtype: "CONTRACT"
+        txtype: "CTC"
       }
     transaction = %{transaction | id: Transaction.calculate_hash(transaction)}
 
@@ -25,11 +25,20 @@ defmodule ContractTest do
     ChainState.create_new(contract_address, transaction.id, mined_block)
     Blockchain.add_block(chain, mined_block)
 
-    interacting_transaction = %Transaction{ max_gamma: 100_000 }
+    interacting_transaction = %Transaction{ max_gamma: 100_000, outputs: [%{txoid: "faketxo", addr: contract_address, amount: 100_000}]}
 
-    assert {:ok, _result, _gamma} =
+    assert {:ok, contract_result, contract_gamma} =
       contract_address
       |> UltraDark.Contract.run_contract({"main", []}, interacting_transaction)
+
+    gamma_transaction = %Transaction{
+      txtype: "CTC_CHARGE",
+      inputs: interacting_transaction.outputs,
+      outputs: [
+        %{txoid: "sometxo", addr: "miner", amount: contract_gamma},
+        %{txoid: "othertxo", addr: "return addr", amount: interacting_transaction.max_gamma - contract_gamma}
+      ]
+    }
   end
 
   # test "can call method from contract that exceeds gamma" do
