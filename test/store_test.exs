@@ -23,6 +23,6 @@ defmodule StoreTest do
   test "can transact with store" do
     initialize(@store)
 
-    assert :ok = transact @store, do: &Exleveldb.put(&1, :my_key, "the data")
+    assert :ok = transact(@store, do: &Exleveldb.put(&1, :my_key, "the data"))
   end
 end

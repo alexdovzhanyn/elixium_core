@@ -110,16 +110,17 @@ defmodule UltraDark.Blockchain.Block do
   """
   @spec calculate_target(float) :: number
   def calculate_target(difficulty) do
-    (round(:math.pow(16, 64 - difficulty))) - 1
+    round(:math.pow(16, 64 - difficulty)) - 1
   end
 
   @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
-    D.div(D.new(100), D.new(:math.pow(2, Integer.floor_div(block_index, 200000))))
+    D.div(D.new(100), D.new(:math.pow(2, Integer.floor_div(block_index, 200_000))))
   end
 
   @spec total_block_fees(list) :: Decimal
   def total_block_fees(transactions) do
-    transactions |> Enum.reduce(D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
+    transactions
+    |> Enum.reduce(D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
   end
 end

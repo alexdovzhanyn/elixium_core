@@ -76,10 +76,10 @@ defmodule BlockTest do
   end
 
   test "can correctly calculate block reward" do
-    assert D.equal? Block.calculate_block_reward(1), D.new(100)
-    assert D.equal? Block.calculate_block_reward(200000), D.new(50)
-    assert D.equal? Block.calculate_block_reward(175000), D.new(100)
-    assert D.equal? Block.calculate_block_reward(3000000), D.new(0.0030517578125)
+    assert D.equal?(Block.calculate_block_reward(1), D.new(100))
+    assert D.equal?(Block.calculate_block_reward(200_000), D.new(50))
+    assert D.equal?(Block.calculate_block_reward(175_000), D.new(100))
+    assert D.equal?(Block.calculate_block_reward(3_000_000), D.new(0.0030517578125))
   end
 
   test "can calculate block fees" do
@@ -104,6 +104,6 @@ defmodule BlockTest do
       }
     ]
 
-    assert D.equal? Block.total_block_fees(transactions), D.new(158.23)
+    assert D.equal?(Block.total_block_fees(transactions), D.new(158.23))
   end
 end

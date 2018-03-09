@@ -43,7 +43,7 @@ defmodule TransactionTest do
 
     tx = %{tx | id: Transaction.calculate_hash(tx)}
 
-    expected_outputs =  %{
+    expected_outputs = %{
       fee: D.new(37.45),
       outputs: [
         %{

@@ -18,13 +18,14 @@ defmodule UltraDark.Validator do
     last_block = List.first(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
-       :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
-       :ok <- valid_hash?(block),
-       :ok <- valid_coinbase?(block),
-  	   :ok <- valid_transactions?(block),
-  	   :ok <- valid_difficulty?(block, difficulty)
-    do :ok
-    else err -> err
+         :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
+         :ok <- valid_hash?(block),
+         :ok <- valid_coinbase?(block),
+         :ok <- valid_transactions?(block),
+         :ok <- valid_difficulty?(block, difficulty) do
+      :ok
+    else
+      err -> err
     end
   end
 
