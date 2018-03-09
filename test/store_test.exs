@@ -17,12 +17,12 @@ defmodule StoreTest do
 
   test "can check if store is empty" do
     initialize(@store)
-    assert is_empty?(@store) == true
+    assert empty?(@store) == true
   end
 
   test "can transact with store" do
     initialize(@store)
 
-    assert :ok = transact @store, do: &Exleveldb.put(&1, :my_key, "the data")
+    assert :ok = transact(@store, do: &Exleveldb.put(&1, :my_key, "the data"))
   end
 end

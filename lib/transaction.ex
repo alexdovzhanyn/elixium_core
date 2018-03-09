@@ -2,6 +2,10 @@ defmodule UltraDark.Transaction do
   alias UltraDark.{Transaction, Utilities}
   alias Decimal, as: D
 
+  @moduledoc """
+    Contains all the functions that pertain to creating valid transactions
+  """
+
   defstruct id: nil,
         data: nil,
         inputs: [],

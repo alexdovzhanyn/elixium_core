@@ -2,6 +2,10 @@ defmodule UltraDark.Blockchain.Block do
   alias UltraDark.{Blockchain.Block, Utilities, Transaction}
   alias Decimal, as: D
 
+  @moduledoc """
+    Provides functions for creating blocks and mining new ones
+  """
+
   defstruct index: nil,
             hash: nil,
             previous_hash: nil,
