@@ -2,6 +2,11 @@ defmodule UltraDark.Ledger do
   alias UltraDark.Blockchain.Block
   use UltraDark.Store
 
+  @moduledoc """
+    Provides an interface for interacting with the blockchain stored within LevelDB. This
+    is where blocks are stored and fetched
+  """
+
   @store_dir ".chaindata"
 
   def initialize do
@@ -43,7 +48,7 @@ defmodule UltraDark.Ledger do
     end
   end
 
-  def is_empty? do
-    is_empty?(@store_dir)
+  def empty? do
+    empty?(@store_dir)
   end
 end

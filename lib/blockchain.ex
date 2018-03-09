@@ -6,11 +6,15 @@ defmodule UltraDark.Blockchain do
   @target_blocktime 120
   @diff_rebalance_offset 10080
 
+  @moduledoc """
+    Wrapper functions for interacting with the blockchain on a high level
+  """
+
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
   """
   def initialize do
-    if Ledger.is_empty?() do
+    if Ledger.empty?() do
       add_block([], Block.initialize())
     else
       Ledger.retrieve_chain()

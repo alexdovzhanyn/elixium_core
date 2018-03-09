@@ -1,6 +1,10 @@
 defmodule UltraDark.UtxoStore do
   use UltraDark.Store
 
+  @moduledoc """
+    Provides an interface for interacting with the UTXOs stored in level db
+  """
+
   @store_dir ".utxo"
 
   def initialize do

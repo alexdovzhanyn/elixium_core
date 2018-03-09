@@ -1,6 +1,10 @@
 defmodule UltraDark.Store do
   require Exleveldb
 
+  @moduledoc """
+    Provides convinience methods for interacting with LevelDB 
+  """
+
   defmacro __using__(_opts) do
     quote do
       import unquote(__MODULE__)
@@ -27,7 +31,7 @@ defmodule UltraDark.Store do
     end
   end
 
-  def is_empty?(store) do
+  def empty?(store) do
     transact store do
       &Exleveldb.is_empty?(&1)
     end

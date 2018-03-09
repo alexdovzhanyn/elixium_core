@@ -4,6 +4,10 @@ defmodule UltraDark.KeyPair do
   @curve :secp256k1
   @hashtype :sha256
 
+  @moduledoc """
+    All the functions responsible for creating keypairs and using them to sign data / verify signatures
+  """
+
   @doc """
     Creates a new keypair and stores the private key in a keyfile. Returns the public and private key
   """

@@ -17,7 +17,7 @@ defmodule StoreTest do
 
   test "can check if store is empty" do
     initialize(@store)
-    assert is_empty?(@store) == true
+    assert empty?(@store) == true
   end
 
   test "can transact with store" do
