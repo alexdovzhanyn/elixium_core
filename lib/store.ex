@@ -1,6 +1,12 @@
 defmodule UltraDark.Store do
   require Exleveldb
 
+  defmacro __using__(_opts) do
+    quote do
+      import unquote(__MODULE__)
+    end
+  end
+
   def initialize(store) do
     # Generate a new leveldb instance if none exists
     {:ok, ref} = Exleveldb.open(store)
@@ -10,17 +16,20 @@ defmodule UltraDark.Store do
 
   @doc """
     We don't want to have to remember to open and keep a reference to the leveldb instance
-    each time we interact with the chain. Let's make a wrapper function that does this for us
+    each time we interact with the chain. Let's make a wrapper that does this for us
   """
-  def transact(function, store) do
-    {:ok, ref} = Exleveldb.open(store)
-    result = function.(ref)
-    Exleveldb.close(ref)
-    result
+  defmacro transact(store, do: block) do
+    quote bind_quoted: [store: store, block: block] do
+      {:ok, ref} = Exleveldb.open(store)
+      result = block.(ref)
+      Exleveldb.close(ref)
+      result
+    end
   end
 
   def is_empty?(store) do
-    fn ref -> Exleveldb.is_empty?(ref) end
-    |> transact(store)
+    transact store do
+      &Exleveldb.is_empty?(&1)
+    end
   end
 end

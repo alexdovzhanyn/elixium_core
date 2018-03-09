@@ -1,11 +1,10 @@
 defmodule UltraDark.UtxoStore do
-  alias UltraDark.Store
-  require Exleveldb
+  use UltraDark.Store
 
   @store_dir ".utxo"
 
   def initialize do
-    Store.initialize(@store_dir)
+    initialize(@store_dir)
   end
 
   @doc """
@@ -13,14 +12,16 @@ defmodule UltraDark.UtxoStore do
   """
   @spec add_utxo(map) :: :ok | {:error, any}
   def add_utxo(utxo) do
-    fn ref -> Exleveldb.put(ref, String.to_atom(utxo.txoid), :erlang.term_to_binary(utxo)) end
-    |> Store.transact(@store_dir)
+    transact @store_dir do
+      &Exleveldb.put(&1, String.to_atom(utxo.txoid), :erlang.term_to_binary(utxo))
+    end
   end
 
   @spec remove_utxo(String.t()) :: :ok | {:error, any}
   def remove_utxo(txoid) do
-    fn ref -> Exleveldb.delete(ref, String.to_atom(txoid)) end
-    |> Store.transact(@store_dir)
+    transact @store_dir do
+      &Exleveldb.delete(&1, String.to_atom(txoid))
+    end
   end
 
   @doc """
@@ -28,46 +29,48 @@ defmodule UltraDark.UtxoStore do
   """
   @spec retrieve_utxo(String.t()) :: map
   def retrieve_utxo(txoid) do
-    fn ref ->
-      {:ok, utxo} = Exleveldb.get(ref, String.to_atom(txoid))
-      :erlang.binary_to_term(utxo)
+    transact @store_dir do
+      fn ref ->
+        {:ok, utxo} = Exleveldb.get(ref, String.to_atom(txoid))
+        :erlang.binary_to_term(utxo)
+      end
     end
-    |> Store.transact(@store_dir)
   end
 
   @spec retrieve_all_utxos :: list
   def retrieve_all_utxos do
-    fn ref ->
-      Exleveldb.map(ref, fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
+    transact @store_dir do
+      &Exleveldb.map(&1, fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
     end
-    |> Store.transact(@store_dir)
   end
 
   @spec update_with_transactions(list) :: :ok | {:error, any}
   def update_with_transactions(transactions) do
-    fn ref ->
-      remove =
-        transactions
-        |> Enum.flat_map(& &1.inputs)
-        |> Enum.map(&{:delete, &1.txoid})
+    transact @store_dir do
+      fn ref ->
+        remove =
+          transactions
+          |> Enum.flat_map(& &1.inputs)
+          |> Enum.map(&{:delete, &1.txoid})
 
-      add =
-        transactions
-        |> Enum.flat_map(& &1.outputs)
-        |> Enum.map(&{:put, &1.txoid, :erlang.term_to_binary(&1)})
+        add =
+          transactions
+          |> Enum.flat_map(& &1.outputs)
+          |> Enum.map(&{:put, &1.txoid, :erlang.term_to_binary(&1)})
 
-      Exleveldb.write(ref, Enum.concat(remove, add))
+        Exleveldb.write(ref, Enum.concat(remove, add))
+      end
     end
-    |> Store.transact(@store_dir)
   end
 
   @spec find_by_address(String.t()) :: list
   def find_by_address(public_key) do
-    fn ref ->
-      ref
-      |> Exleveldb.map(fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
-      |> Enum.filter(&(&1.addr == public_key))
+    transact @store_dir do
+      fn ref ->
+        ref
+        |> Exleveldb.map(fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
+        |> Enum.filter(&(&1.addr == public_key))
+      end
     end
-    |> Store.transact(@store_dir)
   end
 end
