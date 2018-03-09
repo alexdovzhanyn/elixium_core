@@ -14,7 +14,7 @@ defmodule ContractTest do
     transaction =
       %Transaction{
         data: contract_bin,
-        txtype: "CTC"
+        txtype: "CONTRACT"
       }
     transaction = %{transaction | id: Transaction.calculate_hash(transaction)}
 
@@ -32,7 +32,7 @@ defmodule ContractTest do
       |> UltraDark.Contract.run_contract({"main", []}, interacting_transaction)
 
     gamma_transaction = %Transaction{
-      txtype: "CTC_CHARGE",
+      txtype: "CONTRACT_CHARGE",
       inputs: interacting_transaction.outputs,
       outputs: [
         %{txoid: "sometxo", addr: "miner", amount: contract_gamma},
