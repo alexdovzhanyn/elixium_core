@@ -1,6 +1,6 @@
-defmodule UltraDark.Ledger do
-  alias UltraDark.Blockchain.Block
-  use UltraDark.Store
+defmodule Elixium.Ledger do
+  alias Elixium.Blockchain.Block
+  use Elixium.Store
 
   @moduledoc """
     Provides an interface for interacting with the blockchain stored within LevelDB. This

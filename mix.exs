@@ -1,17 +1,17 @@
-defmodule UltraDark.Mixfile do
+defmodule Elixium.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :ultradark_core,
+      app: :elixium_core,
       version: "0.1.3",
       elixir: "~> 1.5",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      name: "UltraDark Core",
+      name: "Elixium Core",
       description: description(),
-      source_url: "https://github.com/ultradark/ultradark_core",
+      source_url: "https://github.com/elixium/elixium_core",
       package: package()
     ]
   end
@@ -28,16 +28,16 @@ defmodule UltraDark.Mixfile do
   end
 
   defp description do
-    "The core package for the UltraDark blockchain, containing all the modules needed to run the chain"
+    "The core package for the Elixium blockchain, containing all the modules needed to run the chain"
   end
 
   defp package() do
     [
-      name: "ultradark_core",
+      name: "elixium_core",
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/ultradark/ultradark_core"}
+      links: %{"GitHub" => "https://github.com/elixium/elixium_core"}
     ]
   end
 end

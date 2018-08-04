@@ -1,6 +1,6 @@
 defmodule BlockchainTest do
-  alias UltraDark.Blockchain
-  alias UltraDark.Blockchain.Block
+  alias Elixium.Blockchain
+  alias Elixium.Blockchain.Block
   use ExUnit.Case, async: true
 
   setup _ do

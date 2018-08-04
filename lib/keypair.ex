@@ -1,4 +1,4 @@
-defmodule UltraDark.KeyPair do
+defmodule Elixium.KeyPair do
   @algorithm :ecdh
   @sigtype :ecdsa
   @curve :secp256k1

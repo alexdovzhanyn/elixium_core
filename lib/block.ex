@@ -1,7 +1,7 @@
-defmodule UltraDark.Blockchain.Block do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Utilities
-  alias UltraDark.Transaction
+defmodule Elixium.Blockchain.Block do
+  alias Elixium.Blockchain.Block
+  alias Elixium.Utilities
+  alias Elixium.Transaction
   alias Decimal, as: D
 
   @moduledoc """
@@ -18,7 +18,7 @@ defmodule UltraDark.Blockchain.Block do
             transactions: []
 
   @doc """
-    When the first node on the UltraDark network spins up, there won't be any blocks in the chain.
+    When the first node on the Elixium network spins up, there won't be any blocks in the chain.
     In order to create a base from which all nodes can agree, we create a block called a genesis block.
     This block has the data structure that a block would have, but has hard-coded values. This block
     never needs to be verified by nodes, as it doesn't contain any actual data. The block mined after the

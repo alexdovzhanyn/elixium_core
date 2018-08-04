@@ -1,5 +1,5 @@
 defmodule KeyPairTest do
-  alias UltraDark.KeyPair
+  alias Elixium.KeyPair
   use ExUnit.Case, async: true
 
   setup _ do

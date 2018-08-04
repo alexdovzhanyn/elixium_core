@@ -1,5 +1,5 @@
 defmodule ErrorTest do
-  alias UltraDark.Error
+  alias Elixium.Error
   use ExUnit.Case, async: true
 
   test "can stringify invalid index errors" do

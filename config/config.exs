@@ -11,11 +11,11 @@ import_config "../apps/*/config/config.exs"
 
 # You can configure your application as:
 #
-#     config :ultradark, key: :value
+#     config :elixium, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:ultradark, :key)
+#     Application.get_env(:elixium, :key)
 #
 # You can also configure a 3rd-party app:
 #
