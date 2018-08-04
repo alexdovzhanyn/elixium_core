@@ -1,4 +1,8 @@
 defmodule UltraDark.Utilities do
+  @moduledoc """
+    Various functions that don't need their own module, since theyre used in multiple
+    places for different things
+  """
 
   def sha_base16(input) do
     :sha256

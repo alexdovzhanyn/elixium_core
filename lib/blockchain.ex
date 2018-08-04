@@ -6,6 +6,10 @@ defmodule UltraDark.Blockchain do
   @target_blocktime 120
   @diff_rebalance_offset 10080
 
+  @moduledoc """
+    Wrapper functions for interacting with the blockchain on a high level
+  """
+
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
   """

@@ -1,5 +1,5 @@
 defmodule StoreTest do
-  alias UltraDark.Store
+  use UltraDark.Store
   require Exleveldb
   use ExUnit.Case, async: true
 
@@ -11,24 +11,18 @@ defmodule StoreTest do
   end
 
   test "can create a new store" do
-    Store.initialize(@store)
+    initialize(@store)
     assert File.exists?(@store) == true
   end
 
   test "can check if store is empty" do
-    Store.initialize(@store)
-    assert Store.is_empty?(@store) == true
+    initialize(@store)
+    assert empty?(@store) == true
   end
 
   test "can transact with store" do
-    Store.initialize(@store)
+    initialize(@store)
 
-    res =
-      fn ref ->
-        Exleveldb.put(ref, :my_key, "the data")
-      end
-      |> Store.transact(@store)
-
-    assert res == :ok
+    assert :ok = transact(@store, do: &Exleveldb.put(&1, :my_key, "the data"))
   end
 end
