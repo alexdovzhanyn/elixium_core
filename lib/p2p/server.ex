@@ -1,6 +1,8 @@
 defmodule Elixium.P2P.Server do
   use GenServer
 
+
+  # TODO: http://andrealeopardi.com/posts/handling-tcp-connections-in-elixir/
   @initial_state %{socket: nil}
 
   def start_link do
