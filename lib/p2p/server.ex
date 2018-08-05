@@ -1,17 +1,27 @@
 defmodule Elixium.P2P.Server do
-  use GenServer
+  @port 4001
 
+  # Start a server and pass the socket to a listener function
+  def start do
+    IO.puts "Starting server on port #{@port}."
+    {:ok, listen_socket} = :gen_tcp.listen(@port, [:binary, reuseaddr: true, active: false])
 
-  # TODO: http://andrealeopardi.com/posts/handling-tcp-connections-in-elixir/
-  @initial_state %{socket: nil}
+    # TODO: Replace with ranch lib
+    for _ <- 0..10, do: spawn(fn -> server_handler(listen_socket) end)
 
-  def start_link do
-    GenServer.start_link(__MODULE__, @initial_state)
+    Process.sleep(:infinity)
   end
 
-  def init(state) do
-    opts = [:binary, active: false]
-    {:ok, socket} = :gen_tcp.connect('localhost', 6379, opts)
-    {:ok, %{state | socket: socket}}
+  def server_handler(listen_socket) do
+    {:ok, socket} = :gen_tcp.accept(listen_socket)
+
+    IO.puts "Accepted connection from client."
+    :ok = :gen_tcp.send(socket, "Hello?")
+
+    {:ok, data} = :gen_tcp.recv(socket, 0)
+    IO.puts "Recieved data: '#{data}'"
+    :ok = :gen_tcp.send(socket, "Hello, #{data}!\r\n")
+
+    server_handler(listen_socket)
   end
 end
