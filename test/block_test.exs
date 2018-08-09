@@ -1,6 +1,6 @@
 defmodule BlockTest do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Transaction
+  alias Elixium.Blockchain.Block
+  alias Elixium.Transaction
   alias Decimal, as: D
   use ExUnit.Case, async: true
 

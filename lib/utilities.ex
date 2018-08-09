@@ -1,4 +1,4 @@
-defmodule UltraDark.Utilities do
+defmodule Elixium.Utilities do
   @moduledoc """
     Various functions that don't need their own module, since theyre used in multiple
     places for different things

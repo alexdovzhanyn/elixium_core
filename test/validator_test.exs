@@ -1,8 +1,8 @@
 defmodule ValidatorTest do
-  alias UltraDark.Validator
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.KeyPair
-  alias UltraDark.Transaction
+  alias Elixium.Validator
+  alias Elixium.Blockchain.Block
+  alias Elixium.KeyPair
+  alias Elixium.Transaction
   use ExUnit.Case, async: true
 
   setup _ do

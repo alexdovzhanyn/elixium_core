@@ -1,6 +1,6 @@
-defmodule UltraDark.Transaction do
-  alias UltraDark.Transaction
-  alias UltraDark.Utilities
+defmodule Elixium.Transaction do
+  alias Elixium.Transaction
+  alias Elixium.Utilities
   alias Decimal, as: D
 
   @moduledoc """
