@@ -1,5 +1,7 @@
 defmodule Elixium.P2P.Client do
   require IEx
+  alias Elixium.P2P.GhostProtocol.Parser
+
   def start(ip, port) do
     IO.write "Connecting to node at host: #{ip}, port: #{port}... "
     {:ok, peer} = :gen_tcp.connect(ip, port, [:binary, active: false])
@@ -43,7 +45,7 @@ defmodule Elixium.P2P.Client do
 
     # Create the auth request (params are delimited by the | character)
     auth =
-      [prime, Integer.to_string(generator), salt, client_verifier, client_public_value]
+      ["HANDSHAKE", prime, Integer.to_string(generator), salt, client_verifier, client_public_value]
       |> Enum.reduce(fn x, acc -> acc <> "|" <> x end)
 
     :ok = :gen_tcp.send(peer, auth)

@@ -1,5 +1,6 @@
 defmodule Elixium.P2P.Server do
   require IEx
+  alias Elixium.P2P.GhostProtocol.Parser
   @port 4001
 
   # Start a server and pass the socket to a listener function
@@ -25,6 +26,7 @@ defmodule Elixium.P2P.Server do
   # Handle incoming authentication messages from peers, and save to their
   # identity to the database for later
   defp register_new_peer(request, socket) do
+    Parser.parse(request)
     [prime, generator, salt, client_verifier, client_public_value] = String.split(request, "|")
     {generator, _} = Integer.parse(generator)
     {:ok, client_verifier} = Base.decode64(client_verifier)
