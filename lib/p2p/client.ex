@@ -1,6 +1,7 @@
 defmodule Elixium.P2P.Client do
   require IEx
   alias Elixium.P2P.GhostProtocol.Parser
+  alias Elixium.P2P.GhostProtocol.Message
 
   def start(ip, port) do
     IO.write "Connecting to node at host: #{ip}, port: #{port}... "
@@ -28,7 +29,12 @@ defmodule Elixium.P2P.Client do
   # need to identify itself.
   defp authenticate_new_peer(peer) do
     {prime, generator} = Strap.prime_group(1024)
-    salt = :crypto.strong_rand_bytes(32)
+
+    prime = Base.encode64(prime)
+
+    salt =
+      :crypto.strong_rand_bytes(32)
+      |> Base.encode64
 
     client =
       Strap.protocol(:srp6a, prime, generator)
@@ -43,10 +49,14 @@ defmodule Elixium.P2P.Client do
       |> Strap.public_value()
       |> Base.encode64()
 
-    # Create the auth request (params are delimited by the | character)
-    auth =
-      ["HANDSHAKE", prime, Integer.to_string(generator), salt, client_verifier, client_public_value]
-      |> Enum.reduce(fn x, acc -> acc <> "|" <> x end)
+
+    auth = Message.build("HANDSHAKE", %{
+      prime: prime,
+      generator: Integer.to_string(generator),
+      salt: salt,
+      client_verifier: client_verifier,
+      client_public_value: client_public_value
+    })
 
     :ok = :gen_tcp.send(peer, auth)
     {:ok, response} = :gen_tcp.recv(peer, 0)

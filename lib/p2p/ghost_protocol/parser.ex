@@ -15,8 +15,7 @@ defmodule Elixium.P2P.GhostProtocol.Parser do
   defp parameters_to_map(parameters) when is_list(parameters) do
     x =
       parameters
-      |> Enum.map(kvpair_to_tuple) # Todo: find a good way to transform bits to strings, but leave strings alone
-
+      |> Enum.map(fn p -> kvpair_to_tuple(p) end) # TODO: find a good way to transform bits to strings, but leave strings alone
 
     IO.puts "Parsed parameters"
   end
@@ -28,7 +27,8 @@ defmodule Elixium.P2P.GhostProtocol.Parser do
   end
 
   defp kvpair_to_tuple(pair) do
-    
+    [key, value] = String.split(pair, ":")
+    {key, value}
   end
 
 end
