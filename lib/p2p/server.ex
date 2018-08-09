@@ -15,43 +15,38 @@ defmodule Elixium.P2P.Server do
 
   def server_handler(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
+    {:ok, data} = :gen_tcp.recv(socket, 0)
 
-    verifier = "AnotherPass"
-    salt = "mysalt"
-    {prime, generator} = Strap.prime_group(2048)
+    register_new_peer(data, socket)
+
+    server_handler(listen_socket)
+  end
+
+  # Handle incoming authentication messages from peers, and save to their
+  # identity to the database for later
+  defp register_new_peer(request, socket) do
+    [prime, generator, salt, client_verifier, client_public_value] = String.split(request, "|")
+    {generator, _} = Integer.parse(generator)
+    {:ok, client_verifier} = Base.decode64(client_verifier)
+    {:ok, client_public_value} = Base.decode64(client_public_value)
 
     server =
       Strap.protocol(:srp6a, prime, generator)
-      |> Strap.server(verifier)
+      |> Strap.server(client_verifier)
 
-    server_public_value = Strap.public_value(server)
-
-    IO.puts "Prime: #{Base.encode64(prime)}"
-    IO.puts "Generator: #{Integer.to_string(generator)}"
-    IO.puts "Salt: #{salt}"
-    IO.puts "Server Pub: #{Base.encode64(server_public_value)}"
+    server_public_value =
+      Strap.public_value(server)
+      |> Base.encode64()
 
     response =
-      [Base.encode64(prime), Integer.to_string(generator), salt, Base.encode64(server_public_value)]
+      [prime, Integer.to_string(generator), salt, server_public_value]
       |> Enum.reduce(fn x, acc -> acc <> "|" <> x end)
 
-    # IO.puts "Accepted connection from client."
     :ok = :gen_tcp.send(socket, response)
-
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-    # IO.puts "Recieved data: '#{data}'"
-
-    IO.puts "Client Pub: #{data}"
-
-    {:ok, client_public_value} = Base.decode64(data)
 
     {:ok, private_server_session_key} =
       Strap.session_key(server, client_public_value)
 
-    IO.puts "PRIVATE SESSION KEY = #{Base.encode64(private_server_session_key)}"
-
-    # :ok = :gen_tcp.send(socket, "Hello, #{data}!\r\n")
-
-    server_handler(listen_socket)
+    IO.puts Base.encode64(private_server_session_key)
   end
 end
