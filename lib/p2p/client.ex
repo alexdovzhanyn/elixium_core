@@ -38,36 +38,37 @@ defmodule Elixium.P2P.Client do
 
     client =
       Strap.protocol(:srp6a, prime, generator)
-      |> Strap.client("Alex", "thepass", salt)
+      |> Strap.client("Ale", "thepass", salt)
 
-    client_verifier =
+    verifier =
       Strap.verifier(client)
       |> Base.encode64()
 
-    client_public_value =
+    public_value =
       client
       |> Strap.public_value()
       |> Base.encode64()
 
 
-    auth = Message.build("HANDSHAKE", %{
+    handshake = Message.build("HANDSHAKE", %{
       prime: prime,
       generator: generator,
       salt: salt,
-      client_verifier: client_verifier,
-      client_public_value: client_public_value
+      verifier: verifier,
+      public_value: public_value
     })
 
-    IO.puts auth
+    :ok = :gen_tcp.send(peer, handshake)
 
-    :ok = :gen_tcp.send(peer, auth)
-    {:ok, response} = :gen_tcp.recv(peer, 0)
+    %{public_value: peer_public_value} =
+      peer
+      |> :gen_tcp.recv(0)
+      |> Parser.parse()
 
-    [prime, generator, salt, server_public_value] = String.split(response, "|")
-    {:ok, server_public_value} = Base.decode64(server_public_value)
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
 
-    {:ok, private_client_session_key} = Strap.session_key(client, server_public_value)
+    {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
 
-    IO.puts Base.encode64(private_client_session_key)
+    IO.puts "Authenticated with peer."
   end
 end

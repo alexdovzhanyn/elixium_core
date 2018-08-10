@@ -1,6 +1,7 @@
 defmodule Elixium.P2P.Server do
   require IEx
   alias Elixium.P2P.GhostProtocol.Parser
+  alias Elixium.P2P.GhostProtocol.Message
   @port 4001
 
   # Start a server and pass the socket to a listener function
@@ -16,7 +17,11 @@ defmodule Elixium.P2P.Server do
 
   def server_handler(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
-    {:ok, data} = :gen_tcp.recv(socket, 0)
+
+    data =
+      socket
+      |> :gen_tcp.recv(0)
+      |> Parser.parse
 
     register_new_peer(data, socket)
 
@@ -25,30 +30,35 @@ defmodule Elixium.P2P.Server do
 
   # Handle incoming authentication messages from peers, and save to their
   # identity to the database for later
-  defp register_new_peer(request, socket) do
-    Parser.parse(request)
-    [prime, generator, salt, client_verifier, client_public_value] = String.split(request, "|")
-    {generator, _} = Integer.parse(generator)
-    {:ok, client_verifier} = Base.decode64(client_verifier)
-    {:ok, client_public_value} = Base.decode64(client_public_value)
+  defp register_new_peer(message, socket) do
+    %{
+      public_value: peer_public_value,
+      generator: generator,
+      prime: prime,
+      verifier: peer_verifier,
+      salt: salt
+    } = message
+
+    {:ok, peer_verifier} = Base.decode64(peer_verifier)
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
 
     server =
       Strap.protocol(:srp6a, prime, generator)
-      |> Strap.server(client_verifier)
+      |> Strap.server(peer_verifier)
 
     server_public_value =
       Strap.public_value(server)
       |> Base.encode64()
 
-    response =
-      [prime, Integer.to_string(generator), salt, server_public_value]
-      |> Enum.reduce(fn x, acc -> acc <> "|" <> x end)
+    response = Message.build("HANDSHAKE_AUTH", %{
+      public_value: server_public_value
+    })
 
     :ok = :gen_tcp.send(socket, response)
 
-    {:ok, private_server_session_key} =
-      Strap.session_key(server, client_public_value)
+    {:ok, shared_master_key} =
+      Strap.session_key(server, peer_public_value)
 
-    IO.puts Base.encode64(private_server_session_key)
+    IO.puts "Authenticated with peer."
   end
 end
