@@ -4,13 +4,23 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     message =
       message_map
       |> Map.keys()
-      |> Enum.reduce("", & reduce_message(&1, &2, message_map))
+      |> Enum.map(& create_param(&1, Map.get(message_map, &1)))
+      |> Enum.join("|")
 
-    type <> message <> "\r\n"
+    ["Ghost", byte_size(message), type, message]
+    |> Enum.join("|")
   end
 
-  defp reduce_message(key, acc, message_map) do
-    acc <> "|" <> Atom.to_string(key) <> ":" <> Map.get(message_map, key)
+  defp create_param(key, value) when is_number(value) do
+    Atom.to_string(key) <> ":+" <> Integer.to_string(value)
+  end
+
+  defp create_param(key, value) when is_bitstring(value) do
+    Atom.to_string(key) <> ":^" <> value
+  end
+
+  defp create_param(key, value) when is_list(value) do
+
   end
 
 end

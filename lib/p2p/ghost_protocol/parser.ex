@@ -2,7 +2,7 @@ defmodule Elixium.P2P.GhostProtocol.Parser do
   require IEx
 
   def parse(message) do
-    [message_type | message_content] = String.split(message, "|")
+    [protocol, bytes, message_type | message_content] = String.split(message, "|")
 
     parse(message_type, message_content)
   end

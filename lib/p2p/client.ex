@@ -52,11 +52,13 @@ defmodule Elixium.P2P.Client do
 
     auth = Message.build("HANDSHAKE", %{
       prime: prime,
-      generator: Integer.to_string(generator),
+      generator: generator,
       salt: salt,
       client_verifier: client_verifier,
       client_public_value: client_public_value
     })
+
+    IO.puts auth
 
     :ok = :gen_tcp.send(peer, auth)
     {:ok, response} = :gen_tcp.recv(peer, 0)
