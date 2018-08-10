@@ -12,15 +12,21 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   end
 
   defp create_param(key, value) when is_number(value) do
-    Atom.to_string(key) <> ":+" <> Integer.to_string(value)
+    to_param_name(key) <> ":+" <> Integer.to_string(value)
   end
 
   defp create_param(key, value) when is_bitstring(value) do
-    Atom.to_string(key) <> ":^" <> value
+    to_param_name(key) <> ":^" <> value
   end
 
   defp create_param(key, value) when is_list(value) do
 
+  end
+
+  defp to_param_name(key) do
+    key
+    |> Atom.to_string()
+    |> String.upcase()
   end
 
 end
