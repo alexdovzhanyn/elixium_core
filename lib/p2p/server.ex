@@ -2,7 +2,7 @@ defmodule Elixium.P2P.Server do
   require IEx
   alias Elixium.P2P.GhostProtocol.Parser
   alias Elixium.P2P.GhostProtocol.Message
-  @port 4001
+  @port 31013
 
   # Start a server and pass the socket to a listener function
   def start do
@@ -17,6 +17,15 @@ defmodule Elixium.P2P.Server do
 
   def server_handler(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
+
+    {:ok, {addr, port}} = :inet.peername(socket)
+
+    peername =
+      addr
+      |> :inet_parse.ntoa()
+      |> to_string()
+
+    IO.puts "Accepted message from #{peername}"
 
     data =
       socket
