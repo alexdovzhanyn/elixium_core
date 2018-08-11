@@ -2,6 +2,7 @@ defmodule Elixium.P2P.Server do
   require IEx
   alias Elixium.P2P.GhostProtocol.Parser
   alias Elixium.P2P.GhostProtocol.Message
+  alias Elixium.P2P.PeerStore
   @port 31013
 
   # Start a server and pass the socket to a listener function
@@ -18,12 +19,7 @@ defmodule Elixium.P2P.Server do
   def server_handler(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
-    {:ok, {addr, port}} = :inet.peername(socket)
-
-    peername =
-      addr
-      |> :inet_parse.ntoa()
-      |> to_string()
+    peername = get_peername(socket)
 
     IO.puts "Accepted message from #{peername}"
 
@@ -69,5 +65,17 @@ defmodule Elixium.P2P.Server do
       Strap.session_key(server, peer_public_value)
 
     IO.puts "Authenticated with peer."
+
+    IO.puts Base.encode64(shared_master_key)
+
+    PeerStore.register_peer({get_peername(socket), salt, prime, generator})
+  end
+
+  defp get_peername(socket) do
+    {:ok, {addr, port}} = :inet.peername(socket)
+
+    addr
+    |> :inet_parse.ntoa()
+    |> to_string()
   end
 end
