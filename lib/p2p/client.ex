@@ -5,19 +5,23 @@ defmodule Elixium.P2P.Client do
   alias Elixium.P2P.PeerStore
 
   def start(ip, port) do
-    credentials = load_credentials()
+    had_previous_connection = had_previous_connection?(ip)
+
+    credentials =
+      ip
+      |> List.to_string()
+      |> load_credentials()
 
     IO.write "Connecting to node at host: #{ip}, port: #{port}... "
     {:ok, peer} = :gen_tcp.connect(ip, port, [:binary, active: false])
     IO.puts "Connected"
 
-    new_connection = true
-
-    session_key = if new_connection do
-      authenticate_new_peer(peer, credentials)
-    else
-      authenticate_peer(peer, credentials)
+    session_key = case had_previous_connection do
+      false -> authenticate_new_peer(peer, credentials)
+      true -> authenticate_peer(peer, credentials)
     end
+
+    IO.puts "Authenticated with peer."
 
     handle_connection(peer, session_key)
   end
@@ -40,7 +44,6 @@ defmodule Elixium.P2P.Client do
   # need to identify itself.
   defp authenticate_new_peer(peer, {identifier, password}) do
     {prime, generator} = Strap.prime_group(1024)
-
     prime = Base.encode64(prime)
 
     salt =
@@ -60,13 +63,15 @@ defmodule Elixium.P2P.Client do
       |> Strap.public_value()
       |> Base.encode64()
 
+    identifier = Base.encode64(identifier)
 
     handshake = Message.build("HANDSHAKE", %{
       prime: prime,
       generator: generator,
       salt: salt,
       verifier: verifier,
-      public_value: public_value
+      public_value: public_value,
+      identifier: identifier
     })
 
     :ok = :gen_tcp.send(peer, handshake)
@@ -77,31 +82,59 @@ defmodule Elixium.P2P.Client do
       |> Parser.parse()
 
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
-
     {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
-
-    IO.puts Base.encode64(shared_master_key)
-
-    IO.puts "Authenticated with peer."
 
     shared_master_key
   end
 
   defp authenticate_peer(peer, {identifier, password}) do
-    IO.puts "shouldnt be here yet"
+    encoded_id = Base.encode64(identifier)
+    handshake = Message.build("HANDSHAKE", %{identifier: encoded_id})
+    :ok = :gen_tcp.send(peer, handshake)
+
+    %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} =
+      peer
+      |> :gen_tcp.recv(0)
+      |> Parser.parse()
+
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
+
+    client =
+      Strap.protocol(:srp6a, prime, generator)
+      |> Strap.client(identifier, password, salt)
+
+    public_value =
+      client
+      |> Strap.public_value()
+      |> Base.encode64()
+
+
+    auth = Message.build("HANDSHAKE", %{public_value: public_value})
+    :ok = :gen_tcp.send(peer, auth)
+
+    {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
+
+    shared_master_key
   end
 
-  defp load_credentials do
-    case PeerStore.load_self() do
-      :not_found -> generate_and_store_credentials()
+  defp load_credentials(ip) do
+    case PeerStore.load_self(ip) do
+      :not_found -> generate_and_store_credentials(ip)
       {identifier, password} -> {identifier, password}
     end
   end
 
-  defp generate_and_store_credentials do
+  defp generate_and_store_credentials(ip) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
-    PeerStore.save_self(identifier, password)
+    PeerStore.save_self(identifier, password, ip)
 
     {identifier, password}
+  end
+
+  defp had_previous_connection?(ip) do
+    case PeerStore.load_self(ip) do
+      :not_found -> false
+      {identifier, password} -> true
+    end
   end
 end
