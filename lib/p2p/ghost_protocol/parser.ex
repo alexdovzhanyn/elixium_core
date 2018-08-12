@@ -2,11 +2,10 @@ defmodule Elixium.P2P.GhostProtocol.Parser do
   require IEx
 
   def parse({:ok, message}) do
-    [protocol, bytes, message_type | message_content] = String.split(message, "|")
-
-    parameter_map =
-      message_content
-      |> parameters_to_map()
+    case split_message(message) do
+      {:ok, message_type, message_content} -> parameters_to_map(message_content)
+      err -> err
+    end
   end
 
   defp parameters_to_map(parameters) do
@@ -49,4 +48,17 @@ defmodule Elixium.P2P.GhostProtocol.Parser do
     {int, _} = Integer.parse(value)
     int
   end
+
+  defp split_message(message) do
+    [protocol, bytes, message_type | message_content] = String.split(message, "|")
+
+    with :ok <- valid_protocol?(protocol)
+    do
+      {:ok, message_type, message_content}
+    else err -> err
+    end
+  end
+
+  defp valid_protocol?("Ghost"), do: :ok
+  defp valid_protocol?(p), do: {:error, {:invalid_protocol, p}}
 end

@@ -63,6 +63,8 @@ defmodule Elixium.P2P.Server do
       |> :gen_tcp.recv(0)
       |> Parser.parse
 
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
+
     {:ok, shared_master_key} = Strap.session_key(server, peer_public_value)
 
     shared_master_key
@@ -105,9 +107,14 @@ defmodule Elixium.P2P.Server do
   defp server_handler(socket, session_key) do
     peername = get_peername(socket)
 
+    data =
+      socket
+      |> :gen_tcp.recv(0)
+      |> Parser.parse
+
     IO.puts "Accepted message from #{peername}"
 
-    server_handler(listen_socket)
+    server_handler(socket, session_key)
   end
 
   defp get_peername(socket) do
