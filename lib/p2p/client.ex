@@ -3,6 +3,7 @@ defmodule Elixium.P2P.Client do
   alias Elixium.P2P.GhostProtocol.Parser
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
+  alias Elixium.Utilities
 
   def start(ip, port) do
     had_previous_connection = had_previous_connection?(ip)
@@ -16,19 +17,30 @@ defmodule Elixium.P2P.Client do
     {:ok, peer} = :gen_tcp.connect(ip, port, [:binary, active: false])
     IO.puts "Connected"
 
-    session_key = case had_previous_connection do
+    key = case had_previous_connection do
       false -> authenticate_new_peer(peer, credentials)
       true -> authenticate_peer(peer, credentials)
     end
+
+    <<session_key :: binary-size(32)>> <> rest = key
 
     IO.puts "Authenticated with peer."
 
     handle_connection(peer, session_key)
   end
 
-  def handle_connection(peer, credentials) do
+  def handle_connection(peer, session_key) do
     # {:ok, data} = :gen_tcp.recv(socket, 0)
+    data = IO.gets "What is the data? "
 
+    message =
+      Message.build("DATA", %{ data: data })
+      |> :erlang.term_to_binary()
+      |> Utilities.pad(32)
+
+    encrypted_message = :crypto.block_encrypt(:aes_ecb, session_key, message)
+
+    :ok = :gen_tcp.send(peer, encrypted_message)
 
     # {generator, _} = Integer.parse(generator)
     # {:ok, server_public_value} = Base.decode64(server_public_value)
@@ -37,7 +49,7 @@ defmodule Elixium.P2P.Client do
     # IO.puts Base.encode64(private_client_session_key)
 
 
-    handle_connection(peer, credentials)
+    handle_connection(peer, session_key)
   end
 
   # If this node has never communicated with a given peer, it will first

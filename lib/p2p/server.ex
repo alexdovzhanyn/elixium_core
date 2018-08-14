@@ -28,10 +28,12 @@ defmodule Elixium.P2P.Server do
       |> :gen_tcp.recv(0)
       |> Parser.parse
 
-    session_key = case handshake do
+    key = case handshake do
       %{identifier: i, salt: s, prime: p} -> register_new_peer(handshake, socket)
       %{identifier: identifier} -> authenticate_known_peer(identifier, socket)
     end
+
+    <<session_key :: binary-size(32)>> <> rest = key
 
     IO.puts "Authenticated with peer."
 
@@ -110,9 +112,11 @@ defmodule Elixium.P2P.Server do
     data =
       socket
       |> :gen_tcp.recv(0)
+      |> decrypt(session_key)
       |> Parser.parse
 
     IO.puts "Accepted message from #{peername}"
+    IO.inspect data
 
     server_handler(socket, session_key)
   end
@@ -123,5 +127,9 @@ defmodule Elixium.P2P.Server do
     addr
     |> :inet_parse.ntoa()
     |> to_string()
+  end
+
+  defp decrypt({:ok, data}, key) do
+    :crypto.block_decrypt(:aes_ecb, key, data) |> :erlang.binary_to_term
   end
 end

@@ -1,7 +1,9 @@
 defmodule Elixium.P2P.GhostProtocol.Parser do
   require IEx
 
-  def parse({:ok, message}) do
+  def parse({:ok, message}), do: parse(message)
+
+  def parse(message) do
     case split_message(message) do
       {:ok, message_type, message_content} -> parameters_to_map(message_content)
       err -> err
