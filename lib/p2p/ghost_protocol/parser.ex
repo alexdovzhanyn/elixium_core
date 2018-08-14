@@ -1,5 +1,4 @@
 defmodule Elixium.P2P.GhostProtocol.Parser do
-  require IEx
 
   def parse({:ok, message}), do: parse(message)
 

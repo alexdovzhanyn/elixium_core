@@ -107,18 +107,22 @@ defmodule Elixium.P2P.Server do
   end
 
   defp server_handler(socket, session_key) do
-    peername = get_peername(socket)
+    peername = get_peername(socket) # TODO: Shouldn't get peername on every request (we know it when the connection succeeds)
 
-    data =
-      socket
-      |> :gen_tcp.recv(0)
-      |> decrypt(session_key)
-      |> Parser.parse
+    case :gen_tcp.recv(socket, 0) do
+      {:ok, message} ->
+        data =
+          message
+          |> decrypt(session_key)
+          |> Parser.parse
 
-    IO.puts "Accepted message from #{peername}"
-    IO.inspect data
+        IO.puts "Accepted message from #{peername}"
+        IO.inspect data
 
-    server_handler(socket, session_key)
+        server_handler(socket, session_key)
+      {:error, reason} ->
+        IO.puts "Closed connection to #{peername} -> #{reason}"
+    end
   end
 
   defp get_peername(socket) do
@@ -129,7 +133,7 @@ defmodule Elixium.P2P.Server do
     |> to_string()
   end
 
-  defp decrypt({:ok, data}, key) do
+  defp decrypt(data, key) do
     :crypto.block_decrypt(:aes_ecb, key, data) |> :erlang.binary_to_term
   end
 end

@@ -14,19 +14,25 @@ defmodule Elixium.P2P.Client do
       |> load_credentials()
 
     IO.write "Connecting to node at host: #{ip}, port: #{port}... "
-    {:ok, peer} = :gen_tcp.connect(ip, port, [:binary, active: false])
-    IO.puts "Connected"
 
-    key = case had_previous_connection do
-      false -> authenticate_new_peer(peer, credentials)
-      true -> authenticate_peer(peer, credentials)
+    case :gen_tcp.connect(ip, port, [:binary, active: false]) do
+      {:ok, peer} ->
+        IO.puts "Connected"
+
+        key = if had_previous_connection do
+          authenticate_new_peer(peer, credentials)
+        else
+          authenticate_peer(peer, credentials)
+        end
+
+        <<session_key :: binary-size(32)>> <> rest = key
+
+        IO.puts "Authenticated with peer."
+
+        handle_connection(peer, session_key)
+      {:error, reason} ->
+        IO.puts "Error connecting to peer: #{reason}"
     end
-
-    <<session_key :: binary-size(32)>> <> rest = key
-
-    IO.puts "Authenticated with peer."
-
-    handle_connection(peer, session_key)
   end
 
   def handle_connection(peer, session_key) do
