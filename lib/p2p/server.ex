@@ -1,6 +1,5 @@
 defmodule Elixium.P2P.Server do
   require IEx
-  alias Elixium.P2P.GhostProtocol.Parser
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
   @port 31013
@@ -20,13 +19,9 @@ defmodule Elixium.P2P.Server do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
     peername = get_peername(socket)
-
     IO.puts "Accepted message from #{peername}"
 
-    handshake =
-      socket
-      |> :gen_tcp.recv(0)
-      |> Parser.parse
+    handshake = Message.read(socket)
 
     key = case handshake do
       %{identifier: i, salt: s, prime: p} -> register_new_peer(handshake, socket)
@@ -60,19 +55,14 @@ defmodule Elixium.P2P.Server do
 
     :ok = :gen_tcp.send(socket, challenge)
 
-    %{public_value: peer_public_value} =
-      socket
-      |> :gen_tcp.recv(0)
-      |> Parser.parse
-
+    %{public_value: peer_public_value} = Message.read(socket)
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
-
     {:ok, shared_master_key} = Strap.session_key(server, peer_public_value)
 
     shared_master_key
   end
 
-  # Handle incoming authentication messages from peers, and save to their
+  # Handle incoming authentication messages from peers, and save their
   # identity to the database for later
   defp register_new_peer(message, socket) do
     %{
@@ -108,21 +98,12 @@ defmodule Elixium.P2P.Server do
 
   defp server_handler(socket, session_key) do
     peername = get_peername(socket) # TODO: Shouldn't get peername on every request (we know it when the connection succeeds)
+    message = Message.read(socket, session_key)
 
-    case :gen_tcp.recv(socket, 0) do
-      {:ok, message} ->
-        data =
-          message
-          |> decrypt(session_key)
-          |> Parser.parse
+    IO.puts "Accepted message from #{peername}"
+    IO.inspect message
 
-        IO.puts "Accepted message from #{peername}"
-        IO.inspect data
-
-        server_handler(socket, session_key)
-      {:error, reason} ->
-        IO.puts "Closed connection to #{peername} -> #{reason}"
-    end
+    server_handler(socket, session_key)
   end
 
   defp get_peername(socket) do
@@ -133,7 +114,4 @@ defmodule Elixium.P2P.Server do
     |> to_string()
   end
 
-  defp decrypt(data, key) do
-    :crypto.block_decrypt(:aes_ecb, key, data) |> :erlang.binary_to_term
-  end
 end

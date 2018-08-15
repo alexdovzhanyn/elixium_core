@@ -1,9 +1,7 @@
 defmodule Elixium.P2P.Client do
   require IEx
-  alias Elixium.P2P.GhostProtocol.Parser
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
-  alias Elixium.Utilities
 
   def start(ip, port) do
     had_previous_connection = had_previous_connection?(ip)
@@ -36,24 +34,11 @@ defmodule Elixium.P2P.Client do
   end
 
   def handle_connection(peer, session_key) do
-    # {:ok, data} = :gen_tcp.recv(socket, 0)
     data = IO.gets "What is the data? "
 
-    message =
-      Message.build("DATA", %{ data: data })
-      |> :erlang.term_to_binary()
-      |> Utilities.pad(32)
+    message = Message.build("DATA", %{ data: data }, session_key)
 
-    encrypted_message = :crypto.block_encrypt(:aes_ecb, session_key, message)
-
-    :ok = :gen_tcp.send(peer, encrypted_message)
-
-    # {generator, _} = Integer.parse(generator)
-    # {:ok, server_public_value} = Base.decode64(server_public_value)
-    # {:ok, private_client_session_key} = Strap.session_key(client, server_public_value)
-
-    # IO.puts Base.encode64(private_client_session_key)
-
+    :ok = :gen_tcp.send(peer, message)
 
     handle_connection(peer, session_key)
   end
@@ -94,10 +79,7 @@ defmodule Elixium.P2P.Client do
 
     :ok = :gen_tcp.send(peer, handshake)
 
-    %{public_value: peer_public_value} =
-      peer
-      |> :gen_tcp.recv(0)
-      |> Parser.parse()
+    %{public_value: peer_public_value} = Message.read(peer)
 
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
     {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
@@ -110,10 +92,7 @@ defmodule Elixium.P2P.Client do
     handshake = Message.build("HANDSHAKE", %{identifier: encoded_id})
     :ok = :gen_tcp.send(peer, handshake)
 
-    %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} =
-      peer
-      |> :gen_tcp.recv(0)
-      |> Parser.parse()
+    %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} = Message.read(peer)
 
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
 
