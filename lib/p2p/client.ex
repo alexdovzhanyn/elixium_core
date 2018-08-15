@@ -3,7 +3,11 @@ defmodule Elixium.P2P.Client do
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
 
-  def start(ip, port) do
+  @doc """
+    Make an outgoing connection to a peer
+  """
+  @spec connect(charlist, integer) :: none | {:error, String.t}
+  def connect(ip, port) do
     had_previous_connection = had_previous_connection?(ip)
 
     credentials =
@@ -33,7 +37,8 @@ defmodule Elixium.P2P.Client do
     end
   end
 
-  def handle_connection(peer, session_key) do
+  @spec handle_connection(reference, <<_::256>>) :: none
+  defp handle_connection(peer, session_key) do
     data = IO.gets "What is the data? "
 
     message = Message.build("DATA", %{ data: data }, session_key)
@@ -45,6 +50,7 @@ defmodule Elixium.P2P.Client do
 
   # If this node has never communicated with a given peer, it will first
   # need to identify itself.
+  @spec authenticate_new_peer(reference, {bitstring, bitstring}) :: bitstring
   defp authenticate_new_peer(peer, {identifier, password}) do
     {prime, generator} = Strap.prime_group(1024)
     prime = Base.encode64(prime)
@@ -87,6 +93,7 @@ defmodule Elixium.P2P.Client do
     shared_master_key
   end
 
+  @spec authenticate_peer(reference, {bitstring, bitstring}) :: bitstring
   defp authenticate_peer(peer, {identifier, password}) do
     encoded_id = Base.encode64(identifier)
     handshake = Message.build("HANDSHAKE", %{identifier: encoded_id})
@@ -114,6 +121,7 @@ defmodule Elixium.P2P.Client do
     shared_master_key
   end
 
+  @spec load_credentials(String.t) :: {bitstring, bitstring}
   defp load_credentials(ip) do
     case PeerStore.load_self(ip) do
       :not_found -> generate_and_store_credentials(ip)
@@ -121,6 +129,7 @@ defmodule Elixium.P2P.Client do
     end
   end
 
+  @spec generate_and_store_credentials(String.t) :: {bitstring, bitstring}
   defp generate_and_store_credentials(ip) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
     PeerStore.save_self(identifier, password, ip)
@@ -128,6 +137,7 @@ defmodule Elixium.P2P.Client do
     {identifier, password}
   end
 
+  @spec had_previous_connection?(String.t) :: boolean
   defp had_previous_connection?(ip) do
     case PeerStore.load_self(ip) do
       :not_found -> false
