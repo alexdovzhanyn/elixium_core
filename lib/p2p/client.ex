@@ -3,6 +3,10 @@ defmodule Elixium.P2P.Client do
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
 
+  @moduledoc """
+    Provides functions for creating connections to other peers
+  """
+
   @doc """
     Make an outgoing connection to a peer
   """
@@ -41,7 +45,7 @@ defmodule Elixium.P2P.Client do
   defp handle_connection(peer, session_key) do
     data = IO.gets "What is the data? "
 
-    message = Message.build("DATA", %{ data: data }, session_key)
+    message = Message.build("DATA", %{data: data}, session_key)
 
     :ok = :gen_tcp.send(peer, message)
 
@@ -56,15 +60,18 @@ defmodule Elixium.P2P.Client do
     prime = Base.encode64(prime)
 
     salt =
-      :crypto.strong_rand_bytes(32)
-      |> Base.encode64
+      32
+      |> :crypto.strong_rand_bytes()
+      |> Base.encode64()
 
     client =
-      Strap.protocol(:srp6a, prime, generator)
+      :srp6a
+      |> Strap.protocol(prime, generator)
       |> Strap.client(identifier, password, salt)
 
     verifier =
-      Strap.verifier(client)
+      client
+      |> Strap.verifier()
       |> Base.encode64()
 
     public_value =

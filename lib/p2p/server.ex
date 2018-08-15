@@ -3,16 +3,22 @@ defmodule Elixium.P2P.Server do
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
 
+  @moduledoc """
+    Provides functions for listening + responding to incoming connections from a peer
+  """
+
   @doc """
     Start a server and pass the socket to a listener function
   """
   @spec start(integer) :: none
-  def start(port \\ 31013) do
+  def start(port \\ 31_013) do
     IO.puts "Starting server on port #{@port}."
     {:ok, listen_socket} = :gen_tcp.listen(@port, [:binary, reuseaddr: true, active: false])
 
-    # TODO: Replace with ranch lib
     # Spawn 10 processes to handle peer connections
+    # This is fine for now, we only ever will have a maximum connection to n
+    # nodes at a time. Ranch lib does connection pooling as well and it might
+    # be worth implementing in the future, but this should work
     for _ <- 0..10, do: spawn(fn -> authenticate_peer(listen_socket) end)
 
     Process.sleep(:infinity)
@@ -46,7 +52,8 @@ defmodule Elixium.P2P.Server do
 
     IO.puts "Authenticated with peer."
 
-    server_handler(socket, session_key)
+    peername = get_peername(socket)
+    server_handler(socket, session_key, peername)
   end
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
@@ -63,7 +70,8 @@ defmodule Elixium.P2P.Server do
     # Our public value. The peer will need this in order to generate the derived
     # session key
     public_value =
-      Strap.public_value(server)
+      server
+      |> Strap.public_value()
       |> Base.encode64()
 
     challenge = Message.build("HANDSHAKE_CHALLENGE", %{
@@ -99,11 +107,13 @@ defmodule Elixium.P2P.Server do
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
 
     server =
-      Strap.protocol(:srp6a, prime, generator)
+      :srp6a
+      |> Strap.protocol(prime, generator)
       |> Strap.server(peer_verifier)
 
     server_public_value =
-      Strap.public_value(server)
+      server
+      |> Strap.public_value()
       |> Base.encode64()
 
     response = Message.build("HANDSHAKE_AUTH", %{public_value: server_public_value})
@@ -119,15 +129,14 @@ defmodule Elixium.P2P.Server do
     shared_master_key
   end
 
-  @spec server_handler(reference, <<_::256>>) :: none
-  defp server_handler(socket, session_key) do
-    peername = get_peername(socket) # TODO: Shouldn't get peername on every request (we know it when the connection succeeds)
+  @spec server_handler(reference, <<_::256>>, String.t) :: none
+  defp server_handler(socket, session_key, peername) do
     message = Message.read(socket, session_key)
 
     IO.puts "Accepted message from #{peername}"
-    IO.inspect message
+    # IO.inspect message
 
-    server_handler(socket, session_key)
+    server_handler(socket, session_key, peername)
   end
 
   @spec get_peername(reference) :: String.t

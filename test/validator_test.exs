@@ -35,17 +35,17 @@ defmodule ValidatorTest do
       inputs: [
         %{
           txoid: "a",
-          signature: KeyPair.sign(private, "a") |> Base.encode16(),
+          signature: private |> KeyPair.sign("a") |> Base.encode16(),
           addr: public |> Base.encode16()
         },
         %{
           txoid: "b",
-          signature: KeyPair.sign(private, "b") |> Base.encode16(),
+          signature: private |> KeyPair.sign("b") |> Base.encode16(),
           addr: public |> Base.encode16()
         },
         %{
           txoid: "c",
-          signature: KeyPair.sign(private, "c") |> Base.encode16(),
+          signature: private |> KeyPair.sign("c") |> Base.encode16(),
           addr: public |> Base.encode16()
         }
       ]
@@ -55,17 +55,17 @@ defmodule ValidatorTest do
       inputs: [
         %{
           txoid: "a",
-          signature: KeyPair.sign(private, "a") |> Base.encode16(),
+          signature: private |> KeyPair.sign("a") |> Base.encode16(),
           addr: "a fake address!" |> Base.encode16()
         },
         %{
           txoid: "b",
-          signature: KeyPair.sign(private, "b") |> Base.encode16(),
+          signature: private |> KeyPair.sign("b") |> Base.encode16(),
           addr: "unencoded fake address!"
         },
         %{
           txoid: "c",
-          signature: KeyPair.sign(private, "c") |> Base.encode16(),
+          signature: private |> KeyPair.sign("c") |> Base.encode16(),
           addr: public |> Base.encode16()
         }
       ]

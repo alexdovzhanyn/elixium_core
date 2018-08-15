@@ -2,6 +2,10 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   require IEx
   alias Elixium.Utilities
 
+  @moduledoc """
+    Create and read messages that are sent over TCP
+  """
+
   @doc """
     Create an unencrypted message that will be passed to a peer, with the
     contents of message_map
@@ -21,7 +25,8 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   @spec build(String.t, map, <<_::256>>) :: String.t
   def build(type, message_map, session_key) do
     message =
-      binary_message(type, message_map)
+      type
+      |> binary_message(message_map)
       |> Utilities.pad(32)
 
     encrypted_message = :crypto.block_encrypt(:aes_ecb, session_key, message)
@@ -72,7 +77,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   @spec binary_message(String.t, map) :: binary
   defp binary_message(type, message) do
     message
-    |> Map.merge(%{ type: type })
+    |> Map.merge(%{type: type})
     |> :erlang.term_to_binary()
   end
 

@@ -1,6 +1,11 @@
 defmodule Elixium.P2P.PeerStore do
   use Elixium.Store
 
+  @moduledoc """
+    Store and load data related to peers that a node has communicated with.
+    This includes authentication data
+  """
+
   @store_dir ".peers"
 
   def initialize do

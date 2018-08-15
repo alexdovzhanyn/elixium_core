@@ -19,7 +19,8 @@ defmodule BlockchainTest do
     chain = Blockchain.initialize()
 
     block =
-      List.first(chain)
+      chain
+      |> List.first()
       |> Block.initialize()
       |> Block.mine()
 
