@@ -10,7 +10,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     Create an unencrypted message that will be passed to a peer, with the
     contents of message_map
   """
-  @spec build(String.t, map) :: String.t
+  @spec build(String.t(), map) :: String.t()
   def build(type, message_map) do
     message = binary_message(type, message_map)
     bytes = message_byte_size(message)
@@ -22,7 +22,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   @doc """
     Same as build/2 except the message is encrypted
   """
-  @spec build(String.t, map, <<_::256>>) :: String.t
+  @spec build(String.t(), map, <<_::256>>) :: String.t()
   def build(type, message_map, session_key) do
     message =
       type
@@ -74,14 +74,14 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   end
 
   # Convert a message body to binary
-  @spec binary_message(String.t, map) :: binary
+  @spec binary_message(String.t(), map) :: binary
   defp binary_message(type, message) do
     message
     |> Map.merge(%{type: type})
     |> :erlang.term_to_binary()
   end
 
-  @spec message_byte_size(String.t) :: integer
+  @spec message_byte_size(String.t()) :: integer
   defp message_byte_size(message) do
     message
     |> byte_size()
@@ -90,7 +90,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
 
   # Since message byte count must be specified as 8 bytes ("00000000"),
   # pad any integer with the necessary amount of 0's to make the length 8
-  @spec pad_bytes(integer) :: String.t
+  @spec pad_bytes(integer) :: String.t()
   defp pad_bytes(bytes) do
     bytes = Integer.to_string(bytes)
     num_zeros = 8 - byte_size(bytes)
@@ -100,11 +100,12 @@ defmodule Elixium.P2P.GhostProtocol.Message do
 
   # Read the head of a message, where the protocol type is specified, followed
   # by the length, in bytes, of the rest of the message
-  @spec parse_header(reference) :: {String.t, integer}
+  @spec parse_header(reference) :: {String.t(), integer}
   defp parse_header(socket) do
     {:ok, header} =
       socket
-      |> :gen_tcp.recv(15) # Will get "Ghost|00000000|" from socket
+      # Will get "Ghost|00000000|" from socket
+      |> :gen_tcp.recv(15)
 
     [protocol, bytes, _] = String.split(header, "|")
     {bytes, _} = Integer.parse(bytes)
@@ -114,7 +115,6 @@ defmodule Elixium.P2P.GhostProtocol.Message do
 
   @spec decrypt(bitstring, <<_::256>>) :: map
   defp decrypt(data, key) do
-    :crypto.block_decrypt(:aes_ecb, key, data) |> :erlang.binary_to_term
+    :crypto.block_decrypt(:aes_ecb, key, data) |> :erlang.binary_to_term()
   end
-
 end

@@ -12,7 +12,7 @@ defmodule Elixium.P2P.Server do
   """
   @spec start(integer) :: none
   def start(port \\ 31_013) do
-    IO.puts "Starting server on port #{@port}."
+    IO.puts("Starting server on port #{@port}.")
     {:ok, listen_socket} = :gen_tcp.listen(@port, [:binary, reuseaddr: true, active: false])
 
     # Spawn 10 processes to handle peer connections
@@ -32,7 +32,7 @@ defmodule Elixium.P2P.Server do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
     peername = get_peername(socket)
-    IO.puts "Accepted message from #{peername}"
+    IO.puts("Accepted message from #{peername}")
 
     handshake = Message.read(socket)
 
@@ -41,16 +41,19 @@ defmodule Elixium.P2P.Server do
     # to find them in the database. Otherwise, they should be passing
     # multiple pieces of data in this request, in effort to give us
     # the information we need in order to register them.
-    key = case handshake do
-      %{identifier: i, salt: s, prime: p} -> register_new_peer(handshake, socket)
-      %{identifier: identifier} -> authenticate_known_peer(identifier, socket)
-    end
+    key =
+      case handshake do
+        %{identifier: i, salt: s, prime: p} -> register_new_peer(handshake, socket)
+        %{identifier: identifier} -> authenticate_known_peer(identifier, socket)
+      end
 
     # Truncate the key to be 32 bytes (256 bits) since AES256 won't accept anything bigger
-    # TODO: Is this a security flaw?
-    <<session_key :: binary-size(32)>> <> rest = key
+    # Originally, I was worried this would be a security flaw, but according to
+    # https://crypto.stackexchange.com/questions/3288/is-truncating-a-hashed-private-key-with-sha-1-safe-to-use-as-the-symmetric-key-f
+    # is isn't
+    <<session_key::binary-size(32)>> <> rest = key
 
-    IO.puts "Authenticated with peer."
+    IO.puts("Authenticated with peer.")
 
     peername = get_peername(socket)
     server_handler(socket, session_key, peername)
@@ -58,7 +61,7 @@ defmodule Elixium.P2P.Server do
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
   # and then communicate back and forth with them until we've verified them
-  @spec authenticate_known_peer(String.t, reference) :: bitstring
+  @spec authenticate_known_peer(String.t(), reference) :: bitstring
   defp authenticate_known_peer(identifier, socket) do
     {salt, prime, generator, peer_verifier} = PeerStore.load_peer(identifier)
 
@@ -74,12 +77,13 @@ defmodule Elixium.P2P.Server do
       |> Strap.public_value()
       |> Base.encode64()
 
-    challenge = Message.build("HANDSHAKE_CHALLENGE", %{
-      salt: salt,
-      prime: prime,
-      generator: generator,
-      public_value: public_value
-    })
+    challenge =
+      Message.build("HANDSHAKE_CHALLENGE", %{
+        salt: salt,
+        prime: prime,
+        generator: generator,
+        public_value: public_value
+      })
 
     :ok = :gen_tcp.send(socket, challenge)
 
@@ -129,17 +133,17 @@ defmodule Elixium.P2P.Server do
     shared_master_key
   end
 
-  @spec server_handler(reference, <<_::256>>, String.t) :: none
+  @spec server_handler(reference, <<_::256>>, String.t()) :: none
   defp server_handler(socket, session_key, peername) do
     message = Message.read(socket, session_key)
 
-    IO.puts "Accepted message from #{peername}"
+    IO.puts("Accepted message from #{peername}")
     # IO.inspect message
 
     server_handler(socket, session_key, peername)
   end
 
-  @spec get_peername(reference) :: String.t
+  @spec get_peername(reference) :: String.t()
   defp get_peername(socket) do
     {:ok, {addr, port}} = :inet.peername(socket)
 
@@ -147,5 +151,4 @@ defmodule Elixium.P2P.Server do
     |> :inet_parse.ntoa()
     |> to_string()
   end
-
 end

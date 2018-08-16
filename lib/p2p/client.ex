@@ -10,7 +10,7 @@ defmodule Elixium.P2P.Client do
   @doc """
     Make an outgoing connection to a peer
   """
-  @spec connect(charlist, integer) :: none | {:error, String.t}
+  @spec connect(charlist, integer) :: none | {:error, String.t()}
   def connect(ip, port) do
     had_previous_connection = had_previous_connection?(ip)
 
@@ -19,31 +19,33 @@ defmodule Elixium.P2P.Client do
       |> List.to_string()
       |> load_credentials()
 
-    IO.write "Connecting to node at host: #{ip}, port: #{port}... "
+    IO.write("Connecting to node at host: #{ip}, port: #{port}... ")
 
     case :gen_tcp.connect(ip, port, [:binary, active: false]) do
       {:ok, peer} ->
-        IO.puts "Connected"
+        IO.puts("Connected")
 
-        key = if had_previous_connection do
-          authenticate_new_peer(peer, credentials)
-        else
-          authenticate_peer(peer, credentials)
-        end
+        key =
+          if had_previous_connection do
+            authenticate_new_peer(peer, credentials)
+          else
+            authenticate_peer(peer, credentials)
+          end
 
-        <<session_key :: binary-size(32)>> <> rest = key
+        <<session_key::binary-size(32)>> <> rest = key
 
-        IO.puts "Authenticated with peer."
+        IO.puts("Authenticated with peer.")
 
         handle_connection(peer, session_key)
+
       {:error, reason} ->
-        IO.puts "Error connecting to peer: #{reason}"
+        IO.puts("Error connecting to peer: #{reason}")
     end
   end
 
   @spec handle_connection(reference, <<_::256>>) :: none
   defp handle_connection(peer, session_key) do
-    data = IO.gets "What is the data? "
+    data = IO.gets("What is the data? ")
 
     message = Message.build("DATA", %{data: data}, session_key)
 
@@ -81,14 +83,15 @@ defmodule Elixium.P2P.Client do
 
     identifier = Base.encode64(identifier)
 
-    handshake = Message.build("HANDSHAKE", %{
-      prime: prime,
-      generator: generator,
-      salt: salt,
-      verifier: verifier,
-      public_value: public_value,
-      identifier: identifier
-    })
+    handshake =
+      Message.build("HANDSHAKE", %{
+        prime: prime,
+        generator: generator,
+        salt: salt,
+        verifier: verifier,
+        public_value: public_value,
+        identifier: identifier
+      })
 
     :ok = :gen_tcp.send(peer, handshake)
 
@@ -106,7 +109,8 @@ defmodule Elixium.P2P.Client do
     handshake = Message.build("HANDSHAKE", %{identifier: encoded_id})
     :ok = :gen_tcp.send(peer, handshake)
 
-    %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} = Message.read(peer)
+    %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} =
+      Message.read(peer)
 
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
 
@@ -119,7 +123,6 @@ defmodule Elixium.P2P.Client do
       |> Strap.public_value()
       |> Base.encode64()
 
-
     auth = Message.build("HANDSHAKE", %{public_value: public_value})
     :ok = :gen_tcp.send(peer, auth)
 
@@ -128,7 +131,7 @@ defmodule Elixium.P2P.Client do
     shared_master_key
   end
 
-  @spec load_credentials(String.t) :: {bitstring, bitstring}
+  @spec load_credentials(String.t()) :: {bitstring, bitstring}
   defp load_credentials(ip) do
     case PeerStore.load_self(ip) do
       :not_found -> generate_and_store_credentials(ip)
@@ -136,7 +139,7 @@ defmodule Elixium.P2P.Client do
     end
   end
 
-  @spec generate_and_store_credentials(String.t) :: {bitstring, bitstring}
+  @spec generate_and_store_credentials(String.t()) :: {bitstring, bitstring}
   defp generate_and_store_credentials(ip) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
     PeerStore.save_self(identifier, password, ip)
@@ -144,7 +147,7 @@ defmodule Elixium.P2P.Client do
     {identifier, password}
   end
 
-  @spec had_previous_connection?(String.t) :: boolean
+  @spec had_previous_connection?(String.t()) :: boolean
   defp had_previous_connection?(ip) do
     case PeerStore.load_self(ip) do
       :not_found -> false
