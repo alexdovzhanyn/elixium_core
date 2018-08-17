@@ -8,27 +8,29 @@ defmodule Elixium.P2P.Server do
   """
 
   @doc """
-    Start a server and pass the socket to a listener function
+    Start a server and pass the socket to a listener function.
+    Takes in a process id and an optional port parameter.
+    Messages received and parsed will be passed to the pid
+    specified. Returns a list of process IDs that the parent
+    can reference.
   """
-  @spec start(integer) :: none
-  def start(port \\ 31_013) do
-    IO.puts("Starting server on port #{@port}.")
-    {:ok, listen_socket} = :gen_tcp.listen(@port, [:binary, reuseaddr: true, active: false])
+  @spec start(pid, integer) :: List
+  def start(pid, port \\ 31_013) do
+    IO.puts("Starting server on port #{port}.")
+    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false])
 
     # Spawn 10 processes to handle peer connections
     # This is fine for now, we only ever will have a maximum connection to n
     # nodes at a time. Ranch lib does connection pooling as well and it might
     # be worth implementing in the future, but this should work
-    for _ <- 0..10, do: spawn(fn -> authenticate_peer(listen_socket) end)
-
-    Process.sleep(:infinity)
+    for _ <- 0..9, do: spawn(fn -> authenticate_peer(listen_socket, pid) end)
   end
 
   # Accept an incoming connection from a peer and decide whether
   # they are a new peer or someone we've talked to previously,
   # and then authenticate them accordingly
-  @spec authenticate_peer(reference) :: none
-  defp authenticate_peer(listen_socket) do
+  @spec authenticate_peer(reference, pid) :: none
+  defp authenticate_peer(listen_socket, pid) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
     peername = get_peername(socket)
@@ -50,13 +52,13 @@ defmodule Elixium.P2P.Server do
     # Truncate the key to be 32 bytes (256 bits) since AES256 won't accept anything bigger
     # Originally, I was worried this would be a security flaw, but according to
     # https://crypto.stackexchange.com/questions/3288/is-truncating-a-hashed-private-key-with-sha-1-safe-to-use-as-the-symmetric-key-f
-    # is isn't
+    # it isn't
     <<session_key::binary-size(32)>> <> rest = key
 
     IO.puts("Authenticated with peer.")
 
     peername = get_peername(socket)
-    server_handler(socket, session_key, peername)
+    server_handler(socket, session_key, peername, pid)
   end
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
@@ -133,14 +135,17 @@ defmodule Elixium.P2P.Server do
     shared_master_key
   end
 
-  @spec server_handler(reference, <<_::256>>, String.t()) :: none
-  defp server_handler(socket, session_key, peername) do
+  @spec server_handler(reference, <<_::256>>, String.t(), pid) :: none
+  defp server_handler(socket, session_key, peername, pid) do
     message = Message.read(socket, session_key)
 
     IO.puts("Accepted message from #{peername}")
-    # IO.inspect message
 
-    server_handler(socket, session_key, peername)
+    # Send out the message to the parent of this process (a.k.a the pid that
+    # was passed in when calling start/2)
+    send(pid, message)
+
+    server_handler(socket, session_key, peername, pid)
   end
 
   @spec get_peername(reference) :: String.t()

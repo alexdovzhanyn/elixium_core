@@ -73,6 +73,19 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     end
   end
 
+  @doc """
+    A wrapper function for :gen_tcp.send.
+    Should probably update the typespec to be more accurate with
+    the return value if theres an error.
+  """
+  @spec send(reference, binary) :: :ok | any
+  def send(socket, message) do
+    case :gen_tcp.send(socket, message) do
+      :ok -> :ok
+      err -> err
+    end
+  end
+
   # Convert a message body to binary
   @spec binary_message(String.t(), map) :: binary
   defp binary_message(type, message) do
