@@ -151,7 +151,7 @@ defmodule Elixium.P2P.Client do
   defp had_previous_connection?(ip) do
     case PeerStore.load_self(ip) do
       :not_found -> false
-      {identifier, password} -> true
+      {_identifier, _password} -> true
     end
   end
 end
