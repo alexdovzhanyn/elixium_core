@@ -45,7 +45,7 @@ defmodule Elixium.P2P.Server do
     # the information we need in order to register them.
     key =
       case handshake do
-        %{identifier: i, salt: s, prime: p} -> register_new_peer(handshake, socket)
+        %{identifier: _, salt: _, prime: _} -> register_new_peer(handshake, socket)
         %{identifier: identifier} -> authenticate_known_peer(identifier, socket)
       end
 
@@ -53,7 +53,7 @@ defmodule Elixium.P2P.Server do
     # Originally, I was worried this would be a security flaw, but according to
     # https://crypto.stackexchange.com/questions/3288/is-truncating-a-hashed-private-key-with-sha-1-safe-to-use-as-the-symmetric-key-f
     # it isn't
-    <<session_key::binary-size(32)>> <> rest = key
+    <<session_key::binary-size(32)>> <> _rest = key
 
     IO.puts("Authenticated with peer.")
 
@@ -150,7 +150,7 @@ defmodule Elixium.P2P.Server do
 
   @spec get_peername(reference) :: String.t()
   defp get_peername(socket) do
-    {:ok, {addr, port}} = :inet.peername(socket)
+    {:ok, {addr, _port}} = :inet.peername(socket)
 
     addr
     |> :inet_parse.ntoa()

@@ -32,7 +32,7 @@ defmodule Elixium.P2P.Client do
             authenticate_peer(peer, credentials)
           end
 
-        <<session_key::binary-size(32)>> <> rest = key
+        <<session_key::binary-size(32)>> <> _rest = key
 
         IO.puts("Authenticated with peer.")
 
