@@ -124,7 +124,6 @@ defmodule Elixium.P2P.Client do
       |> Strap.public_value()
       |> Base.encode64()
 
-
     "HANDSHAKE"
     |> Message.build(%{public_value: public_value})
     |> Message.send(peer)

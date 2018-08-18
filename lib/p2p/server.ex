@@ -81,11 +81,11 @@ defmodule Elixium.P2P.Server do
 
     "HANDSHAKE_CHALLENGE"
     |> Message.build(%{
-        salt: salt,
-        prime: prime,
-        generator: generator,
-        public_value: public_value
-      })
+      salt: salt,
+      prime: prime,
+      generator: generator,
+      public_value: public_value
+    })
     |> Message.send(socket)
 
     %{public_value: peer_public_value} = Message.read(socket)
