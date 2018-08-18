@@ -23,13 +23,14 @@ defmodule Elixium.P2P.Server do
     # This is fine for now, we only ever will have a maximum connection to n
     # nodes at a time. Ranch lib does connection pooling as well and it might
     # be worth implementing in the future, but this should work
-    handlers = for _ <- 0..9 do
-      %{
-        id: 16 |> :crypto.strong_rand_bytes() |> Base.encode16(),
-        start: {__MODULE__, :start_link, [listen_socket, pid]},
-        type: :worker
-      }
-    end
+    handlers =
+      for _ <- 0..9 do
+        %{
+          id: 16 |> :crypto.strong_rand_bytes() |> Base.encode16(),
+          start: {__MODULE__, :start_link, [listen_socket, pid]},
+          type: :worker
+        }
+      end
 
     # Spawn a supervisor process that restarts these handlers if any of them are to fail
     Supervisor.start_link(handlers, strategy: :one_for_one)
