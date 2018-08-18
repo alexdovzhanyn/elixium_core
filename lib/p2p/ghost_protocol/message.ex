@@ -78,8 +78,8 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     Should probably update the typespec to be more accurate with
     the return value if theres an error.
   """
-  @spec send(reference, binary) :: :ok | any
-  def send(socket, message) do
+  @spec send(binary, reference) :: :ok | any
+  def send(message, socket) do
     case :gen_tcp.send(socket, message) do
       :ok -> :ok
       err -> err

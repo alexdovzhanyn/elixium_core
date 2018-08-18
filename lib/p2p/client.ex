@@ -10,8 +10,8 @@ defmodule Elixium.P2P.Client do
   @doc """
     Make an outgoing connection to a peer
   """
-  @spec connect(charlist, integer) :: none | {:error, String.t()}
-  def connect(ip, port) do
+  @spec connect(pid, charlist, integer) :: none | {:error, String.t()}
+  def connect(pid, ip, port) do
     had_previous_connection = had_previous_connection?(ip)
 
     credentials =
@@ -43,15 +43,15 @@ defmodule Elixium.P2P.Client do
     end
   end
 
-  @spec handle_connection(reference, <<_::256>>) :: none
-  defp handle_connection(peer, session_key) do
+  @spec handle_connection(reference, <<_::256>>, pid) :: none
+  defp handle_connection(peer, session_key, pid) do
     data = IO.gets("What is the data? ")
 
-    message = Message.build("DATA", %{data: data}, session_key)
+    "DATA"
+    |> Message.build(%{data: data}, session_key)
+    |> Message.send(peer)
 
-    :ok = :gen_tcp.send(peer, message)
-
-    handle_connection(peer, session_key)
+    handle_connection(peer, session_key, pid)
   end
 
   # If this node has never communicated with a given peer, it will first
@@ -83,17 +83,16 @@ defmodule Elixium.P2P.Client do
 
     identifier = Base.encode64(identifier)
 
-    handshake =
-      Message.build("HANDSHAKE", %{
-        prime: prime,
-        generator: generator,
-        salt: salt,
-        verifier: verifier,
-        public_value: public_value,
-        identifier: identifier
-      })
-
-    :ok = :gen_tcp.send(peer, handshake)
+    "HANDSHAKE"
+    |> Message.build(, %{
+      prime: prime,
+      generator: generator,
+      salt: salt,
+      verifier: verifier,
+      public_value: public_value,
+      identifier: identifier
+    })
+    |> Message.send(peer)
 
     %{public_value: peer_public_value} = Message.read(peer)
 
@@ -106,8 +105,10 @@ defmodule Elixium.P2P.Client do
   @spec authenticate_peer(reference, {bitstring, bitstring}) :: bitstring
   defp authenticate_peer(peer, {identifier, password}) do
     encoded_id = Base.encode64(identifier)
-    handshake = Message.build("HANDSHAKE", %{identifier: encoded_id})
-    :ok = :gen_tcp.send(peer, handshake)
+
+    "HANDSHAKE"
+    |> Message.build(%{identifier: encoded_id})
+    |> Message.send(peer)
 
     %{prime: prime, generator: generator, salt: salt, public_value: peer_public_value} =
       Message.read(peer)
@@ -123,8 +124,10 @@ defmodule Elixium.P2P.Client do
       |> Strap.public_value()
       |> Base.encode64()
 
-    auth = Message.build("HANDSHAKE", %{public_value: public_value})
-    :ok = :gen_tcp.send(peer, auth)
+
+    "HANDSHAKE"
+    |> Message.build(, %{public_value: public_value})
+    |> Message.send(peer)
 
     {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
 

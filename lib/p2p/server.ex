@@ -79,15 +79,14 @@ defmodule Elixium.P2P.Server do
       |> Strap.public_value()
       |> Base.encode64()
 
-    challenge =
-      Message.build("HANDSHAKE_CHALLENGE", %{
+    "HANDSHAKE_CHALLENGE"
+    |> Message.build(%{
         salt: salt,
         prime: prime,
         generator: generator,
         public_value: public_value
       })
-
-    :ok = :gen_tcp.send(socket, challenge)
+    |> Message.send(socket)
 
     %{public_value: peer_public_value} = Message.read(socket)
     {:ok, peer_public_value} = Base.decode64(peer_public_value)
@@ -122,9 +121,9 @@ defmodule Elixium.P2P.Server do
       |> Strap.public_value()
       |> Base.encode64()
 
-    response = Message.build("HANDSHAKE_AUTH", %{public_value: server_public_value})
-
-    :ok = :gen_tcp.send(socket, response)
+    "HANDSHAKE_AUTH"
+    |> Message.build(%{public_value: server_public_value})
+    |> Message.send(socket)
 
     {:ok, shared_master_key} = Strap.session_key(server, peer_public_value)
 
