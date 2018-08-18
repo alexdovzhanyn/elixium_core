@@ -155,6 +155,26 @@ defmodule Elixium.P2P.Server do
 
   @spec server_handler(reference, <<_::256>>, String.t(), pid) :: none
   defp server_handler(socket, session_key, peername, pid) do
+    # Need to find a non-blocking way to wait for messages from TCP
+    # but also receive data from a parent process in the meantime.
+    # This article shows some promise with it's active: :once method :
+    # http://andrealeopardi.com/posts/handling-tcp-connections-in-elixir/
+    # case Message.check(socket) do
+    #   {:ok, data} ->
+    #     message = Message.read(socket, session_key)
+    #
+    #     IO.puts("Accepted message from #{peername}")
+    #
+    #     # Send out the message to the parent of this process (a.k.a the pid that
+    #     # was passed in when calling start/2)
+    #     send(pid, message)
+    #   :empty ->
+    #     # recieve do
+    #     #
+    #     # end
+    #     IO.puts "hi"
+    # end
+
     message = Message.read(socket, session_key)
 
     IO.puts("Accepted message from #{peername}")

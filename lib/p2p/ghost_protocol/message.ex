@@ -86,6 +86,16 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     end
   end
 
+  def check(socket) do
+    data = :gen_tcp.recv(socket, 0)
+
+    if byte_size(data) > 0 do
+      {:ok, data}
+    else
+      :empty
+    end
+  end
+
   # Convert a message body to binary
   @spec binary_message(String.t(), map) :: binary
   defp binary_message(type, message) do
