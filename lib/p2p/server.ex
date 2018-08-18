@@ -23,14 +23,32 @@ defmodule Elixium.P2P.Server do
     # This is fine for now, we only ever will have a maximum connection to n
     # nodes at a time. Ranch lib does connection pooling as well and it might
     # be worth implementing in the future, but this should work
-    for _ <- 0..9, do: spawn(fn -> authenticate_peer(listen_socket, pid) end)
+    handlers = for _ <- 0..9 do
+      %{
+        id: 16 |> :crypto.strong_rand_bytes() |> Base.encode16(),
+        start: {__MODULE__, :start_link, [listen_socket, pid]},
+        type: :worker
+      }
+    end
+
+    # Spawn a supervisor process that restarts these handlers if any of them are to fail
+    Supervisor.start_link(handlers, strategy: :one_for_one)
+  end
+
+  @doc """
+    Spawn a new handler, and have it run the authentication code immediately
+  """
+  @spec start_link(reference, pid) :: {:ok, pid}
+  def start_link(listen_socket, pid) do
+    new_pid = spawn_link(__MODULE__, :authenticate_peer, [listen_socket, pid])
+    {:ok, new_pid}
   end
 
   # Accept an incoming connection from a peer and decide whether
   # they are a new peer or someone we've talked to previously,
   # and then authenticate them accordingly
   @spec authenticate_peer(reference, pid) :: none
-  defp authenticate_peer(listen_socket, pid) do
+  def authenticate_peer(listen_socket, pid) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
     peername = get_peername(socket)
