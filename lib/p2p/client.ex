@@ -36,7 +36,7 @@ defmodule Elixium.P2P.Client do
 
         IO.puts("Authenticated with peer.")
 
-        handle_connection(peer, session_key)
+        handle_connection(peer, session_key, pid)
 
       {:error, reason} ->
         IO.puts("Error connecting to peer: #{reason}")
@@ -84,7 +84,7 @@ defmodule Elixium.P2P.Client do
     identifier = Base.encode64(identifier)
 
     "HANDSHAKE"
-    |> Message.build(, %{
+    |> Message.build(%{
       prime: prime,
       generator: generator,
       salt: salt,
@@ -126,7 +126,7 @@ defmodule Elixium.P2P.Client do
 
 
     "HANDSHAKE"
-    |> Message.build(, %{public_value: public_value})
+    |> Message.build(%{public_value: public_value})
     |> Message.send(peer)
 
     {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
