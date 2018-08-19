@@ -55,18 +55,15 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   end
 
   @doc """
-    Read a full encrypted message from the socket
+    Validate & decrypt a message
   """
-  @spec read(reference, <<_::256>>) :: map | {:error, :invalid_protocol}
-  def read(socket, session_key) do
-    {protocol, bytes} = parse_header(socket)
+  @spec read(binary, <<_::256>>) :: map | {:error, :invalid_protocol}
+  def read(data, session_key) do
+    [protocol, bytes, encrypted_message] = String.split(data, "|")
+    # {bytes, _} = Integer.parse(bytes)
 
     if protocol == "Ghost" do
-      {:ok, data} =
-        socket
-        |> :gen_tcp.recv(bytes)
-
-      data
+      encrypted_message
       |> decrypt(session_key)
     else
       {:error, :invalid_protocol}

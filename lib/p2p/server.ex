@@ -77,6 +77,8 @@ defmodule Elixium.P2P.Server do
     IO.puts("Authenticated with peer.")
 
     peername = get_peername(socket)
+
+    Process.put(:connected, peername)
     server_handler(socket, session_key, peername, pid)
   end
 
@@ -155,33 +157,30 @@ defmodule Elixium.P2P.Server do
 
   @spec server_handler(reference, <<_::256>>, String.t(), pid) :: none
   defp server_handler(socket, session_key, peername, pid) do
-    # Need to find a non-blocking way to wait for messages from TCP
-    # but also receive data from a parent process in the meantime.
-    # This article shows some promise with it's active: :once method :
-    # http://andrealeopardi.com/posts/handling-tcp-connections-in-elixir/
-    # case Message.check(socket) do
-    #   {:ok, data} ->
-    #     message = Message.read(socket, session_key)
-    #
-    #     IO.puts("Accepted message from #{peername}")
-    #
-    #     # Send out the message to the parent of this process (a.k.a the pid that
-    #     # was passed in when calling start/2)
-    #     send(pid, message)
-    #   :empty ->
-    #     # recieve do
-    #     #
-    #     # end
-    #     IO.puts "hi"
-    # end
+    # Accept TCP messages without blocking
+    :inet.setopts(socket, [active: :once])
 
-    message = Message.read(socket, session_key)
+    receive do
+      # When receiving a message through TCP, send the data back to the parent
+      # process so it can handle it however it wants
+      {:tcp, _, data} ->
+        message = Message.read(data, session_key)
 
-    IO.puts("Accepted message from #{peername}")
+        IO.puts("Accepted message from #{peername}")
 
-    # Send out the message to the parent of this process (a.k.a the pid that
-    # was passed in when calling start/2)
-    send(pid, message)
+        # Send out the message to the parent of this process (a.k.a the pid that
+        # was passed in when calling start/2)
+        send(pid, message)
+        IO.inspect message
+      # When receiving data from the parent process, send it to the network
+      # through TCP
+      message ->
+        IO.puts("Sending data to peer: #{peername}")
+
+        "DATA"
+        |> Message.build(message)
+        |> Message.send(socket)
+    end
 
     server_handler(socket, session_key, peername, pid)
   end
@@ -193,5 +192,21 @@ defmodule Elixium.P2P.Server do
     addr
     |> :inet_parse.ntoa()
     |> to_string()
+  end
+
+  defmodule Test do
+  def get_connected(supervisor) do
+    supervisor
+    |> Supervisor.which_children()
+    |> Enum.map(fn {_, pid, _, _} -> pid end)
+    |> Enum.filter(fn pid ->
+      {:ok, dictionary} =
+        pid
+        |> Process.info
+        |> Keyword.fetch(:dictionary)
+
+      Keyword.has_key?(dictionary, :connected)
+    end)
+  end
   end
 end
