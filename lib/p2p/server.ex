@@ -17,20 +17,21 @@ defmodule Elixium.P2P.Server do
   @spec start(pid, integer) :: List
   def start(pid, port \\ 31_013) do
     IO.puts("Starting server on port #{port}.")
-    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false])
+    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false, backlog: 0])
 
     # Spawn 10 processes to handle peer connections
     # This is fine for now, we only ever will have a maximum connection to n
     # nodes at a time. Ranch lib does connection pooling as well and it might
     # be worth implementing in the future, but this should work
-    handlers =
-      for _ <- 0..9 do
+    handlers =[
+      # for _ <- 0..9 do
         %{
           id: 16 |> :crypto.strong_rand_bytes() |> Base.encode16(),
           start: {__MODULE__, :start_link, [listen_socket, pid]},
           type: :worker
         }
-      end
+      # end
+    ]
 
     # Spawn a supervisor process that restarts these handlers if any of them are to fail
     Supervisor.start_link(handlers, strategy: :one_for_one)
@@ -78,8 +79,10 @@ defmodule Elixium.P2P.Server do
 
     peername = get_peername(socket)
 
+    # Set the connected flag so that the parent process knows we've connected
+    # to a peer.
     Process.put(:connected, peername)
-    server_handler(socket, session_key, peername, pid)
+    server_handler(socket, session_key, pid)
   end
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
@@ -155,8 +158,10 @@ defmodule Elixium.P2P.Server do
     shared_master_key
   end
 
-  @spec server_handler(reference, <<_::256>>, String.t(), pid) :: none
-  defp server_handler(socket, session_key, peername, pid) do
+  @spec server_handler(reference, <<_::256>>, pid) :: none
+  defp server_handler(socket, session_key, pid) do
+    IO.puts "SERVER HANDLER"
+    peername = Process.get(:connected)
     # Accept TCP messages without blocking
     :inet.setopts(socket, [active: :once])
 
@@ -175,6 +180,7 @@ defmodule Elixium.P2P.Server do
       # When receiving data from the parent process, send it to the network
       # through TCP
       message ->
+        IO.inspect message
         IO.puts("Sending data to peer: #{peername}")
 
         "DATA"
@@ -182,7 +188,7 @@ defmodule Elixium.P2P.Server do
         |> Message.send(socket)
     end
 
-    server_handler(socket, session_key, peername, pid)
+    server_handler(socket, session_key, pid)
   end
 
   @spec get_peername(reference) :: String.t()
@@ -192,21 +198,5 @@ defmodule Elixium.P2P.Server do
     addr
     |> :inet_parse.ntoa()
     |> to_string()
-  end
-
-  defmodule Test do
-  def get_connected(supervisor) do
-    supervisor
-    |> Supervisor.which_children()
-    |> Enum.map(fn {_, pid, _, _} -> pid end)
-    |> Enum.filter(fn pid ->
-      {:ok, dictionary} =
-        pid
-        |> Process.info
-        |> Keyword.fetch(:dictionary)
-
-      Keyword.has_key?(dictionary, :connected)
-    end)
-  end
   end
 end

@@ -45,4 +45,30 @@ defmodule Elixium.P2P.PeerStore do
       end
     end
   end
+
+  @spec save_known_peer({charlist, integer}) :: none
+  def save_known_peer(peer) do
+    transact @store_dir do
+      fn ref ->
+        case Exleveldb.get(ref, "known_peers") do
+          {:ok, peers} ->
+            peers = [peer | :erlang.binary_to_term(peers)]
+            Exleveldb.put(ref, "known_peers", :erlang.term_to_binary(peers))
+          :not_found ->
+            Exleveldb.put(ref, "known_peers", :erlang.term_to_binary([peer]))
+        end
+      end
+    end
+  end
+
+  def load_known_peers do
+    transact @store_dir do
+      fn ref ->
+        case Exleveldb.get(ref, "known_peers") do
+          {:ok, peers} -> :erlang.binary_to_term(peers)
+          :not_found -> :not_found
+        end
+      end
+    end
+  end
 end
