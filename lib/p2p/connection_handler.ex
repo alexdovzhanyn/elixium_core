@@ -42,13 +42,10 @@ defmodule Elixium.P2P.ConnectionHandler do
 
   def attempt_outbound_connection({ip, port}, had_previous_connection, credentials, socket, master_pid) do
     IO.write "Attempting connection to peer at host: #{ip}, port: #{port}..."
-    IO.inspect self()
 
-    send(self(), %{meow: "pow"})
-    case :gen_tcp.connect(ip, port, [:binary, active: false]) do
+    case :gen_tcp.connect(ip, port, [:binary, active: false], 1000) do
       {:ok, connection} ->
         IO.puts "Connected"
-        IO.inspect self()
 
         shared_secret =
           # TODO change this later
@@ -61,6 +58,7 @@ defmodule Elixium.P2P.ConnectionHandler do
         prepare_connection_loop(connection, shared_secret, master_pid)
       {:error, reason} ->
         IO.puts("Error connecting to peer: #{reason}")
+        Process.sleep(:infinity) # TODO: If it cant connect to a peer, start listening
     end
   end
 

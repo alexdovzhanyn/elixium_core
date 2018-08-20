@@ -17,7 +17,9 @@ defmodule Elixium.P2P.Server do
   @spec start(pid, integer) :: List
   def start(pid, port \\ 31_013) do
     IO.puts("Starting server on port #{port}.")
-    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false, backlog: 0])
+    # It would be ideal to set backlog to 0 but for some reason,
+    # setting it to 0 seems to mean infinity...
+    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false, backlog: 1])
 
     # Spawn 10 processes to handle peer connections
     # This is fine for now, we only ever will have a maximum connection to n
@@ -160,7 +162,6 @@ defmodule Elixium.P2P.Server do
 
   @spec server_handler(reference, <<_::256>>, pid) :: none
   defp server_handler(socket, session_key, pid) do
-    IO.puts "SERVER HANDLER"
     peername = Process.get(:connected)
     # Accept TCP messages without blocking
     :inet.setopts(socket, [active: :once])
