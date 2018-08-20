@@ -19,21 +19,21 @@ defmodule Elixium.P2P.Server do
     IO.puts("Starting server on port #{port}.")
     # It would be ideal to set backlog to 0 but for some reason,
     # setting it to 0 seems to mean infinity...
-    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false, backlog: 1])
+    {:ok, listen_socket} =
+      :gen_tcp.listen(port, [:binary, reuseaddr: true, active: false, backlog: 1])
 
     # Spawn 10 processes to handle peer connections
     # This is fine for now, we only ever will have a maximum connection to n
     # nodes at a time. Ranch lib does connection pooling as well and it might
     # be worth implementing in the future, but this should work
-    handlers =[
-      # for _ <- 0..9 do
+    handlers =
+      for _ <- 0..9 do
         %{
           id: 16 |> :crypto.strong_rand_bytes() |> Base.encode16(),
           start: {__MODULE__, :start_link, [listen_socket, pid]},
           type: :worker
         }
-      # end
-    ]
+      end
 
     # Spawn a supervisor process that restarts these handlers if any of them are to fail
     Supervisor.start_link(handlers, strategy: :one_for_one)
@@ -164,7 +164,7 @@ defmodule Elixium.P2P.Server do
   defp server_handler(socket, session_key, pid) do
     peername = Process.get(:connected)
     # Accept TCP messages without blocking
-    :inet.setopts(socket, [active: :once])
+    :inet.setopts(socket, active: :once)
 
     receive do
       # When receiving a message through TCP, send the data back to the parent
@@ -177,11 +177,12 @@ defmodule Elixium.P2P.Server do
         # Send out the message to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
         send(pid, message)
-        IO.inspect message
+        IO.inspect(message)
+
       # When receiving data from the parent process, send it to the network
       # through TCP
       message ->
-        IO.inspect message
+        IO.inspect(message)
         IO.puts("Sending data to peer: #{peername}")
 
         "DATA"

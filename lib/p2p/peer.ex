@@ -13,9 +13,10 @@ defmodule Elixium.P2P.Peer do
 
   defp start_listener(port) do
     options = [:binary, reuseaddr: true, active: false]
+
     case :gen_tcp.listen(port, options) do
       {:ok, socket} -> socket
-      _ -> IO.puts "Listen socket not started, something went wrong."
+      _ -> IO.puts("Listen socket not started, something went wrong.")
     end
   end
 
@@ -28,5 +29,4 @@ defmodule Elixium.P2P.Peer do
       }
     end
   end
-
 end

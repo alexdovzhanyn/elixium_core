@@ -54,6 +54,7 @@ defmodule Elixium.P2P.PeerStore do
           {:ok, peers} ->
             peers = [peer | :erlang.binary_to_term(peers)]
             Exleveldb.put(ref, "known_peers", :erlang.term_to_binary(peers))
+
           :not_found ->
             Exleveldb.put(ref, "known_peers", :erlang.term_to_binary([peer]))
         end

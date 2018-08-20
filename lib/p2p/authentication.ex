@@ -5,6 +5,7 @@ defmodule Elixium.P2P.Authentication do
   @spec load_credentials(String.t()) :: {bitstring, bitstring}
   def load_credentials(ip) do
     ip = List.to_string(ip)
+
     case PeerStore.load_self(ip) do
       :not_found -> generate_and_store_credentials(ip)
       {identifier, password} -> {identifier, password}
