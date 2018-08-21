@@ -11,14 +11,14 @@ defmodule Elixium.P2P.ConnectionHandler do
   def start_link(socket, pid) do
     # Fetch known peers. We're going to try to connect to them
     # before setting up a listener
-    peers = [{'localhost', 11111}]
+    peers = [{'localhost', 31013}]
     # peers = PeerStore.load_known_peers
 
     pid =
       case peers do
         :not_found ->
-          IO.puts("not found")
-
+          IO.puts("No known peers!")
+          spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
         peers ->
           {ip, port} = Enum.random(peers)
           had_previous_connection = had_previous_connection?(ip)
@@ -63,6 +63,33 @@ defmodule Elixium.P2P.ConnectionHandler do
         # TODO: If it cant connect to a peer, start listening
         Process.sleep(:infinity)
     end
+  end
+
+  @doc """
+    Accept an incoming connection from a peer and decide whether
+    they are a new peer or someone we've talked to previously,
+    and then authenticate them accordingly
+  """
+  @spec accept_inbound_connection(reference, pid) :: none
+  def accept_inbound_connection(listen_socket, master_pid) do
+    {:ok, socket} = :gen_tcp.accept(listen_socket)
+
+    IO.puts("Accepted potential handshake")
+
+    handshake = Message.read(socket)
+
+    # If the handshake message contains JUST an identifier, the peer
+    # is signaling to us that they've talked to us before. We can try
+    # to find them in the database. Otherwise, they should be passing
+    # multiple pieces of data in this request, in effort to give us
+    # the information we need in order to register them.
+    shared_secret =
+      case handshake do
+        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket)
+        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket)
+      end
+
+    prepare_connection_loop(socket, shared_secret, master_pid)
   end
 
   defp prepare_connection_loop(socket, shared_secret, master_pid) do
@@ -113,6 +140,10 @@ defmodule Elixium.P2P.ConnectionHandler do
   end
 
   defp generate_session_key(shared_secret) do
+    # Truncate the key to be 32 bytes (256 bits) since AES256 won't accept anything bigger
+    # Originally, I was worried this would be a security flaw, but according to
+    # https://crypto.stackexchange.com/questions/3288/is-truncating-a-hashed-private-key-with-sha-1-safe-to-use-as-the-symmetric-key-f
+    # it isn't
     <<session_key::binary-size(32)>> <> _ = shared_secret
 
     IO.puts(session_key |> Base.encode64())

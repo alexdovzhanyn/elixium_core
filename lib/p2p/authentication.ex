@@ -68,6 +68,8 @@ defmodule Elixium.P2P.Authentication do
     shared_master_key
   end
 
+  # Handle incoming authentication messages from peers, and save their
+  # identity to the database for later
   @spec outbound_peer(reference, {bitstring, bitstring}) :: bitstring
   def outbound_peer(peer, {identifier, password}) do
     encoded_id = Base.encode64(identifier)
@@ -95,6 +97,77 @@ defmodule Elixium.P2P.Authentication do
     |> Message.send(peer)
 
     {:ok, shared_master_key} = Strap.session_key(client, peer_public_value)
+
+    shared_master_key
+  end
+
+  @spec inbound_new_peer(map, reference) :: bitstring
+  def inbound_new_peer(message, socket) do
+    %{
+      public_value: peer_public_value,
+      generator: generator,
+      prime: prime,
+      verifier: peer_verifier,
+      salt: salt,
+      identifier: peer_identifier
+    } = message
+
+    {:ok, peer_verifier} = Base.decode64(peer_verifier)
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
+
+    server =
+      :srp6a
+      |> Strap.protocol(prime, generator)
+      |> Strap.server(peer_verifier)
+
+    server_public_value =
+      server
+      |> Strap.public_value()
+      |> Base.encode64()
+
+    "HANDSHAKE_AUTH"
+    |> Message.build(%{public_value: server_public_value})
+    |> Message.send(socket)
+
+    {:ok, shared_master_key} = Strap.session_key(server, peer_public_value)
+
+    # Now that we've successfully authenticated the peer, we save this data for use
+    # in future authentications
+    PeerStore.register_peer({peer_identifier, salt, prime, generator, peer_verifier})
+
+    shared_master_key
+  end
+
+  # Using the identifier, find the verifier, generator, and prime for a peer we know
+  # and then communicate back and forth with them until we've verified them
+  @spec inbound_peer(String.t(), reference) :: bitstring
+  def inbound_peer(identifier, socket) do
+    {salt, prime, generator, peer_verifier} = PeerStore.load_peer(identifier)
+
+    # Necesarry in order to generate the public value & session key
+    server =
+      Strap.protocol(:srp6a, prime, generator)
+      |> Strap.server(peer_verifier)
+
+    # Our public value. The peer will need this in order to generate the derived
+    # session key
+    public_value =
+      server
+      |> Strap.public_value()
+      |> Base.encode64()
+
+    "HANDSHAKE_CHALLENGE"
+    |> Message.build(%{
+      salt: salt,
+      prime: prime,
+      generator: generator,
+      public_value: public_value
+    })
+    |> Message.send(socket)
+
+    %{public_value: peer_public_value} = Message.read(socket)
+    {:ok, peer_public_value} = Base.decode64(peer_public_value)
+    {:ok, shared_master_key} = Strap.session_key(server, peer_public_value)
 
     shared_master_key
   end
