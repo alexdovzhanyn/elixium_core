@@ -24,7 +24,8 @@ defmodule Elixium.Mixfile do
       {:credo, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
       {:decimal, "~> 1.0"},
-      {:strap, "~> 0.1.1"}
+      {:strap, "~> 0.1.1"},
+      {:jason, "~> 1.0"}
     ]
   end
 

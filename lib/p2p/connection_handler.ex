@@ -14,6 +14,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     peers = [{'localhost', 31013}]
     # peers = PeerStore.load_known_peers
 
+    peers = find_potential_peers()
+
     pid =
       case peers do
         :not_found ->
@@ -166,5 +168,32 @@ defmodule Elixium.P2P.ConnectionHandler do
       :not_found -> false
       {_identifier, _password} -> true
     end
+  end
+
+  # Either loads peers from a local storage or connects to the
+  # bootstrapping registry
+  @spec find_potential_peers :: List | :not_found
+  defp find_potential_peers do
+    case PeerStore.load_known_peers do
+      :not_found -> fetch_peers_from_registry
+      peers -> peers
+    end
+  end
+
+  # Connects to the bootstrapping peer registry and returns a list of
+  # previously connected peers.
+  @spec fetch_peers_from_registry :: List
+  defp fetch_peers_from_registry do
+    {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} = :httpc.request('http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com/31013')
+    peers =
+      body
+      |> Jason.decode!()
+      |> Enum.map(fn p ->
+        [ip, port] = String.split(p, ":")
+        {port, _} = Integer.parse(port)
+        ip = String.to_charlist(ip)
+
+        {ip, port}
+      end)
   end
 end
