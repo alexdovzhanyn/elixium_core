@@ -141,8 +141,6 @@ defmodule Elixium.P2P.ConnectionHandler do
     # it isn't
     <<session_key::binary-size(32)>> <> _ = shared_secret
 
-    IO.puts(session_key |> Base.encode64())
-
     session_key
   end
 
