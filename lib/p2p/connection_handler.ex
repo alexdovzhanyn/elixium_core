@@ -57,12 +57,11 @@ defmodule Elixium.P2P.ConnectionHandler do
       {:ok, connection} ->
         IO.puts("Connected")
 
-        # TODO change this later
         shared_secret =
           if had_previous_connection do
-            Authentication.outbound_new_peer(connection, credentials)
-          else
             Authentication.outbound_peer(connection, credentials)
+          else
+            Authentication.outbound_new_peer(connection, credentials)
           end
 
         prepare_connection_loop(connection, shared_secret, master_pid)
@@ -116,8 +115,6 @@ defmodule Elixium.P2P.ConnectionHandler do
   end
 
   defp handle_connection(socket, session_key, master_pid) do
-    IO.puts("HANDLE CONNECTION")
-    IO.inspect(self())
     peername = Process.get(:connected)
     # Accept TCP messages without blocking
     :inet.setopts(socket, active: :once)
@@ -138,7 +135,6 @@ defmodule Elixium.P2P.ConnectionHandler do
       # When receiving data from the parent process, send it to the network
       # through TCP
       message ->
-        IO.inspect(message)
         IO.puts("Sending data to peer: #{peername}")
 
         "DATA"

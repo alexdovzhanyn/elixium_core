@@ -67,7 +67,7 @@ defmodule Elixium.P2P.Peer do
           |> Enum.map(&peerstring_to_tuple(&1))
           |> Enum.filter(fn {_, port} -> port != nil end)
 
-        if length(peers) == 0 do
+        if peers == [] do
           :not_found
         else
           peers
