@@ -16,16 +16,16 @@ defmodule Elixium.P2P.ConnectionHandler do
     an authentication message from another peer.
   """
   @spec start_link(reference, pid, List, integer) :: {:ok, pid}
-  def start_link(socket, pid, peers, connection_index) do
+  def start_link(socket, pid, peers, handler_number) do
     pid =
       case peers do
         :not_found ->
-          Logger.warn("(Handler #{connection_index}): No known peers! Accepting inbound connections instead.")
+          Logger.warn("(Handler #{handler_number}): No known peers! Accepting inbound connections instead.")
           spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
 
         peers ->
-          if length(peers) >= connection_index do
-            {ip, port} = Enum.at(peers, connection_index - 1)
+          if length(peers) >= handler_number do
+            {ip, port} = Enum.at(peers, handler_number - 1)
             had_previous_connection = had_previous_connection?(ip)
             credentials = Authentication.load_credentials(ip)
 
