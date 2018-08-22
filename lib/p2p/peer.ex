@@ -1,6 +1,7 @@
 defmodule Elixium.P2P.Peer do
   alias Elixium.P2P.ConnectionHandler
   alias Elixium.P2P.PeerStore
+  require Logger
 
   @moduledoc """
     Contains functionality for communicating with other peers
@@ -8,7 +9,7 @@ defmodule Elixium.P2P.Peer do
 
   @spec initialize(integer) :: pid
   def initialize(port \\ 31_013) do
-    IO.puts("Starting listener socket on port #{port}.")
+    Logger.info("Starting listener socket on port #{port}.")
 
     {:ok, supervisor} =
       port
@@ -24,7 +25,7 @@ defmodule Elixium.P2P.Peer do
 
     case :gen_tcp.listen(port, options) do
       {:ok, socket} -> socket
-      _ -> IO.puts("Listen socket not started, something went wrong.")
+      _ -> Logger.warn("Listen socket not started, something went wrong.")
     end
   end
 

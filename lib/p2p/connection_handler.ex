@@ -2,7 +2,7 @@ defmodule Elixium.P2P.ConnectionHandler do
   alias Elixium.P2P.PeerStore
   alias Elixium.P2P.Authentication
   alias Elixium.P2P.GhostProtocol.Message
-  require IEx
+  require Logger
 
   @moduledoc """
     Manage inbound and outbound connections
@@ -20,7 +20,7 @@ defmodule Elixium.P2P.ConnectionHandler do
     pid =
       case peers do
         :not_found ->
-          IO.puts("No known peers!")
+          Logger.warn("(Handler #{connection_index}): No known peers! Accepting inbound connections instead.")
           spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
 
         peers ->
@@ -51,11 +51,11 @@ defmodule Elixium.P2P.ConnectionHandler do
         socket,
         master_pid
       ) do
-    IO.write("Attempting connection to peer at host: #{ip}, port: #{port}...")
+    Logger.info("Attempting connection to peer at host: #{ip}, port: #{port}...")
 
     case :gen_tcp.connect(ip, port, [:binary, active: false], 1000) do
       {:ok, connection} ->
-        IO.puts("Connected")
+        Logger.info("Connected")
 
         shared_secret =
           if had_previous_connection do
@@ -67,7 +67,7 @@ defmodule Elixium.P2P.ConnectionHandler do
         prepare_connection_loop(connection, shared_secret, master_pid)
 
       {:error, reason} ->
-        IO.puts("Error connecting to peer: #{reason}. Starting listener instead.")
+        Logger.warn("Error connecting to peer: #{reason}. Starting listener instead.")
 
         accept_inbound_connection(socket, master_pid)
     end
@@ -80,10 +80,10 @@ defmodule Elixium.P2P.ConnectionHandler do
   """
   @spec accept_inbound_connection(reference, pid) :: none
   def accept_inbound_connection(listen_socket, master_pid) do
-    IO.puts("Waiting for connection...")
+    Logger.info("Waiting for connection...")
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
-    IO.puts("Accepted potential handshake")
+    Logger.info("Accepted potential handshake")
 
     handshake = Message.read(socket)
 
@@ -103,7 +103,7 @@ defmodule Elixium.P2P.ConnectionHandler do
 
   defp prepare_connection_loop(socket, shared_secret, master_pid) do
     session_key = generate_session_key(shared_secret)
-    IO.puts("Authenticated with peer.")
+    Logger.info("Authenticated with peer.")
 
     peername = get_peername(socket)
 
@@ -125,7 +125,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       {:tcp, _, data} ->
         message = Message.read(data, session_key)
 
-        IO.puts("Accepted message from #{peername}")
+        Logger.info("Accepted message from #{peername}")
 
         # Send out the message to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
@@ -135,7 +135,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       # When receiving data from the parent process, send it to the network
       # through TCP
       message ->
-        IO.puts("Sending data to peer: #{peername}")
+        Logger.info("Sending data to peer: #{peername}")
 
         "DATA"
         |> Message.build(message, session_key)
