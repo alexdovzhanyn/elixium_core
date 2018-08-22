@@ -2,6 +2,10 @@ defmodule Elixium.P2P.Authentication do
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
 
+  @moduledoc """
+    SRP authentication handshakes and generation of credentials
+  """
+
   @spec load_credentials(String.t()) :: {bitstring, bitstring}
   def load_credentials(ip) do
     ip = List.to_string(ip)

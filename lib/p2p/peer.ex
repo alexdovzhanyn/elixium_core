@@ -2,6 +2,11 @@ defmodule Elixium.P2P.Peer do
   alias Elixium.P2P.ConnectionHandler
   alias Elixium.P2P.PeerStore
 
+  @moduledoc """
+    Contains functionality for communicating with other peers
+  """
+
+  @spec initialize(integer) :: pid
   def initialize(port \\ 31_013) do
     IO.puts("Starting listener socket on port #{port}.")
 
@@ -10,6 +15,8 @@ defmodule Elixium.P2P.Peer do
       |> start_listener()
       |> generate_handlers()
       |> Supervisor.start_link(strategy: :one_for_one)
+
+    supervisor
   end
 
   defp start_listener(port) do
@@ -26,11 +33,12 @@ defmodule Elixium.P2P.Peer do
     # before setting up a listener
     peers = find_potential_peers()
 
-    for _ <- 1..count do
+    for i <- 1..count do
       %{
-        id: 2 |> :crypto.strong_rand_bytes() |> Base.encode16(),
-        start: {ConnectionHandler, :start_link, [socket, self(), peers]},
-        type: :worker
+        id: "peer_handler_#{i}",
+        start: {ConnectionHandler, :start_link, [socket, self(), peers, i]},
+        type: :worker,
+        name: "peer_handler_#{i}"
       }
     end
   end
@@ -39,8 +47,8 @@ defmodule Elixium.P2P.Peer do
   # bootstrapping registry
   @spec find_potential_peers :: List | :not_found
   defp find_potential_peers do
-    case PeerStore.load_known_peers do
-      :not_found -> fetch_peers_from_registry
+    case PeerStore.load_known_peers() do
+      :not_found -> fetch_peers_from_registry()
       peers -> peers
     end
   end
@@ -49,26 +57,38 @@ defmodule Elixium.P2P.Peer do
   # previously connected peers.
   @spec fetch_peers_from_registry :: List
   defp fetch_peers_from_registry do
-    case :httpc.request('http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com/31013') do
+    case :httpc.request(
+           'http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com/31013'
+         ) do
       {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
         peers =
           body
           |> Jason.decode!()
-          |> Enum.map(fn p ->
-            [ip, port] = String.split(p, ":")
-            {port, _} = Integer.parse(port)
-            ip = String.to_charlist(ip)
+          |> Enum.map(&peerstring_to_tuple(&1))
+          |> Enum.filter(fn {_, port} -> port != nil end)
 
-            {ip, port}
-          end)
-
-        if List.length(peers) == 0 do
+        if length(peers) == 0 do
           :not_found
         else
           peers
         end
 
-      {:error, _} -> :not_found
+      {:error, _} ->
+        :not_found
     end
   end
+
+  defp peerstring_to_tuple(peer) do
+    [ip, port] = String.split(peer, ":")
+    ip = String.to_charlist(ip)
+
+    port =
+      case Integer.parse(port) do
+        {port, _} -> port
+        :error -> nil
+      end
+
+    {ip, port}
+  end
+
 end

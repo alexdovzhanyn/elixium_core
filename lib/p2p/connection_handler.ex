@@ -4,40 +4,54 @@ defmodule Elixium.P2P.ConnectionHandler do
   alias Elixium.P2P.GhostProtocol.Message
   require IEx
 
-  @doc """
-    Spawn a new handler, and have it run the authentication code immediately
+  @moduledoc """
+    Manage inbound and outbound connections
   """
-  @spec start_link(reference, pid, List) :: {:ok, pid}
-  def start_link(socket, pid, peers) do
-    pid =
-      case peers do
-        :not_found ->
-          IO.puts("No known peers!")
-          spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
-        peers ->
-          {ip, port} = Enum.random(peers)
-          had_previous_connection = had_previous_connection?(ip)
-          credentials = Authentication.load_credentials(ip)
-          spawn_link(__MODULE__, :attempt_outbound_connection, [{ip, port}, had_previous_connection, credentials, socket, pid])
-      end
-
-    {:ok, pid}
-  end
 
   @doc """
-    Checks to see if it knows of any possible peers. If there
+    Spawn a new handler, check to see if it knows of any possible peers. If there
     is a peer that it knows of, it will attempt a connection
     to that peer. If the connection fails or if it does
     not know of any peers, just sets up a listener and await
     an authentication message from another peer.
   """
-  def create_connection(socket, master_pid, :not_found) do
-    # Uh oh, no known peers!
-    IO.puts("ji")
+  @spec start_link(reference, pid, List, integer) :: {:ok, pid}
+  def start_link(socket, pid, peers, connection_index) do
+    pid =
+      case peers do
+        :not_found ->
+          IO.puts("No known peers!")
+          spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
+
+        peers ->
+          if length(peers) >= connection_index do
+            {ip, port} = Enum.at(peers, connection_index - 1)
+            had_previous_connection = had_previous_connection?(ip)
+            credentials = Authentication.load_credentials(ip)
+
+            spawn_link(__MODULE__, :attempt_outbound_connection, [
+              {ip, port},
+              had_previous_connection,
+              credentials,
+              socket,
+              pid
+            ])
+          else
+            spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
+          end
+      end
+
+    {:ok, pid}
   end
 
-  def attempt_outbound_connection({ip, port}, had_previous_connection, credentials, socket, master_pid) do
-    IO.write "Attempting connection to peer at host: #{ip}, port: #{port}..."
+  def attempt_outbound_connection(
+        {ip, port},
+        had_previous_connection,
+        credentials,
+        socket,
+        master_pid
+      ) do
+    IO.write("Attempting connection to peer at host: #{ip}, port: #{port}...")
 
     case :gen_tcp.connect(ip, port, [:binary, active: false], 1000) do
       {:ok, connection} ->
@@ -54,9 +68,9 @@ defmodule Elixium.P2P.ConnectionHandler do
         prepare_connection_loop(connection, shared_secret, master_pid)
 
       {:error, reason} ->
-        IO.puts("Error connecting to peer: #{reason}")
-        # TODO: If it cant connect to a peer, start listening
-        Process.sleep(:infinity)
+        IO.puts("Error connecting to peer: #{reason}. Starting listener instead.")
+
+        accept_inbound_connection(socket, master_pid)
     end
   end
 
@@ -67,6 +81,7 @@ defmodule Elixium.P2P.ConnectionHandler do
   """
   @spec accept_inbound_connection(reference, pid) :: none
   def accept_inbound_connection(listen_socket, master_pid) do
+    IO.puts("Waiting for connection...")
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
     IO.puts("Accepted potential handshake")
