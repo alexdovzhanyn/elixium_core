@@ -91,4 +91,23 @@ defmodule Elixium.P2P.Peer do
     {ip, port}
   end
 
+  @doc """
+    Given a peer supervisor, return a list of all the
+    handlers that are currently connected to another peer
+  """
+  @spec connected_handlers(pid) :: List
+  def connected_handlers(supervisor) do
+    supervisor
+    |> Supervisor.which_children()
+    |> Enum.filter(fn {_, p, _, _} ->
+        dictionary =
+          p
+          |> Process.info()
+          |> Keyword.get(:dictionary)
+
+        match?([connected: _], dictionary)
+      end)
+    |> Enum.map(fn {_, p, _, _} -> p end)
+  end
+
 end
