@@ -3,7 +3,7 @@ defmodule Elixium.P2P.Peer do
   alias Elixium.P2P.PeerStore
   require Logger
 
-  @testnet_url 'http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com'
+  @testnet_url 'https://registry.testnet.elixium.app/'
 
   @moduledoc """
     Contains functionality for communicating with other peers
