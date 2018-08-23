@@ -3,6 +3,8 @@ defmodule Elixium.P2P.Peer do
   alias Elixium.P2P.PeerStore
   require Logger
 
+  @testnet_url 'http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com'
+
   @moduledoc """
     Contains functionality for communicating with other peers
   """
@@ -14,7 +16,7 @@ defmodule Elixium.P2P.Peer do
     {:ok, supervisor} =
       port
       |> start_listener()
-      |> generate_handlers()
+      |> generate_handlers(port)
       |> Supervisor.start_link(strategy: :one_for_one)
 
     supervisor
@@ -29,10 +31,10 @@ defmodule Elixium.P2P.Peer do
     end
   end
 
-  defp generate_handlers(socket, count \\ 10) do
+  defp generate_handlers(socket, port, count \\ 10) do
     # Fetch known peers. We're going to try to connect to them
     # before setting up a listener
-    peers = find_potential_peers()
+    peers = find_potential_peers(port)
 
     for i <- 1..count do
       %{
@@ -46,21 +48,19 @@ defmodule Elixium.P2P.Peer do
 
   # Either loads peers from a local storage or connects to the
   # bootstrapping registry
-  @spec find_potential_peers :: List | :not_found
-  defp find_potential_peers do
+  @spec find_potential_peers(integer) :: List | :not_found
+  defp find_potential_peers(port) do
     case PeerStore.load_known_peers() do
-      :not_found -> fetch_peers_from_registry()
+      :not_found -> fetch_peers_from_registry(port)
       peers -> peers
     end
   end
 
   # Connects to the bootstrapping peer registry and returns a list of
   # previously connected peers.
-  @spec fetch_peers_from_registry :: List
-  defp fetch_peers_from_registry do
-    case :httpc.request(
-           'http://testnet-peer-registry.w3tqcgzmeb.us-west-2.elasticbeanstalk.com/31013'
-         ) do
+  @spec fetch_peers_from_registry(integer) :: List
+  defp fetch_peers_from_registry(port) do
+    case :httpc.request(@testnet_url ++ '/' ++ Integer.to_charlist(port)) do
       {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
         peers =
           body
