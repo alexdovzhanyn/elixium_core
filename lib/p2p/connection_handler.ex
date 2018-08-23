@@ -140,9 +140,10 @@ defmodule Elixium.P2P.ConnectionHandler do
       message ->
         Logger.info("Sending data to peer: #{peername}")
 
-        "DATA"
-        |> Message.build(message, session_key)
-        |> Message.send(socket)
+        case Message.build("DATA", message, session_key) do
+          {:ok, m} -> Message.send(m, socket)
+          :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
+        end
     end
 
     handle_connection(socket, session_key, master_pid)

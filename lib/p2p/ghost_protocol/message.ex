@@ -23,7 +23,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     Same as build/2 except the message is encrypted
   """
   @spec build(String.t(), map, <<_::256>>) :: String.t()
-  def build(type, message_map, session_key) do
+  def build(type, message_map, session_key) when is_map(message_map) do
     message =
       type
       |> binary_message(message_map)
@@ -32,8 +32,16 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     encrypted_message = :crypto.block_encrypt(:aes_ecb, session_key, message)
     bytes = message_byte_size(encrypted_message)
 
-    ["Ghost", bytes, encrypted_message]
-    |> Enum.join("|")
+    message =
+      ["Ghost", bytes, encrypted_message]
+      |> Enum.join("|")
+
+    {:ok, message}
+  end
+
+  # If the first build/3 doesn't match, it's an invalid message
+  def build(_, _, _) do
+    :error
   end
 
   @doc """
