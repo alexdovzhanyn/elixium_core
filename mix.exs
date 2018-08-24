@@ -25,7 +25,8 @@ defmodule Elixium.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
       {:decimal, "~> 1.0"},
       {:strap, "~> 0.1.1"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:leveled, github: "martinsumner/leveled", app: false}
     ]
   end
 
