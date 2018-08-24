@@ -6,6 +6,8 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     Create and read messages that are sent over TCP
   """
 
+  @protocol_version "v1.0"
+
   @doc """
     Create an unencrypted message that will be passed to a peer, with the
     contents of message_map
@@ -15,7 +17,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     message = binary_message(type, message_map)
     bytes = message_byte_size(message)
 
-    ["Ghost", bytes, message]
+    ["Ghost", bytes, @protocol_version, message]
     |> Enum.join("|")
   end
 
@@ -33,7 +35,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     bytes = message_byte_size(encrypted_message)
 
     message =
-      ["Ghost", bytes, encrypted_message]
+      ["Ghost", bytes, @protocol_version, encrypted_message]
       |> Enum.join("|")
 
     {:ok, message}
@@ -133,10 +135,10 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   defp parse_header(socket) do
     {:ok, header} =
       socket
-      # Will get "Ghost|00000000|" from socket
-      |> :gen_tcp.recv(15)
+      # Will get "Ghost|00000000|v1.0|" from socket
+      |> :gen_tcp.recv(20)
 
-    [protocol, bytes, _] = String.split(header, "|")
+    [protocol, bytes, version, _] = String.split(header, "|")
     {bytes, _} = Integer.parse(bytes)
 
     {protocol, bytes}
