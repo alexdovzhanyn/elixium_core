@@ -8,7 +8,7 @@ defmodule Elixium.P2P.PeerStore do
 
   @db_path '.peers'
   @ledger_cache_size 2000
-  @journal_size 500000000
+  @journal_size 500000000 # 500 megabytes
   @sync_strategy :none
 
   def initialize do
