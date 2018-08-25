@@ -36,7 +36,7 @@ defmodule Elixium.Mixfile do
 
   defp package() do
     [
-      name: "Elixium Core",
+      name: "elixium_core",
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
       licenses: ["MIT"],
