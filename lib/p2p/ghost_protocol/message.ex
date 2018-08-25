@@ -69,8 +69,8 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   """
   @spec read(binary, <<_::256>>) :: map | {:error, :invalid_protocol}
   def read(data, session_key) do
-    [protocol, bytes | _] = String.split(data, "|")
-    [_, encrypted_message] = String.split(data, protocol <> "|" <> bytes <> "|")
+    [protocol, bytes, protocol, | _] = String.split(data, "|")
+    [_, encrypted_message] = String.split(data, protocol <> "|" <> protocol <> "|" <> bytes <> "|")
     # {bytes, _} = Integer.parse(bytes)
 
     if protocol == "Ghost" do
