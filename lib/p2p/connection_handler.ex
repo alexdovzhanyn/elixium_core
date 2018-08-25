@@ -132,7 +132,6 @@ defmodule Elixium.P2P.ConnectionHandler do
         # Send out the message to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
         send(master_pid, message)
-        IO.inspect(message)
       {:tcp_closed, _} ->
         Logger.info("Lost connection from peer: #{peername}. TCP closed")
         Process.exit(self(), :normal)
