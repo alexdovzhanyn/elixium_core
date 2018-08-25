@@ -12,6 +12,7 @@ defmodule Elixium.Mixfile do
       name: "Elixium Core",
       description: description(),
       source_url: "https://github.com/elixium/elixium_core",
+      homepage_url: "https://elixium.app",
       package: package()
     ]
   end
@@ -25,8 +26,7 @@ defmodule Elixium.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
       {:decimal, "~> 1.0"},
       {:strap, "~> 0.1.1"},
-      {:jason, "~> 1.0"},
-      {:leveled, github: "martinsumner/leveled", app: false}
+      {:jason, "~> 1.0"}
     ]
   end
 
@@ -36,7 +36,7 @@ defmodule Elixium.Mixfile do
 
   defp package() do
     [
-      name: "elixium_core",
+      name: "Elixium Core",
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
       licenses: ["MIT"],
