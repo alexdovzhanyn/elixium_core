@@ -1,5 +1,5 @@
 [![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![Build Status](https://travis-ci.org/Elixium/elixium_core.svg?branch=master)](https://travis-ci.org/Elixium/elixium_core)
+[![Build Status](https://travis-ci.org/ElixiumNetwork/elixium_core.svg?branch=master)](https://travis-ci.org/ElixiumNetwork/elixium_core)
 [![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/elixium/Lobby)
 
 # Elixium
