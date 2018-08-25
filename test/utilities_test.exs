@@ -1,5 +1,5 @@
 defmodule UtilitiesTest do
-  alias UltraDark.Utilities
+  alias Elixium.Utilities
   use ExUnit.Case, async: true
 
   test "can calculate merkle root of a list with odd amount of items" do

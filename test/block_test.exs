@@ -1,6 +1,6 @@
 defmodule BlockTest do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Transaction
+  alias Elixium.Blockchain.Block
+  alias Elixium.Transaction
   alias Decimal, as: D
   use ExUnit.Case, async: true
 
@@ -35,17 +35,20 @@ defmodule BlockTest do
 
   test "can properly calculate target with integer difficulty" do
     difficulty0 =
-      Block.calculate_target(0)
+      0
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
     difficulty1 =
-      Block.calculate_target(1)
+      1
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
     difficulty2 =
-      Block.calculate_target(2)
+      2
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
@@ -56,17 +59,20 @@ defmodule BlockTest do
 
   test "can properly calculate target with float difficulty" do
     difficulty0 =
-      Block.calculate_target(1.32)
+      1.32
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
     difficulty1 =
-      Block.calculate_target(6.82243)
+      6.82243
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
     difficulty2 =
-      Block.calculate_target(62.2)
+      62.2
+      |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 

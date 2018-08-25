@@ -1,4 +1,4 @@
-defmodule UltraDark.Error do
+defmodule Elixium.Error do
   @moduledoc """
     Converts error tuples to human-readable strings.
   """

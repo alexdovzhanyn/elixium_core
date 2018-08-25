@@ -1,4 +1,4 @@
-defmodule UltraDark.Store do
+defmodule Elixium.Store do
   require Exleveldb
 
   @moduledoc """

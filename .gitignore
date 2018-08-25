@@ -8,6 +8,7 @@ erl_crash.dump
 /.chaindata
 /.utxo
 /.keys
+/.peers
 mix.lock
 .\#*
 \#*\#

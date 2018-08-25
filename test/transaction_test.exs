@@ -1,5 +1,5 @@
 defmodule TransactionTest do
-  alias UltraDark.Transaction
+  alias Elixium.Transaction
   alias Decimal, as: D
   use ExUnit.Case, async: true
 

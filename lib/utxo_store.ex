@@ -1,5 +1,5 @@
-defmodule UltraDark.UtxoStore do
-  use UltraDark.Store
+defmodule Elixium.UtxoStore do
+  use Elixium.Store
 
   @moduledoc """
     Provides an interface for interacting with the UTXOs stored in level db

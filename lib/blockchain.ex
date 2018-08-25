@@ -1,10 +1,10 @@
-defmodule UltraDark.Blockchain do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Ledger
-  alias UltraDark.UtxoStore
+defmodule Elixium.Blockchain do
+  alias Elixium.Blockchain.Block
+  alias Elixium.Ledger
+  alias Elixium.UtxoStore
 
   @target_blocktime 120
-  @diff_rebalance_offset 10080
+  @diff_rebalance_offset 10_080
 
   @moduledoc """
     Wrapper functions for interacting with the blockchain on a high level

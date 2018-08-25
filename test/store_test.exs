@@ -1,5 +1,5 @@
 defmodule StoreTest do
-  use UltraDark.Store
+  use Elixium.Store
   require Exleveldb
   use ExUnit.Case, async: true
 

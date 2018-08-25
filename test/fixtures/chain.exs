@@ -1,5 +1,5 @@
 [
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "00003DB0C5652613D75A428EE7213F8948DDA272B9FAAC5EDDC5E78193673FA2",
     index: 10,
@@ -8,7 +8,7 @@
     previous_hash: "0000F9B65027DE0F15A97F3EC70FCC9732026F231367908A993154508E922AF5",
     timestamp: "2018-02-19 20:17:13.555804Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "28432341D6CA2160E3596BBABE0BCB6DD18CCB51216AF0E0CF2C5DED79AAF486",
@@ -26,7 +26,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "0000F9B65027DE0F15A97F3EC70FCC9732026F231367908A993154508E922AF5",
     index: 9,
@@ -35,7 +35,7 @@
     previous_hash: "00002A8EA8F98A02098C2E6C0DF7CDA9AF1781349C4646BC2520009519891AE4",
     timestamp: "2018-02-19 20:17:13.450557Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "5BA5992069DA73E71904B09C9F28006B43E4678B15386BB5ECEA515995AD0F48",
@@ -53,16 +53,16 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "00002A8EA8F98A02098C2E6C0DF7CDA9AF1781349C4646BC2520009519891AE4",
     index: 8,
     merkle_root: "7BBB038978F6825B774587D13C8583DAB2550682E88D70F1A573A8A8960D4DC9",
-    nonce: 11414,
+    nonce: 11_414,
     previous_hash: "0000E1BA6AD3A6FA288D2EBBEE843375DEEF50AAB7C15517E5BD404ED549769C",
     timestamp: "2018-02-19 20:17:13.279529Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "05AD6967ED4CDF451B0AD2D91FCD6F946E16E21B8972F4349EB3FD73DF52DFB6",
@@ -80,7 +80,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "0000E1BA6AD3A6FA288D2EBBEE843375DEEF50AAB7C15517E5BD404ED549769C",
     index: 7,
@@ -89,7 +89,7 @@
     previous_hash: "00009D2BAB1C74824847A4C985D912EDCBB6A9B458E5CAB8C1B165C82712498E",
     timestamp: "2018-02-19 20:17:13.199553Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "EE91247A8CD9C9B130FEC35B5B712B9199AAD0C6374FC9271DA3FF1F8283F631",
@@ -107,7 +107,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "00009D2BAB1C74824847A4C985D912EDCBB6A9B458E5CAB8C1B165C82712498E",
     index: 6,
@@ -116,7 +116,7 @@
     previous_hash: "000031E6C2F65EE24B3F0455B29B919D83952169ED285B6998D13BABEA9AEC91",
     timestamp: "2018-02-19 20:17:12.068655Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "5366BD054479273A7A00E174E8CEF98C16A952434C817CEF9FEBEB2B90141952",
@@ -134,7 +134,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "000031E6C2F65EE24B3F0455B29B919D83952169ED285B6998D13BABEA9AEC91",
     index: 5,
@@ -143,7 +143,7 @@
     previous_hash: "00000ABCBAEF13E5BB23B1833E8E3C6DF2630C939B916A77689B50F541181832",
     timestamp: "2018-02-19 20:17:11.930151Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "AFB96333CD5750F1253718301FEB29C37B8C06C9CA34A547C351320B2977A9D4",
@@ -161,16 +161,16 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "00000ABCBAEF13E5BB23B1833E8E3C6DF2630C939B916A77689B50F541181832",
     index: 4,
     merkle_root: "858F6C76E3CE6FE6901770AAC5C5890D893D407532C0B16CB527276488258DAE",
-    nonce: 29693,
+    nonce: 29_693,
     previous_hash: "0000194E801B050AFBC86D9643FF39C0A777FEC467AD3B62D2C9342613554C59",
     timestamp: "2018-02-19 20:17:11.612220Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "C2D60EA325C8731297B9DBC52238E75DB9FEBDBC2A2AFB1181891A6287364E81",
@@ -188,7 +188,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "0000194E801B050AFBC86D9643FF39C0A777FEC467AD3B62D2C9342613554C59",
     index: 3,
@@ -197,7 +197,7 @@
     previous_hash: "0000912365E1DC6A2C4E58FB8B0EA78E7D1B8095DDB4AE1E876181DA210CA08C",
     timestamp: "2018-02-19 20:17:11.487178Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "FC8CC14F36C14D9383103A07248D5CCAC718028C94B458E6F9FCE8EFD548420B",
@@ -215,7 +215,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "0000912365E1DC6A2C4E58FB8B0EA78E7D1B8095DDB4AE1E876181DA210CA08C",
     index: 2,
@@ -224,7 +224,7 @@
     previous_hash: "0000CBF7F60385B7AED0D468CD4A0334D634E14E974A0C67946BEE8FEA13655A",
     timestamp: "2018-02-19 20:17:10.527809Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "23F9EBE1529E46BF2ABBC38924AF14DDD49F2C3A3CE1A3C8EE43235B915B3CFB",
@@ -242,7 +242,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "0000CBF7F60385B7AED0D468CD4A0334D634E14E974A0C67946BEE8FEA13655A",
     index: 1,
@@ -251,7 +251,7 @@
     previous_hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
     timestamp: "2018-02-19 20:17:09.344803Z",
     transactions: [
-      %UltraDark.Transaction{
+      %Elixium.Transaction{
         designations: [],
         fee: 0,
         id: "1C3D89C62BB4A7E0AAE73415DE0848B9214DFF26EDA00613C0ACEDC6A01F77FC",
@@ -269,7 +269,7 @@
       }
     ]
   },
-  %UltraDark.Blockchain.Block{
+  %Elixium.Blockchain.Block{
     difficulty: 4.0,
     hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
     index: 0,

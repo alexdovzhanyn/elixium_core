@@ -1,10 +1,10 @@
 [![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![Build Status](https://travis-ci.org/UltraDark/ultradark_core.svg?branch=master)](https://travis-ci.org/UltraDark/ultradark_core)
-[![Open Source](https://camo.githubusercontent.com/4fbc32cb2d4084799ae1d2a27995f5cc1fd17b7f/68747470733a2f2f6261646765732e66726170736f66742e636f6d2f6f732f76322f6f70656e2d736f757263652e706e673f763d313033)]()
+[![Build Status](https://travis-ci.org/Elixium/elixium_core.svg?branch=master)](https://travis-ci.org/Elixium/elixium_core)
+[![Join the chat](https://img.shields.io/badge/chat-on%20gitter-%23ed1965.svg)](https://gitter.im/elixium/Lobby)
 
 # Elixium
 Elixium is a peer-to-peer network and blockchain written in Elixir, aiming to excel where many other blockchains fall short. Elixium provides privacy and anonymity, smart contracting, and high transaction speeds. We're looking for contributors, so pull requests and issues are welcome! If you have any trouble getting set up or just want to join in with
-our development discussion, join our [Telegram Group](https://t.me/elixiumnetwork). Check out the [Elixium Development Wiki](https://github.com/ElixiumNetwork/elixium_core/wiki) if
+our development discussion, join our [Telegram Group](https://t.me/joinchat/JjYPS0WI62EMuMXovyjskA). Check out the [Elixium Development Wiki](https://github.com/ElixiumNetwork/elixium_core/wiki) if
 you need a reference/starting point for the project.
 
 ## Features

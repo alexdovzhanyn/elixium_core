@@ -1,7 +1,7 @@
-defmodule UltraDark.Validator do
-  alias UltraDark.Blockchain.Block
-  alias UltraDark.Utilities
-  alias UltraDark.KeyPair
+defmodule Elixium.Validator do
+  alias Elixium.Blockchain.Block
+  alias Elixium.Utilities
+  alias Elixium.KeyPair
   alias Decimal, as: D
 
   @moduledoc """
