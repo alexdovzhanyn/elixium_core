@@ -64,6 +64,8 @@ defmodule Elixium.P2P.ConnectionHandler do
             Authentication.outbound_new_peer(connection, credentials)
           end
 
+        PeerStore.save_known_peer({ip, port})
+
         prepare_connection_loop(connection, shared_secret, master_pid)
 
       {:error, reason} ->
