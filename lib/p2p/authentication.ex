@@ -148,7 +148,7 @@ defmodule Elixium.P2P.Authentication do
   # and then communicate back and forth with them until we've verified them
   @spec inbound_peer(String.t(), reference, pid) :: bitstring
   def inbound_peer(identifier, socket, peer_oracle) do
-    {salt, prime, generator, peer_verifier} = Oracle.inquire(peer_oracle, [identifier])
+    {salt, prime, generator, peer_verifier} = Oracle.inquire(peer_oracle, {:load_peer, [identifier]})
 
     # Necesarry in order to generate the public value & session key
     server =
