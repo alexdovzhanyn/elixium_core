@@ -1,25 +1,26 @@
 defmodule Elixium.P2P.Authentication do
   alias Elixium.P2P.GhostProtocol.Message
   alias Elixium.P2P.PeerStore
+  alias Elixium.P2P.Oracle
 
   @moduledoc """
     SRP authentication handshakes and generation of credentials
   """
 
-  @spec load_credentials(String.t()) :: {bitstring, bitstring}
-  def load_credentials(ip) do
+  @spec load_credentials(String.t(), pid) :: {bitstring, bitstring}
+  def load_credentials(ip, peer_oracle) do
     ip = List.to_string(ip)
 
-    case PeerStore.load_self(ip) do
-      :not_found -> generate_and_store_credentials(ip)
+    case Oracle.inquire(peer_oracle, {:load_self, [ip]}) do
+      :not_found -> generate_and_store_credentials(ip, peer_oracle)
       {identifier, password} -> {identifier, password}
     end
   end
 
-  @spec generate_and_store_credentials(String.t()) :: {bitstring, bitstring}
-  defp generate_and_store_credentials(ip) do
+  @spec generate_and_store_credentials(String.t(), pid) :: {bitstring, bitstring}
+  defp generate_and_store_credentials(ip, peer_oracle) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
-    PeerStore.save_self(identifier, password, ip)
+    Oracle.inquire(peer_oracle, {:save_self, [ip]})
 
     {identifier, password}
   end

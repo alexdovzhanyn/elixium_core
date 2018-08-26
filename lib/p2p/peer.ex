@@ -1,6 +1,5 @@
 defmodule Elixium.P2P.Peer do
-  alias Elixium.P2P.ConnectionHandler
-  alias Elixium.P2P.PeerStore
+  alias Elixium.P2P.Oracle
   require Logger
 
   @testnet_url 'https://registry.testnet.elixium.app/'
@@ -32,14 +31,19 @@ defmodule Elixium.P2P.Peer do
   end
 
   defp generate_handlers(socket, port, count \\ 10) do
+    {:ok, oracle} = Oracle.start_link(Elixium.P2P.PeerStore)
     # Fetch known peers. We're going to try to connect to them
     # before setting up a listener
-    peers = find_potential_peers(port)
+    peers = find_potential_peers(port, oracle)
 
     for i <- 1..count do
       %{
         id: "peer_handler_#{i}",
-        start: {ConnectionHandler, :start_link, [socket, self(), peers, i]},
+        start: {
+          Elixium.P2P.ConnectionHandler,
+          :start_link,
+          [socket, self(), peers, i, oracle]
+        },
         type: :worker,
         name: "peer_handler_#{i}"
       }
@@ -48,9 +52,9 @@ defmodule Elixium.P2P.Peer do
 
   # Either loads peers from a local storage or connects to the
   # bootstrapping registry
-  @spec find_potential_peers(integer) :: List | :not_found
-  defp find_potential_peers(port) do
-    case PeerStore.load_known_peers() do
+  @spec find_potential_peers(integer, pid) :: List | :not_found
+  defp find_potential_peers(port, oracle) do
+    case Oracle.inquire(oracle, {:load_known_peers, []}) do
       :not_found -> fetch_peers_from_registry(port)
       peers -> peers
     end
