@@ -1,7 +1,7 @@
 defmodule Elixium.Blockchain do
   alias Elixium.Blockchain.Block
-  alias Elixium.Ledger
-  alias Elixium.UtxoStore
+  alias Elixium.Store.Ledger
+  alias Elixium.Store.Utxo
 
   @target_blocktime 120
   @diff_rebalance_offset 10_080
@@ -29,7 +29,7 @@ defmodule Elixium.Blockchain do
     chain = [block | chain]
 
     Ledger.append_block(block)
-    UtxoStore.update_with_transactions(block.transactions)
+    Utxo.update_with_transactions(block.transactions)
 
     chain
   end

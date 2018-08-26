@@ -1,8 +1,9 @@
 defmodule Elixium.P2P.ConnectionHandler do
-  alias Elixium.P2P.PeerStore
   alias Elixium.P2P.Authentication
   alias Elixium.P2P.GhostProtocol.Message
+  alias Elixium.Store.Oracle
   require Logger
+  require IEx
 
   @moduledoc """
     Manage inbound and outbound connections
@@ -15,8 +16,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     not know of any peers, just sets up a listener and await
     an authentication message from another peer.
   """
-  @spec start_link(reference, pid, List, integer) :: {:ok, pid}
-  def start_link(socket, pid, peers, handler_number) do
+  @spec start_link(reference, pid, List, integer, pid) :: {:ok, pid}
+  def start_link(socket, pid, peers, handler_number, oracle) do
     pid =
       case peers do
         :not_found ->
@@ -26,31 +27,26 @@ defmodule Elixium.P2P.ConnectionHandler do
         peers ->
           if length(peers) >= handler_number do
             {ip, port} = Enum.at(peers, handler_number - 1)
-            had_previous_connection = had_previous_connection?(ip)
-            credentials = Authentication.load_credentials(ip)
+            had_previous_connection = had_previous_connection?(ip, oracle)
+            credentials = Authentication.load_credentials(ip, oracle)
 
             spawn_link(__MODULE__, :attempt_outbound_connection, [
               {ip, port},
               had_previous_connection,
               credentials,
               socket,
-              pid
+              pid,
+              oracle
             ])
           else
-            spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
+            spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid, oracle])
           end
       end
 
     {:ok, pid}
   end
 
-  def attempt_outbound_connection(
-        {ip, port},
-        had_previous_connection,
-        credentials,
-        socket,
-        master_pid
-      ) do
+  def attempt_outbound_connection({ip, port}, had_previous_connection, credentials, socket, master_pid, oracle) do
     Logger.info("Attempting connection to peer at host: #{ip}, port: #{port}...")
 
     case :gen_tcp.connect(ip, port, [:binary, active: false], 1000) do
@@ -64,14 +60,14 @@ defmodule Elixium.P2P.ConnectionHandler do
             Authentication.outbound_new_peer(connection, credentials)
           end
 
-        PeerStore.save_known_peer({ip, port})
+        Oracle.inquire(oracle, {:save_known_peer, [{ip, port}]})
 
-        prepare_connection_loop(connection, shared_secret, master_pid)
+        prepare_connection_loop(connection, shared_secret, master_pid, oracle)
 
       {:error, reason} ->
         Logger.warn("Error connecting to peer: #{reason}. Starting listener instead.")
 
-        accept_inbound_connection(socket, master_pid)
+        accept_inbound_connection(socket, master_pid, oracle)
     end
   end
 
@@ -80,8 +76,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     they are a new peer or someone we've talked to previously,
     and then authenticate them accordingly
   """
-  @spec accept_inbound_connection(reference, pid) :: none
-  def accept_inbound_connection(listen_socket, master_pid) do
+  @spec accept_inbound_connection(reference, pid, pid) :: none
+  def accept_inbound_connection(listen_socket, master_pid, oracle) do
     Logger.info("Waiting for connection...")
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
@@ -96,14 +92,14 @@ defmodule Elixium.P2P.ConnectionHandler do
     # the information we need in order to register them.
     shared_secret =
       case handshake do
-        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket)
-        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket)
+        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket, oracle)
+        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket, oracle)
       end
 
-    prepare_connection_loop(socket, shared_secret, master_pid)
+    prepare_connection_loop(socket, shared_secret, master_pid, oracle)
   end
 
-  defp prepare_connection_loop(socket, shared_secret, master_pid) do
+  defp prepare_connection_loop(socket, shared_secret, master_pid, oracle) do
     session_key = generate_session_key(shared_secret)
     Logger.info("Authenticated with peer.")
 
@@ -113,10 +109,10 @@ defmodule Elixium.P2P.ConnectionHandler do
     # to a peer.
     Process.put(:connected, peername)
 
-    handle_connection(socket, session_key, master_pid)
+    handle_connection(socket, session_key, master_pid, oracle)
   end
 
-  defp handle_connection(socket, session_key, master_pid) do
+  defp handle_connection(socket, session_key, master_pid, oracle) do
     peername = Process.get(:connected)
     # Accept TCP messages without blocking
     :inet.setopts(socket, active: :once)
@@ -147,7 +143,7 @@ defmodule Elixium.P2P.ConnectionHandler do
         end
     end
 
-    handle_connection(socket, session_key, master_pid)
+    handle_connection(socket, session_key, master_pid, oracle)
   end
 
   defp generate_session_key(shared_secret) do
@@ -169,9 +165,9 @@ defmodule Elixium.P2P.ConnectionHandler do
     |> to_string()
   end
 
-  @spec had_previous_connection?(String.t()) :: boolean
-  defp had_previous_connection?(ip) do
-    case PeerStore.load_self(ip) do
+  @spec had_previous_connection?(String.t(), pid) :: boolean
+  defp had_previous_connection?(ip, oracle) do
+    case Oracle.inquire(oracle, {:load_self, [ip]}) do
       :not_found -> false
       {_identifier, _password} -> true
     end

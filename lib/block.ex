@@ -28,7 +28,7 @@ defmodule Elixium.Blockchain.Block do
     %Block{
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-      difficulty: 4.0,
+      difficulty: 5.0,
       timestamp: DateTime.utc_now() |> DateTime.to_string(),
       transactions: [
         %{
