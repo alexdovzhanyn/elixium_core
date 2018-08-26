@@ -60,7 +60,7 @@ defmodule Elixium.P2P.ConnectionHandler do
             Authentication.outbound_new_peer(connection, credentials)
           end
 
-        Oracle.inquire(oracle, {:save_known_peer, {ip, port}})
+        Oracle.inquire(oracle, {:save_known_peer, [{ip, port}]})
 
         prepare_connection_loop(connection, shared_secret, master_pid, oracle)
 
