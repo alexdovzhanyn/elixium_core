@@ -4,7 +4,7 @@ sudo: false
 elixir:
   - 1.7
 otp_release:
-  - 21
+  - 21.0
 
 install:
   - mix local.hex --force
