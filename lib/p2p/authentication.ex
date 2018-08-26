@@ -106,8 +106,8 @@ defmodule Elixium.P2P.Authentication do
     shared_master_key
   end
 
-  @spec inbound_new_peer(map, reference) :: bitstring
-  def inbound_new_peer(message, socket) do
+  @spec inbound_new_peer(map, reference, pid) :: bitstring
+  def inbound_new_peer(message, socket, peer_oracle) do
     %{
       public_value: peer_public_value,
       generator: generator,
@@ -138,16 +138,17 @@ defmodule Elixium.P2P.Authentication do
 
     # Now that we've successfully authenticated the peer, we save this data for use
     # in future authentications
-    PeerStore.register_peer({peer_identifier, salt, prime, generator, peer_verifier})
+
+    Oracle.inquire(peer_oracle, {:register_peer, [{peer_identifier, salt, prime, generator, peer_verifier}]})
 
     shared_master_key
   end
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
   # and then communicate back and forth with them until we've verified them
-  @spec inbound_peer(String.t(), reference) :: bitstring
-  def inbound_peer(identifier, socket) do
-    {salt, prime, generator, peer_verifier} = PeerStore.load_peer(identifier)
+  @spec inbound_peer(String.t(), reference, pid) :: bitstring
+  def inbound_peer(identifier, socket, peer_oracle) do
+    {salt, prime, generator, peer_verifier} = Oracle.inquire(peer_oracle, [identifier])
 
     # Necesarry in order to generate the public value & session key
     server =

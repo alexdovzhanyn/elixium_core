@@ -92,8 +92,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     # the information we need in order to register them.
     shared_secret =
       case handshake do
-        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket)
-        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket)
+        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket, oracle)
+        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket, oracle)
       end
 
     prepare_connection_loop(socket, shared_secret, master_pid, oracle)
