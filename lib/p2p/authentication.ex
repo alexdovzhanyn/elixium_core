@@ -20,7 +20,7 @@ defmodule Elixium.P2P.Authentication do
   @spec generate_and_store_credentials(String.t(), pid) :: {bitstring, bitstring}
   defp generate_and_store_credentials(ip, peer_oracle) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
-    Oracle.inquire(peer_oracle, {:save_self, [ip]})
+    Oracle.inquire(peer_oracle, {:save_self, [identifier, password, ip]})
 
     {identifier, password}
   end
