@@ -2,9 +2,9 @@ language: elixir
 sudo: false
 
 elixir:
-  - 1.6
+  - 1.7
 otp_release:
-  - 20.2
+  - 21
 
 install:
   - mix local.hex --force
