@@ -1,7 +1,7 @@
 defmodule Elixium.P2P.ConnectionHandler do
   alias Elixium.P2P.Authentication
   alias Elixium.P2P.GhostProtocol.Message
-  alias Elixium.P2P.Oracle
+  alias Elixium.Store.Oracle
   require Logger
   require IEx
 

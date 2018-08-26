@@ -1,4 +1,4 @@
-defmodule Elixium.P2P.Oracle do
+defmodule Elixium.Store.Oracle do
   use GenServer
   require Exleveldb
 

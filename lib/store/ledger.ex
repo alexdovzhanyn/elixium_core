@@ -1,4 +1,4 @@
-defmodule Elixium.Ledger do
+defmodule Elixium.Store.Ledger do
   alias Elixium.Blockchain.Block
   use Elixium.Store
 

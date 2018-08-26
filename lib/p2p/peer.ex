@@ -1,5 +1,5 @@
 defmodule Elixium.P2P.Peer do
-  alias Elixium.P2P.Oracle
+  alias Elixium.Store.Oracle
   require Logger
 
   @testnet_url 'https://registry.testnet.elixium.app/'
@@ -31,7 +31,7 @@ defmodule Elixium.P2P.Peer do
   end
 
   defp generate_handlers(socket, port, count \\ 10) do
-    {:ok, oracle} = Oracle.start_link(Elixium.P2P.PeerStore)
+    {:ok, oracle} = Oracle.start_link(Elixium.Store.Peer)
     # Fetch known peers. We're going to try to connect to them
     # before setting up a listener
     peers = find_potential_peers(port, oracle)

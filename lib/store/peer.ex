@@ -1,4 +1,4 @@
-defmodule Elixium.P2P.PeerStore do
+defmodule Elixium.Store.Peer do
   use Elixium.Store
 
   @moduledoc """

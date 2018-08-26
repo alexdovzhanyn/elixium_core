@@ -1,4 +1,4 @@
-defmodule Elixium.UtxoStore do
+defmodule Elixium.Store.Utxo do
   use Elixium.Store
 
   @moduledoc """

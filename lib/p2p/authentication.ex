@@ -1,7 +1,6 @@
 defmodule Elixium.P2P.Authentication do
   alias Elixium.P2P.GhostProtocol.Message
-  alias Elixium.P2P.PeerStore
-  alias Elixium.P2P.Oracle
+  alias Elixium.Store.Oracle
 
   @moduledoc """
     SRP authentication handshakes and generation of credentials
