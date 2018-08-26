@@ -4,14 +4,15 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.1.3",
-      elixir: "~> 1.5",
+      version: "0.1.4",
+      elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "Elixium Core",
       description: description(),
       source_url: "https://github.com/elixium/elixium_core",
+      homepage_url: "https://elixium.app",
       package: package()
     ]
   end
@@ -25,8 +26,7 @@ defmodule Elixium.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
       {:decimal, "~> 1.0"},
       {:strap, "~> 0.1.1"},
-      {:jason, "~> 1.0"},
-      {:leveled, github: "martinsumner/leveled", app: false}
+      {:jason, "~> 1.0"}
     ]
   end
 

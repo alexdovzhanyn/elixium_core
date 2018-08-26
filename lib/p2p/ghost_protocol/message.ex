@@ -69,8 +69,8 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   """
   @spec read(binary, <<_::256>>) :: map | {:error, :invalid_protocol}
   def read(data, session_key) do
-    [protocol, bytes | _] = String.split(data, "|")
-    [_, encrypted_message] = String.split(data, protocol <> "|" <> bytes <> "|")
+    [protocol, bytes, version | _] = String.split(data, "|")
+    [_, encrypted_message] = String.split(data, protocol <> "|" <> bytes <> "|" <> version <> "|")
     # {bytes, _} = Integer.parse(bytes)
 
     if protocol == "Ghost" do
@@ -91,16 +91,6 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     case :gen_tcp.send(socket, message) do
       :ok -> :ok
       err -> err
-    end
-  end
-
-  def check(socket) do
-    data = :gen_tcp.recv(socket, 0)
-
-    if byte_size(data) > 0 do
-      {:ok, data}
-    else
-      :empty
     end
   end
 

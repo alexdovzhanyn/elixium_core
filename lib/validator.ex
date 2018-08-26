@@ -53,11 +53,8 @@ defmodule Elixium.Validator do
          difficulty: difficulty
        }) do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
-         :ok <- fn ->
-           if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}),
-             do: :ok,
-             else: {:error, {:wrong_hash, {:too_high, hash, difficulty}}}
-         end do
+         :ok <- (fn -> if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, {:wrong_hash, {:too_high, hash, difficulty}}} end).()
+         do
       :ok
     else
       err -> err
