@@ -8,14 +8,18 @@ defmodule Elixium.P2P.Peer do
     Contains functionality for communicating with other peers
   """
 
-  @spec initialize(integer) :: pid
-  def initialize(port \\ 31_013) do
+  def initialize, do: initialize(self(), 31013)
+  def initialize(pid) when is_pid(pid), do: initialize(pid, 31013)
+  def initialize(port) when is_number(port), do: initialize(self(), port)
+
+  @spec initialize(pid, integer) :: pid
+  def initialize(comm_pid, port) do
     Logger.info("Starting listener socket on port #{port}.")
 
     {:ok, supervisor} =
       port
       |> start_listener()
-      |> generate_handlers(port)
+      |> generate_handlers(port, comm_pid)
       |> Supervisor.start_link(strategy: :one_for_one)
 
     supervisor
@@ -30,7 +34,7 @@ defmodule Elixium.P2P.Peer do
     end
   end
 
-  defp generate_handlers(socket, port, count \\ 10) do
+  defp generate_handlers(socket, port, comm_pid, count \\ 10) do
     {:ok, oracle} = Oracle.start_link(Elixium.Store.Peer)
     # Fetch known peers. We're going to try to connect to them
     # before setting up a listener
@@ -42,7 +46,7 @@ defmodule Elixium.P2P.Peer do
         start: {
           Elixium.P2P.ConnectionHandler,
           :start_link,
-          [socket, self(), peers, i, oracle]
+          [socket, comm_pid, peers, i, oracle]
         },
         type: :worker,
         name: "peer_handler_#{i}"
