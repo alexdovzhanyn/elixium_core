@@ -134,13 +134,15 @@ defmodule Elixium.P2P.ConnectionHandler do
 
       # When receiving data from the parent process, send it to the network
       # through TCP
-      message ->
+      {type, data} ->
         Logger.info("Sending data to peer: #{peername}")
 
-        case Message.build("DATA", message, session_key) do
+        case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
           :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
         end
+      m ->
+        Logger.warn("Received message we haven't accounted for. Skipping! Message: #{inspect m}")
     end
 
     handle_connection(socket, session_key, master_pid, oracle)
