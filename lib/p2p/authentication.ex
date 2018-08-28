@@ -6,7 +6,7 @@ defmodule Elixium.P2P.Authentication do
     SRP authentication handshakes and generation of credentials
   """
 
-  @spec load_credentials(String.t(), pid) :: {bitstring, bitstring}
+  @spec load_credentials(String.t(), integer, pid) :: {bitstring, bitstring}
   def load_credentials(ip, port, peer_oracle) do
     ip = List.to_string(ip) <> ":" <> Integer.to_string(port)
 
