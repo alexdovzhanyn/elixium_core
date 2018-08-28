@@ -7,8 +7,8 @@ defmodule Elixium.P2P.Authentication do
   """
 
   @spec load_credentials(String.t(), pid) :: {bitstring, bitstring}
-  def load_credentials(ip, peer_oracle) do
-    ip = List.to_string(ip)
+  def load_credentials(ip, port, peer_oracle) do
+    ip = List.to_string(ip) <> ":" <> Integer.to_string(port)
 
     case Oracle.inquire(peer_oracle, {:load_self, [ip]}) do
       :not_found -> generate_and_store_credentials(ip, peer_oracle)

@@ -28,7 +28,7 @@ defmodule Elixium.P2P.ConnectionHandler do
           if length(peers) >= handler_number do
             {ip, port} = Enum.at(peers, handler_number - 1)
             had_previous_connection = had_previous_connection?(ip, oracle)
-            credentials = Authentication.load_credentials(ip, oracle)
+            credentials = Authentication.load_credentials(ip, port, oracle)
 
             spawn_link(__MODULE__, :attempt_outbound_connection, [
               {ip, port},
