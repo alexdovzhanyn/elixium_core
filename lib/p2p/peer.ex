@@ -3,13 +3,14 @@ defmodule Elixium.P2P.Peer do
   require Logger
 
   @testnet_url 'https://registry.testnet.elixium.app/'
+  @default_port 31_013
 
   @moduledoc """
     Contains functionality for communicating with other peers
   """
 
-  def initialize, do: initialize(self(), 31013)
-  def initialize(pid) when is_pid(pid), do: initialize(pid, 31013)
+  def initialize, do: initialize(self(), @default_port)
+  def initialize(pid) when is_pid(pid), do: initialize(pid, @default_port)
   def initialize(port) when is_number(port), do: initialize(self(), port)
 
   @spec initialize(pid, integer) :: pid
@@ -25,6 +26,26 @@ defmodule Elixium.P2P.Peer do
     supervisor
   end
 
+  @doc """
+    Given a peer supervisor, return a list of all the
+    handlers that are currently connected to another peer
+  """
+  @spec connected_handlers(pid) :: List
+  def connected_handlers(supervisor) do
+    supervisor
+    |> Supervisor.which_children()
+    |> Enum.filter(fn {_, p, _, _} ->
+        dictionary =
+          p
+          |> Process.info()
+          |> Keyword.get(:dictionary)
+
+        match?([connected: _], dictionary)
+      end)
+    |> Enum.map(fn {_, p, _, _} -> p end)
+  end
+
+  # Opens a socket listening on the given port
   defp start_listener(port) do
     options = [:binary, reuseaddr: true, active: false]
 
@@ -34,6 +55,8 @@ defmodule Elixium.P2P.Peer do
     end
   end
 
+  # Starts multiple "handler" processes that will asynchronously process
+  # requests on a given socket.
   defp generate_handlers(socket, port, comm_pid, count \\ 10) do
     {:ok, oracle} = Oracle.start_link(Elixium.Store.Peer)
     # Fetch known peers. We're going to try to connect to them
@@ -87,6 +110,8 @@ defmodule Elixium.P2P.Peer do
     end
   end
 
+  # Converts from a colon delimited string to a tuple containing the
+  # ip and port. "127.0.0.1:3000" becomes {'127.0.0.1', 3000}
   defp peerstring_to_tuple(peer) do
     [ip, port] = String.split(peer, ":")
     ip = String.to_charlist(ip)
@@ -98,25 +123,6 @@ defmodule Elixium.P2P.Peer do
       end
 
     {ip, port}
-  end
-
-  @doc """
-    Given a peer supervisor, return a list of all the
-    handlers that are currently connected to another peer
-  """
-  @spec connected_handlers(pid) :: List
-  def connected_handlers(supervisor) do
-    supervisor
-    |> Supervisor.which_children()
-    |> Enum.filter(fn {_, p, _, _} ->
-        dictionary =
-          p
-          |> Process.info()
-          |> Keyword.get(:dictionary)
-
-        match?([connected: _], dictionary)
-      end)
-    |> Enum.map(fn {_, p, _, _} -> p end)
   end
 
 end
