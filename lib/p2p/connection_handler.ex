@@ -22,7 +22,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       case peers do
         :not_found ->
           Logger.warn("(Handler #{handler_number}): No known peers! Accepting inbound connections instead.")
-          spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid])
+          spawn_link(__MODULE__, :accept_inbound_connection, [socket, pid, oracle])
 
         peers ->
           if length(peers) >= handler_number do
