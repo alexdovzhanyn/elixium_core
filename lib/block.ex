@@ -94,6 +94,10 @@ defmodule Elixium.Blockchain.Block do
     end
   end
 
+  @doc """
+    Retrieves a block header from a given block
+  """
+  @spec header(Block) :: map
   def header(block) do
     %{
       hash: block.hash,
@@ -101,7 +105,6 @@ defmodule Elixium.Blockchain.Block do
       previous_hash: block.previous_hash,
       merkle_root: block.merkle_root,
       nonce: block.nonce,
-      merkle_root: block.merkle_root,
       timestamp: block.timestamp
     }
   end
