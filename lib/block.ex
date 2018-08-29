@@ -94,6 +94,18 @@ defmodule Elixium.Blockchain.Block do
     end
   end
 
+  def header(block) do
+    %{
+      hash: block.hash,
+      index: block.index,
+      previous_hash: block.previous_hash,
+      merkle_root: block.merkle_root,
+      nonce: block.nonce,
+      merkle_root: block.merkle_root,
+      timestamp: block.timestamp
+    }
+  end
+
   @doc """
     Because the hash is a Base16 string, and not an integer, we must first convert the hash to an integer, and afterwards compare it to the target
   """
