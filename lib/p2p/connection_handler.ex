@@ -158,6 +158,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     session_key
   end
 
+  # Returns a string containing the IP of whoever is on the other end
+  # of the given socket
   @spec get_peername(reference) :: String.t()
   defp get_peername(socket) do
     {:ok, {addr, _port}} = :inet.peername(socket)
@@ -167,6 +169,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     |> to_string()
   end
 
+  # Checks to see if this node has previously had an authentication
+  # handshake with the node at the given IP.
   @spec had_previous_connection?(String.t(), pid) :: boolean
   defp had_previous_connection?(ip, oracle) do
     case Oracle.inquire(oracle, {:load_self, [ip]}) do
