@@ -81,22 +81,39 @@ defmodule Elixium.P2P.ConnectionHandler do
     Logger.info("Waiting for connection...")
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
-    Logger.info("Accepted potential handshake")
+    # Here would be a good place to put an IP blacklisting safeguard...
 
-    handshake = Message.read(socket)
+    # When starting multiple processes sometimes they'll start too fast and
+    # won't be able to properly tell whether another handler is already connected
+    # (this is a race condition). Sleep for a random time between 0 and 5 seconds
+    # as a hacky way to fix this
+    5000
+    |> :rand.uniform()
+    |> Process.sleep()
 
-    # If the handshake message contains JUST an identifier, the peer
-    # is signaling to us that they've talked to us before. We can try
-    # to find them in the database. Otherwise, they should be passing
-    # multiple pieces of data in this request, in effort to give us
-    # the information we need in order to register them.
-    shared_secret =
-      case handshake do
-        %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket, oracle)
-        %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket, oracle)
-      end
+    case has_existing_connection?(socket) do
+      {true, handler} ->
+        Logger.warn("Connection to peer already exists on another handler! Aborting.")
+        :gen_tcp.close(socket)
+        accept_inbound_connection(listen_socket, master_pid, oracle)
+      _ ->
+        Logger.info("Accepted potential handshake")
 
-    prepare_connection_loop(socket, shared_secret, master_pid, oracle)
+        handshake = Message.read(socket)
+
+        # If the handshake message contains JUST an identifier, the peer
+        # is signaling to us that they've talked to us before. We can try
+        # to find them in the database. Otherwise, they should be passing
+        # multiple pieces of data in this request, in effort to give us
+        # the information we need in order to register them.
+        shared_secret =
+          case handshake do
+            %{identifier: _, salt: _, prime: _} -> Authentication.inbound_new_peer(handshake, socket, oracle)
+            %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket, oracle)
+          end
+
+        prepare_connection_loop(socket, shared_secret, master_pid, oracle)
+    end
   end
 
   defp prepare_connection_loop(socket, shared_secret, master_pid, oracle) do
@@ -167,6 +184,31 @@ defmodule Elixium.P2P.ConnectionHandler do
     addr
     |> :inet_parse.ntoa()
     |> to_string()
+  end
+
+  @spec has_existing_connection?(reference) :: {boolean, pid} | false
+  def has_existing_connection?(socket) do
+    peername = get_peername(socket)
+
+    handler =
+      :peer_supervisor
+      |> Process.whereis()
+      |> Supervisor.which_children()
+      |> Enum.find(fn {_, p, _, _} ->
+          connected =
+            p
+            |> Process.info()
+            |> Keyword.get(:dictionary)
+            |> Keyword.get(:connected)
+
+          connected == peername
+        end)
+
+    if handler do
+      {true, handler}
+    else
+      false
+    end
   end
 
   # Checks to see if this node has previously had an authentication

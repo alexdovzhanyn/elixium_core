@@ -21,7 +21,7 @@ defmodule Elixium.P2P.Peer do
       port
       |> start_listener()
       |> generate_handlers(port, comm_pid)
-      |> Supervisor.start_link(strategy: :one_for_one)
+      |> Supervisor.start_link(strategy: :one_for_one, name: :peer_supervisor, max_restarts: 20)
 
     supervisor
   end
@@ -35,12 +35,10 @@ defmodule Elixium.P2P.Peer do
     supervisor
     |> Supervisor.which_children()
     |> Enum.filter(fn {_, p, _, _} ->
-        dictionary =
-          p
-          |> Process.info()
-          |> Keyword.get(:dictionary)
-
-        match?([connected: _], dictionary)
+        p
+        |> Process.info()
+        |> Keyword.get(:dictionary)
+        |> Keyword.has_key?(:connected)
       end)
     |> Enum.map(fn {_, p, _, _} -> p end)
   end
@@ -72,7 +70,7 @@ defmodule Elixium.P2P.Peer do
           [socket, comm_pid, peers, i, oracle]
         },
         type: :worker,
-        name: "peer_handler_#{i}"
+        restart: :permanent
       }
     end
   end
