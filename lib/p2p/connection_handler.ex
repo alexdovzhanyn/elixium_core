@@ -141,6 +141,7 @@ defmodule Elixium.P2P.ConnectionHandler do
         message = Message.read(data, session_key)
 
         Logger.info("Accepted message from #{peername}")
+        Logger.info("Time #{:os.system_time(:millisecond)}")
 
         # Send out the message to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
@@ -153,6 +154,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       # through TCP
       {type, data} ->
         Logger.info("Sending data to peer: #{peername}")
+        Logger.info("Time #{:os.system_time(:millisecond)}")
 
         case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
