@@ -19,10 +19,9 @@ defmodule Elixium.Validator do
 
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
-         :ok <- valid_hash?(block),
+         :ok <- valid_hash?(block, difficulty),
          :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block),
-         :ok <- valid_difficulty?(block, difficulty) do
+         :ok <- valid_transactions?(block) do
       :ok
     else
       err -> err
@@ -42,16 +41,15 @@ defmodule Elixium.Validator do
   defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash != last_block_hash,
     do: {:error, {:wrong_hash, {:doesnt_match_last, prev_hash, last_block_hash}}}
 
-  @spec valid_hash?(Block) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
+  @spec valid_hash?(Block, number) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
   defp valid_hash?(%{
          index: index,
          previous_hash: previous_hash,
          timestamp: timestamp,
          nonce: nonce,
          hash: hash,
-         merkle_root: merkle_root,
-         difficulty: difficulty
-       }) do
+         merkle_root: merkle_root
+       }, difficulty) do
     with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
          :ok <- (fn -> if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, {:wrong_hash, {:too_high, hash, difficulty}}} end).()
          do
@@ -121,10 +119,5 @@ defmodule Elixium.Validator do
     else
       {:error, {:invalid_coinbase, total_fees, reward, amount}}
     end
-  end
-
-  @spec valid_difficulty?(Block, number) :: :ok | {:error, {:invalid_difficulty, number, number}}
-  def valid_difficulty?(%{difficulty: difficulty}, diff) do
-    if difficulty == diff, do: :ok, else: {:error, {:invalid_difficulty, difficulty, diff}}
   end
 end

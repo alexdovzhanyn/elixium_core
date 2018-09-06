@@ -138,13 +138,14 @@ defmodule Elixium.P2P.ConnectionHandler do
       # When receiving a message through TCP, send the data back to the parent
       # process so it can handle it however it wants
       {:tcp, _, data} ->
-        message = Message.read(data, session_key)
+        messages = Message.read(data, session_key, socket)
 
         Logger.info("Accepted message from #{peername}")
+        Logger.info("Time #{:os.system_time(:millisecond)}")
 
-        # Send out the message to the parent of this process (a.k.a the pid that
+        # Send out the messages to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
-        send(master_pid, message)
+        Enum.each(messages, &(send(master_pid, &1)))
       {:tcp_closed, _} ->
         Logger.info("Lost connection from peer: #{peername}. TCP closed")
         Process.exit(self(), :normal)
@@ -153,6 +154,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       # through TCP
       {type, data} ->
         Logger.info("Sending data to peer: #{peername}")
+        Logger.info("Time #{:os.system_time(:millisecond)}")
 
         case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
