@@ -1,6 +1,7 @@
 defmodule Elixium.P2P.GhostProtocol.Message do
   require IEx
   alias Elixium.Utilities
+  require Logger
 
   @moduledoc """
     Create and read messages that are sent over TCP
@@ -54,9 +55,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     {protocol, bytes} = parse_header(socket)
 
     if protocol == "Ghost" do
-      {:ok, data} =
-        socket
-        |> :gen_tcp.recv(bytes)
+      {:ok, data} = :gen_tcp.recv(socket, bytes)
 
       :erlang.binary_to_term(data)
     else
@@ -65,20 +64,47 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   end
 
   @doc """
-    Validate & decrypt a message
+    Validate & decrypt a packet. A packet can contain more than one message
   """
-  @spec read(binary, <<_::256>>) :: map | {:error, :invalid_protocol}
-  def read(data, session_key) do
-    [protocol, bytes, version | _] = String.split(data, "|")
-    [_, encrypted_message] = String.split(data, protocol <> "|" <> bytes <> "|" <> version <> "|")
-    # {bytes, _} = Integer.parse(bytes)
+  @spec read(binary, <<_::256>>, reference, list) :: List
+  def read(data, session_key, socket, messages \\ [])
 
-    if protocol == "Ghost" do
-      encrypted_message
-      |> decrypt(session_key)
-    else
-      {:error, :invalid_protocol}
-    end
+  def read(<<>>, _session_key, _socket, messages), do: messages
+
+  def read(data, session_key, socket, messages) do
+    [protocol, bytes, version | _] = String.split(data, "|")
+    header = "Ghost|" <> bytes <> "|" <> version <> "|"
+
+    {bytes_body, _} = Integer.parse(bytes)
+    take_bytes = bytes_body + byte_size(header)
+    need_bytes = take_bytes - byte_size(data)
+
+    # Sometimes we get a packet with incomplete data. Parse use the byte count
+    # in the message header to determine how many bytes we're waiting for and
+    # await those bytes
+    rest_message =
+      if need_bytes > 0 do
+         Logger.info("Not enough bytes! Waiting for #{need_bytes} more bytes...")
+         {:ok, missing_bytes} = :gen_tcp.recv(socket, need_bytes)
+         Logger.info("Got the #{need_bytes} bytes! Constructing message")
+         missing_bytes
+      else
+        <<>>
+      end
+
+    # Take one full message, the rest will be parsed in the next passthrough
+    <<message :: binary-size(take_bytes)>> <> rest = data <> rest_message
+
+    [_, encrypted_message] = String.split(message, header)
+
+    decrypted_message =
+      if protocol == "Ghost" do
+        decrypt(encrypted_message, session_key)
+      else
+        {:error, :invalid_protocol}
+      end
+
+    read(rest, session_key, socket, [decrypted_message | messages])
   end
 
   @doc """
