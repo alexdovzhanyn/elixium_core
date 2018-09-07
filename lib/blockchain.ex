@@ -37,7 +37,7 @@ defmodule Elixium.Blockchain do
   def recalculate_difficulty(chain) do
     beginning_index = min(length(chain) - 1, @diff_rebalance_offset - 1)
 
-    last = List.first(chain)
+    last = hd(chain)
     first = Enum.at(chain, beginning_index)
 
     diff =

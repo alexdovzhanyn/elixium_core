@@ -15,7 +15,7 @@ defmodule Elixium.Validator do
   """
   @spec is_block_valid?(Block, list, number) :: :ok | {:error, any}
   def is_block_valid?(block, chain, difficulty) do
-    last_block = List.first(chain)
+    last_block = hd(chain)
 
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
@@ -75,7 +75,7 @@ defmodule Elixium.Validator do
 
   @spec valid_coinbase?(Block) :: :ok | {:error, :no_coinbase}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
-    coinbase = List.first(transactions)
+    coinbase = hd(transactions)
 
     with :ok <- (&if(&1 != nil, do: :ok, else: {:error, :no_coinbase})).(coinbase),
          :ok <- is_coinbase?(coinbase),
@@ -112,7 +112,7 @@ defmodule Elixium.Validator do
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
     total_fees = Block.total_block_fees(transactions)
     reward = Block.calculate_block_reward(block_index)
-    amount = List.first(coinbase.outputs).amount
+    amount = hd(coinbase.outputs).amount
 
     if D.equal?(D.add(total_fees, reward), amount) do
       :ok

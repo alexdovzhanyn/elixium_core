@@ -20,7 +20,7 @@ defmodule BlockchainTest do
 
     block =
       chain
-      |> List.first()
+      |> hd()
       |> Block.initialize()
       |> Block.mine()
 

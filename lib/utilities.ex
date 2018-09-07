@@ -35,7 +35,7 @@ defmodule Elixium.Utilities do
     |> calculate_merkle_root(true)
   end
 
-  def calculate_merkle_root(list, true) when length(list) == 1, do: List.first(list)
+  def calculate_merkle_root(list, true) when length(list) == 1, do: hd(list)
   def calculate_merkle_root(list, true), do: calculate_merkle_root(list)
 
   def pad(data, block_size) do

@@ -11,7 +11,7 @@ defmodule TransactionTest do
 
     assert txtype == "COINBASE"
     assert length(outputs) == 1
-    assert List.first(outputs).amount == 1223
+    assert hd(outputs).amount == 1223
   end
 
   test "id of transaction is merkle root of its inputs" do
