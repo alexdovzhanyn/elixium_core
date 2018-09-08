@@ -43,6 +43,8 @@ defmodule Elixium.P2P.ConnectionHandler do
           end
       end
 
+    :pg2.join(:p2p_handlers, pid)
+
     {:ok, pid}
   end
 

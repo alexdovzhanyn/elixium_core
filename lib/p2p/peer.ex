@@ -13,34 +13,32 @@ defmodule Elixium.P2P.Peer do
   def initialize(pid) when is_pid(pid), do: initialize(pid, @default_port)
   def initialize(port) when is_number(port), do: initialize(self(), port)
 
-  @spec initialize(pid, integer) :: pid
+  @spec initialize(pid, integer) :: none
   def initialize(comm_pid, port) do
     Logger.info("Starting listener socket on port #{port}.")
 
-    {:ok, supervisor} =
-      port
-      |> start_listener()
-      |> generate_handlers(port, comm_pid)
-      |> Supervisor.start_link(strategy: :one_for_one, name: :peer_supervisor, max_restarts: 20)
+    :pg2.create(:p2p_handlers)
 
-    supervisor
+    port
+    |> start_listener()
+    |> generate_handlers(port, comm_pid)
+    |> Supervisor.start_link(strategy: :one_for_one, name: :peer_supervisor, max_restarts: 20)
   end
 
   @doc """
     Given a peer supervisor, return a list of all the
     handlers that are currently connected to another peer
   """
-  @spec connected_handlers(pid) :: List
-  def connected_handlers(supervisor) do
-    supervisor
-    |> Supervisor.which_children()
-    |> Enum.filter(fn {_, p, _, _} ->
+  @spec connected_handlers :: List
+  def connected_handlers do
+    :p2p_handlers
+    |> :pg2.get_members()
+    |> Enum.filter(fn p ->
         p
         |> Process.info()
         |> Keyword.get(:dictionary)
         |> Keyword.has_key?(:connected)
       end)
-    |> Enum.map(fn {_, p, _, _} -> p end)
   end
 
   # Opens a socket listening on the given port
@@ -63,7 +61,7 @@ defmodule Elixium.P2P.Peer do
 
     for i <- 1..count do
       %{
-        id: "peer_handler_#{i}",
+        id: String.to_atom("peer_handler_#{i}"),
         start: {
           Elixium.P2P.ConnectionHandler,
           :start_link,
