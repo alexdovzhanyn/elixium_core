@@ -14,7 +14,7 @@ defmodule Elixium.Store.Oracle do
   """
   @spec start_link(atom) :: {:ok, pid} | {:error, String.t()}
   def start_link(store) do
-    GenServer.start_link(__MODULE__, store)
+    GenServer.start_link(__MODULE__, store, name: String.to_atom("#{store}Oracle"))
   end
 
   def init(store_ref) do
