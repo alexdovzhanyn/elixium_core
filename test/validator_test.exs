@@ -10,24 +10,6 @@ defmodule ValidatorTest do
     :ok
   end
 
-  test "refutes blocks with invalid difficulties" do
-    difficulty = 5
-
-    block =
-      Block.initialize()
-      |> Block.initialize()
-
-    assert {:error, _} = Validator.valid_difficulty?(block, difficulty)
-  end
-
-  test "allows blocks with valid difficulties" do
-    block =
-      Block.initialize()
-      |> Block.initialize()
-
-    assert :ok = Validator.valid_difficulty?(block, block.difficulty)
-  end
-
   test "can validate a single transaction" do
     {public, private} = KeyPair.create_keypair()
 
