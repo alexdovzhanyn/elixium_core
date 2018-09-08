@@ -12,3 +12,4 @@ erl_crash.dump
 mix.lock
 .\#*
 \#*\#
+native/build
