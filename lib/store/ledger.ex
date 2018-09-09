@@ -8,18 +8,24 @@ defmodule Elixium.Store.Ledger do
   """
 
   @store_dir ".chaindata"
+  @ets_name :chaindata
 
   def initialize do
     initialize(@store_dir)
+    :ets.new(@ets_name, [:set, :public, :named_table])
   end
 
   @doc """
     Add a block to leveldb, indexing it by its hash (this is the most likely piece of data to be unique)
   """
   def append_block(block) do
+    hash = String.to_atom(block.hash)
+
     transact @store_dir do
-      &Exleveldb.put(&1, String.to_atom(block.hash), :erlang.term_to_binary(block))
+      &Exleveldb.put(&1, hash, :erlang.term_to_binary(block))
     end
+
+    :ets.insert(@ets_name, {hash, block})
   end
 
   @doc """
@@ -27,11 +33,17 @@ defmodule Elixium.Store.Ledger do
   """
   @spec retrieve_block(String.t()) :: Block
   def retrieve_block(hash) do
-    transact @store_dir do
-      fn ref ->
-        {:ok, block} = Exleveldb.get(ref, String.to_atom(hash))
-        :erlang.binary_to_term(block)
-      end
+    hash = String.to_atom(hash)
+    # Only check the store if we don't have this hash in our ETS cache
+    case :ets.lookup(@ets_name, hash) do
+      [] ->
+        transact @store_dir do
+          fn ref ->
+            {:ok, block} = Exleveldb.get(ref, hash)
+            :erlang.binary_to_term(block)
+          end
+        end
+      [_key, block] -> block
     end
   end
 
