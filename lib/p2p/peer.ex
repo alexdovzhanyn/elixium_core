@@ -118,7 +118,11 @@ defmodule Elixium.P2P.Peer do
         :error -> nil
       end
 
-    {ip, port}
+    if Mix.env == :dev do
+      {'localhost', port}
+    else
+      {ip, port}
+    end
   end
 
 end

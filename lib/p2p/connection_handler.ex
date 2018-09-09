@@ -195,10 +195,9 @@ defmodule Elixium.P2P.ConnectionHandler do
     peername = get_peername(socket)
 
     handler =
-      :peer_supervisor
-      |> Process.whereis()
-      |> Supervisor.which_children()
-      |> Enum.find(fn {_, p, _, _} ->
+      :p2p_handlers
+      |> :pg2.get_members()
+      |> Enum.find(fn p ->
           connected =
             p
             |> Process.info()
