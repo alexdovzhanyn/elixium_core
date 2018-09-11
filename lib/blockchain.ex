@@ -15,7 +15,7 @@ defmodule Elixium.Blockchain do
   """
   def initialize do
     if Ledger.empty?() do
-      add_block([], Block.initialize())
+      add_block(Block.initialize())
     else
       Ledger.retrieve_chain()
     end
