@@ -12,7 +12,7 @@ defmodule Elixium.Store.Ledger do
 
   def initialize do
     initialize(@store_dir)
-    :ets.new(@ets_name, [:set, :public, :named_table])
+    :ets.new(@ets_name, [:ordered_set, :public, :named_table])
   end
 
   @doc """
@@ -51,12 +51,36 @@ defmodule Elixium.Store.Ledger do
     Return the whole chain from leveldb
   """
   def retrieve_chain do
-    transact @store_dir do
-      fn ref ->
-        ref
-        |> Exleveldb.map(fn {_, block} -> :erlang.binary_to_term(block) end)
-        |> Enum.sort_by(& &1.index, &>=/2)
+    chain =
+      transact @store_dir do
+        fn ref ->
+          ref
+          |> Exleveldb.map(fn {_, block} -> :erlang.binary_to_term(block) end)
+          |> Enum.sort_by(& &1.index, &>=/2)
+        end
       end
+
+
+    ets_hydrate = Enum.map(chain, &({String.to_atom(&1.hash), &1}))
+    :ets.insert(@ets_name, ets_hydrate)
+
+    chain
+  end
+
+  @doc """
+    Returns the most recent block on the chain
+  """
+  def last_block do
+    case :ets.last(@ets_name) do
+      [] ->
+        transact @store_dir do
+          fn ref ->
+            :err
+            # TODO
+            # {:ok, block} = Exleveldb.get()
+          end
+        end
+      [_key, block] -> block
     end
   end
 

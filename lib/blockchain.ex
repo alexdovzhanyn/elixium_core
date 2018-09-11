@@ -24,14 +24,10 @@ defmodule Elixium.Blockchain do
   @doc """
     Adds the latest block to the beginning of the blockchain
   """
-  @spec add_block(list, Block) :: list
-  def add_block(chain, block) do
-    chain = [block | chain]
-
+  @spec add_block(Block) :: none
+  def add_block(block) do
     Ledger.append_block(block)
     Utxo.update_with_transactions(block.transactions)
-
-    chain
   end
 
   def recalculate_difficulty(chain) do
