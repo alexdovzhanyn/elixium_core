@@ -16,15 +16,25 @@ For additional scalability, Elixium will also be sharded, utilizing a "journal" 
 ### You Can Trust Yourself.
 As a node, you only need to know the entirety of _your_ shard, having verified the chain when you first joined the network. Since then, you download block info from other shards that you're alerted to via crosslinks on the Journal chain (which you keep a copy of), validate the new blocks, discard the block info, and add a record to your local Journal as proof that the chain up to that point has been verified.
 
+### Sharded
+The chain is split into multiple fragments, or shards, which allow for dataset scalability. Rather than having each node store a full copy of the entire ledger, the state of all contracts, and the state of transactions, _each node needs only retain data relevant to the shard which it has been assigned_. This alludes to the fact that shards are assigned permanently; once a node has recieved it's shard assignment, it will store only data related to transactions and contracts that live within that shard. 
+
+If a node wishes to switch to a new shard (for whatever reason) it would be possible to do so by deleting (local) chain data and resetting the node, at which point the node would again randomly be assigned a shard. It is important that nodes are not allowed to choose which shard they want to run on, as this could lead to unbalanced shards, where the number of nodes on a particular shard largely outnumbers the nodes on another shard.
+
+Although each node only stores a subset of the entire chain, **it is mandatory that every node downloads and verifies each and every block on the chain, regardless of whether a given block is on it's shard.** Once a node has verified a block, it can choose to either store or discard it. 
+
+_Side Note: This may lead to "malicious" action by nodes on a shard. A node might choose not to store **any** blocks that it recieves after verifying them. Do these nodes get penalized if caught avoiding block storage in order to evade opportunity cost of storage? How does this play with SPV clients?_ 
+
 ### Proof of Work
 - Elixium will be utilizing the memory-hardened [Itsuku](https://eprint.iacr.org/2017/1168.pdf) instead of the generic Bitcoin implementation.
 
 ### Anonymity
-- The Elixium Core Wallet automatically performs a key rotation every 720 blocks (roughly 24 hours) or whenever you receive a transaction, meaning that you are not trackable by public key
+- The Elixium Core Wallet automatically performs a key rotation after every transaction, meaning that you are not trackable by public key. Used addresses are not discarded in case a peer sends multiple transactions to the same wallet address.
 - By implementing zkSNARKS, we hope to avoid user identification via transaction patterns, addresses, or transaction contents.
 
 ### Node Discovery
-- _TBD._
+- Currently using a load-balanced bootstrapping server which keeps a log of IP addresses of all the nodes which have come online.
+- _Is there a better way to achieve this without having a central bootstrapping server?_
 
 ### Smart Contract & Execution
 - WASM compiler.
@@ -39,7 +49,8 @@ As a node, you only need to know the entirety of _your_ shard, having verified t
 
 - Scalability needs to be tested with many nodes. A potential drawback is that Elixir itself is not enough to make up for inefficiencies in PoW approach and that this can only be solved _architecturally_.
 - At a glance, sharding seems unnecessarily complex. Is it actually necessary?
-- Unless we devise a novel way for execution, contracts may not be able to be protected by zero-knowledge. They must self-declare, because Elixium needs to know _prior to execution_ that they have enough gas to afford the execution itself.
+- Unless we devise a novel way for execution, contracts may not be able to be protected by zero-knowledge. They must self-declare, because Elixium needs to know _prior to execution_ that they have enough "gas" to afford the execution itself.
+  - A possible solution would be to have the contract developer commit a set of unspent transaction outputs to the contract, which can not be used for non-contract transactions after being committed. This also lends itself well to solving the developer identification problem shown below; a contract developer need not reveal themselves in order to fund a contract, and better yet _contracts can be publically fundable (Potentially a huge win for non-profit organizations that may want to accept contract funding as a donation)_.
 
 ## Alternative Approaches
 
