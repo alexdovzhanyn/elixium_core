@@ -30,22 +30,19 @@ defmodule Elixium.Blockchain do
     Utxo.update_with_transactions(block.transactions)
   end
 
-  def recalculate_difficulty(chain) do
-    beginning_index = min(length(chain) - 1, @diff_rebalance_offset - 1)
+  def recalculate_difficulty do
+    {:ok, last_time, _} = DateTime.from_iso8601(Ledger.last_block.timestamp)
+    {:ok, first_time, _} =
+      Ledger.count_blocks() - 1
+      |> min(@diff_rebalance_offset - 1)
+      |> Ledger.block_at_height()
+      |> (&(&1.timestamp)).()
+      |> DateTime.from_iso8601()
 
-    last = hd(chain)
-    first = Enum.at(chain, beginning_index)
-
-    diff =
-      with {:ok, last_time, _} <- DateTime.from_iso8601(last.timestamp),
-           {:ok, first_time, _} <- DateTime.from_iso8601(first.timestamp) do
-        diff = DateTime.diff(last_time, first_time, :microseconds) / 1_000_000
-        avg_secs_per_block = diff / @diff_rebalance_offset
-        speed_ratio = @target_blocktime / avg_secs_per_block
-        :math.log(speed_ratio) / :math.log(16)
-      end
-
-    diff
+    diff = DateTime.diff(last_time, first_time, :microseconds) / 1_000_000
+    avg_secs_per_block = diff / @diff_rebalance_offset
+    speed_ratio = @target_blocktime / avg_secs_per_block
+    :math.log(speed_ratio) / :math.log(16)
   end
 
   def diff_rebalance_offset, do: @diff_rebalance_offset

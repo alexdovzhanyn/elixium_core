@@ -2,6 +2,7 @@ defmodule Elixium.Validator do
   alias Elixium.Blockchain.Block
   alias Elixium.Utilities
   alias Elixium.KeyPair
+  alias Elixium.Store.Ledger
   alias Decimal, as: D
 
   @moduledoc """
@@ -13,9 +14,9 @@ defmodule Elixium.Validator do
     the previous_hash is equal to the hash of the previous block, and the hash of the block,
     when recalculated, is the same as what the listed block hash is
   """
-  @spec is_block_valid?(Block, list, number) :: :ok | {:error, any}
-  def is_block_valid?(block, chain, difficulty) do
-    last_block = hd(chain)
+  @spec is_block_valid?(Block, number) :: :ok | {:error, any}
+  def is_block_valid?(block, difficulty) do
+    last_block = Ledger.last_block()
 
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),

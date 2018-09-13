@@ -19,13 +19,11 @@ defmodule Elixium.Store.Ledger do
     Add a block to leveldb, indexing it by its hash (this is the most likely piece of data to be unique)
   """
   def append_block(block) do
-    hash = String.to_atom(block.hash)
-
     transact @store_dir do
-      &Exleveldb.put(&1, hash, :erlang.term_to_binary(block))
+      &Exleveldb.put(&1, String.to_atom(block.hash), :erlang.term_to_binary(block))
     end
 
-    :ets.insert(@ets_name, {hash, block})
+    :ets.insert(@ets_name, {block.index, block.hash, block})
   end
 
   @doc """
@@ -33,9 +31,8 @@ defmodule Elixium.Store.Ledger do
   """
   @spec retrieve_block(String.t()) :: Block
   def retrieve_block(hash) do
-    hash = String.to_atom(hash)
     # Only check the store if we don't have this hash in our ETS cache
-    case :ets.lookup(@ets_name, hash) do
+    case :ets.match(@ets_name, {'_', hash, '$1'}) do
       [] ->
         transact @store_dir do
           fn ref ->
@@ -43,7 +40,7 @@ defmodule Elixium.Store.Ledger do
             :erlang.binary_to_term(block)
           end
         end
-      [_key, block] -> block
+      [block] -> block
     end
   end
 
@@ -61,7 +58,7 @@ defmodule Elixium.Store.Ledger do
       end
 
 
-    ets_hydrate = Enum.map(chain, &({String.to_atom(&1.hash), &1}))
+    ets_hydrate = Enum.map(chain, &({&1.index, String.to_atom(&1.hash), &1}))
     :ets.insert(@ets_name, ets_hydrate)
 
     chain
@@ -70,6 +67,7 @@ defmodule Elixium.Store.Ledger do
   @doc """
     Returns the most recent block on the chain
   """
+  @spec last_block :: Block
   def last_block do
     case :ets.last(@ets_name) do
       [] ->
@@ -80,9 +78,23 @@ defmodule Elixium.Store.Ledger do
             # {:ok, block} = Exleveldb.get()
           end
         end
-      [_key, block] -> block
+      key ->
+        [{_index, _key, block}] = :ets.lookup(@ets_name, key)
+        block
     end
   end
+
+  @doc """
+    Returns the block at a given index
+  """
+  @spec block_at_height(integer) :: Block
+  def block_at_height(height), do: :ets.match(@ets_name, {height, '_', '$1'})
+
+  @doc """
+    Returns the number of blocks in the chain
+  """
+  @spec count_blocks :: integer
+  def count_blocks, do: :ets.info(@ets_name, :size)
 
   def empty? do
     empty?(@store_dir)
