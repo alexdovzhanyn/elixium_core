@@ -31,18 +31,24 @@ defmodule Elixium.Blockchain do
   end
 
   def recalculate_difficulty do
-    {:ok, last_time, _} = DateTime.from_iso8601(Ledger.last_block.timestamp)
-    {:ok, first_time, _} =
-      Ledger.count_blocks() - 1
-      |> min(@diff_rebalance_offset - 1)
-      |> Ledger.block_at_height()
-      |> (&(&1.timestamp)).()
-      |> DateTime.from_iso8601()
+    count = Ledger.count_blocks() - 1
+    if count >= @diff_rebalance_offset - 1 do
+      {:ok, last_time, _} = DateTime.from_iso8601(Ledger.last_block.timestamp)
+      {:ok, first_time, _} =
+        count
+        |> min(@diff_rebalance_offset - 1)
+        |> Ledger.block_at_height()
+        |> IO.inspect
+        |> (&(&1.timestamp)).()
+        |> DateTime.from_iso8601()
 
-    diff = DateTime.diff(last_time, first_time, :microseconds) / 1_000_000
-    avg_secs_per_block = diff / @diff_rebalance_offset
-    speed_ratio = @target_blocktime / avg_secs_per_block
-    :math.log(speed_ratio) / :math.log(16)
+      diff = DateTime.diff(last_time, first_time, :microseconds) / 1_000_000
+      avg_secs_per_block = diff / @diff_rebalance_offset
+      speed_ratio = @target_blocktime / avg_secs_per_block
+      :math.log(speed_ratio) / :math.log(16)
+    else
+      0
+    end
   end
 
   def diff_rebalance_offset, do: @diff_rebalance_offset

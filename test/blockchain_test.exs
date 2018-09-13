@@ -1,9 +1,12 @@
 defmodule BlockchainTest do
   alias Elixium.Blockchain
+  alias Elixium.Store.Ledger
   alias Elixium.Blockchain.Block
   use ExUnit.Case, async: true
 
   setup _ do
+    Ledger.initialize()
+
     on_exit(fn ->
       File.rm_rf!(".chaindata")
       File.rm_rf!(".utxo")
@@ -11,24 +14,29 @@ defmodule BlockchainTest do
   end
 
   test "can initialize a chain" do
-    chain = Blockchain.initialize()
-    assert [_ | _] = chain
+    Blockchain.initialize()
+    assert [_ | _] = Ledger.retrieve_chain()
   end
 
   test "can add block to chain" do
-    chain = Blockchain.initialize()
+    Blockchain.initialize()
 
     block =
-      chain
-      |> hd()
+      Ledger.last_block()
       |> Block.initialize()
       |> Block.mine()
 
-    assert [block | chain] == Blockchain.add_block(chain, block)
+    Blockchain.add_block(block)
+
+    assert block == Ledger.last_block()
   end
 
   test "properly recalculates difficulty" do
     {chain, _} = Code.eval_file("test/fixtures/chain.exs")
-    assert Blockchain.recalculate_difficulty(chain) == 4.529592161075461
+
+    ets_hydrate = Enum.map(chain, &({&1.index, String.to_atom(&1.hash), &1}))
+    :ets.insert(:chaindata, ets_hydrate)
+
+    assert Blockchain.recalculate_difficulty() == 0
   end
 end
