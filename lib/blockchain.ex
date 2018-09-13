@@ -38,7 +38,6 @@ defmodule Elixium.Blockchain do
         count
         |> min(@diff_rebalance_offset - 1)
         |> Ledger.block_at_height()
-        |> IO.inspect
         |> (&(&1.timestamp)).()
         |> DateTime.from_iso8601()
 
