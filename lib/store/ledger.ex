@@ -88,7 +88,12 @@ defmodule Elixium.Store.Ledger do
     Returns the block at a given index
   """
   @spec block_at_height(integer) :: Block
-  def block_at_height(height), do: :ets.match(@ets_name, {height, '_', '$1'})
+  def block_at_height(height), do
+    case :ets.lookup(@ets_name, height) do
+      [] -> :none
+      [_index, _key, block] -> block
+    end
+  end
 
   @doc """
     Returns the number of blocks in the chain
