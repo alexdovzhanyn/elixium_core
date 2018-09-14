@@ -91,7 +91,7 @@ defmodule Elixium.Store.Ledger do
   def block_at_height(height) do
     case :ets.lookup(@ets_name, height) do
       [] -> :none
-      [_index, _key, block] -> block
+      [{_index, _key, block}] -> block
     end
   end
 
