@@ -138,4 +138,15 @@ defmodule Elixium.Blockchain.Block do
     transactions
     |> Enum.reduce(D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
   end
+
+  @doc """
+    Return a list of keys that differ between two given block headers.
+  """
+  @spec diff_header(Block, Block) :: list
+  def diff_header(block1, block2) do
+    block1
+    |> header()
+    |> Map.keys()
+    |> Enum.filter(&(Map.get(block1, &1) != Map.get(block2, &1)))
+  end
 end
