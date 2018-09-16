@@ -36,8 +36,10 @@ defmodule Elixium.Store.Ledger do
       [] ->
         transact @store_dir do
           fn ref ->
-            {:ok, block} = Exleveldb.get(ref, hash)
-            :erlang.binary_to_term(block)
+            case Exleveldb.get(ref, hash) do
+              {:ok, block} -> :erlang.binary_to_term(block)
+              err -> err
+            end
           end
         end
       [block] -> block

@@ -5,7 +5,7 @@ defmodule Elixium.Pool.Orphan do
 
   @pool_name :orphan_pool
 
-  def init, do: :ets.new(@pool_name, [:set, :public, :named_table])
+  def initialize, do: :ets.new(@pool_name, [:set, :public, :named_table])
 
   @spec add(Elixium.Blockchain.Block) :: none
   def add(block), do: :ets.insert(@pool_name, {block.index, block})
