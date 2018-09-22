@@ -43,9 +43,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   end
 
   # If the first build/3 doesn't match, it's an invalid message
-  def build(_, _, _) do
-    :error
-  end
+  def build(_, _, _), do: :error
 
   @doc """
     Read a full unencrypted message from the socket
