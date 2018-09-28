@@ -15,9 +15,7 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
-  def is_block_valid?(block, difficulty) do
-    last_block = Ledger.last_block()
-
+  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block()) do
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
          :ok <- valid_hash?(block, difficulty),
