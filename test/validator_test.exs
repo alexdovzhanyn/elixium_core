@@ -56,4 +56,21 @@ defmodule ValidatorTest do
     assert Validator.valid_transaction?(expected_valid_tx)
     refute Validator.valid_transaction?(expected_invalid_tx)
   end
+
+  test "Blocks out of order are correctly validated" do
+    genesis = Block.initialize()
+
+    block_1 =
+      genesis
+      |> Block.initialize()
+      |> Block.mine()
+
+    block_2 =
+      genesis
+      |> Block.initialize()
+      |> Block.mine()
+      |> Map.replace(:index, 2)
+
+    #assert Validator.is_block_valid?(block_1, 4.0, block_2) == :ok
+  end
 end
