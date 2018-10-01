@@ -71,6 +71,6 @@ defmodule ValidatorTest do
       |> Block.mine()
       |> Map.replace(:index, 2)
 
-    #assert Validator.is_block_valid?(block_1, 4.0, block_2) == :ok
+    assert Validator.is_block_valid?(block_1, 4.0, block_2) == :ok
   end
 end

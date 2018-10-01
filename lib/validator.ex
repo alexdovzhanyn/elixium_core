@@ -16,7 +16,8 @@ defmodule Elixium.Validator do
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
   def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block()) do
-    with :ok <- valid_index(block.index, last_block.index),
+    with :ok <- store_blocks_and_pair(block, last_block),
+         :ok <- valid_index(block, last_block),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
          :ok <- valid_hash?(block, difficulty),
          :ok <- valid_coinbase?(block),
@@ -27,11 +28,28 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec valid_index(number, number) :: :ok | {:error, {:invalid_index, number, number}}
-  defp valid_index(index, prev_index) when index > prev_index, do: :ok
+  #@spec valid_index(block, block) :: :ok | {:error, {:invalid_index, block, block}}
+  defp valid_index(block, last_block) do
+    if block.index <= last_block.index do
+     with {:up, block_2, block_1} <- Ledger.check_block(block, last_block),
+       {:ok, "Validated Forwards", block_2, block_1} <- Ledger.check_validation_of_blocks({:up, block_2, block_1}),
+       :ok <- Ledger.remove_blocks({:ok, "Validated Forwards", block_2, block_1}) do
+         :ok
+     end
+   else
+     :ok
+  end
+  end
 
   defp valid_index(index, prev_index) when index <= prev_index,
     do: {:error, {:invalid_index, prev_index, index}}
+
+  defp store_blocks_and_pair(block_2, block_1) do
+    with :ok <- Ledger.store(block_2),
+    :ok <- Ledger.store(block_1) do
+      :ok
+    end
+  end
 
   @spec valid_prev_hash?(String.t(), String.t()) ::
           :ok | {:error, {:wrong_hash, {:doesnt_match_last, String.t(), String.t()}}}
