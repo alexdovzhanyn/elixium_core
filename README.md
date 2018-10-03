@@ -36,6 +36,7 @@ This code is licensed under the MIT License, which means _anyone_ can use it to 
 1. Elixir
 
 ## Setup
-Run `mix deps.get` to fetch any dependencies needed to run Elixium. After downloading all dependencies, run `mix compile` to compile the Elixir code. Currently,
-Elixium is only under development and is unavailable to be used as a network or currency. In order to play around with Elixium and it's methods, run `iex -S mix`. This
-will pop open an iex session with Elixium loaded. To start mining Elixium, just run `mix miner` !
+1. Run `mix deps.get` to fetch any dependencies needed to run Elixium.
+2. After downloading all dependencies, run `mix compile` to compile the Elixir code.
+3. Elixium is only under development and is unavailable to be used as a network or currency.
+4. With the Elixium_Node running run `mix.run --no-halt`

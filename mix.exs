@@ -5,7 +5,7 @@ defmodule Elixium.Mixfile do
     [
       app: :elixium_core,
       version: "0.2.10",
-      elixir: "~> 1.5",
+      elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
