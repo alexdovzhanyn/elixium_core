@@ -14,54 +14,69 @@ defmodule Elixium.Store.Ledger do
   def initialize do
     initialize(@store_dir)
     :ets.new(@ets_name, [:ordered_set, :public, :named_table])
-    :ets.new(@block_cache, [:named_table])
+    :ets.new(@block_cache, [:ordered_set, :bag, :named_table])
   end
 
   @doc """
     Store & Delete Blocks from the block cache ets table
   """
   def store(block) do
-    validate_operation(:ets.insert(@block_cache, {block}))
+    validate_operation(:ets.insert(@block_cache, {:"#{block.index}", block}))
   end
 
   def delete(block) do
     validate_operation(:ets.delete(@block_cache, {block}))
   end
+
+  def delete_block(block_index) do
+    validate_operation(:ets.delete(@block_cache, :"#{block_index}"))
+  end
   @doc """
-    Here we're just checking if the block given i.e the previoius block (the one being behind) is actually behind with the correct index
+    First we check if the store is empty, if the store is empty initially we have nothing to match with so lets store it, else lets check the index
   """
-  def check_block(block_2, block_1) do
-    with [block_forward] <- :ets.lookup(@block_cache, block_2) do
-      with {:up, block_2} <- check_index(block_2, block_1) do
-        {:up, block_2, block_1}
+  def block_cache_validation(current_block) do
+    case check_cache_size do
+      0 ->
+        with current_block <- store(current_block) do
+          :ok
+        end
+      _->
+        check_index(current_block)
+    end
+  end
+
+  def check_cache_size do
+    :ets.info(@block_cache, :size)
+  end
+
+  @doc """
+    We know were looking for a matching partner in the table so +1 in this case
+  """
+  defp check_index(current_block) do
+    correct_index = current_block.index + 1
+    IO.puts "Current Block index: #{current_block.index}, Looking for Block: #{correct_index}"
+    exists? = :ets.lookup(@block_cache, :"#{correct_index}")
+    case exists? do
+      [] ->
+        store(current_block)
+      _->
+      verify_block_order(current_block, List.first(exists?))
+    end
+  end
+
+  @doc """
+    Now we double check the block order and remove the block if necessary, this returns :ok or :error to continue down the path
+  """
+  defp verify_block_order(current_block, {index, previous_block}) do
+    if current_block.index < previous_block.index do
+      with :ok <- delete_block(previous_block.index) do
+        :ok
       end
-    end
-  end
-  @doc """
-    We know were looking for a matching partner in the table so -1 in this case
-  """
-  defp check_index(block_2, block_1) do
-    correct_index = block_2.index - 1
-    if block_1.index == correct_index do
-      {:up, block_2}
     else
-      {:error, "Block Out of Sync"}
+      {:error, {:invalid_index, previous_block.index, current_block.index}}
     end
   end
-  @doc """
-    Now that the blocks have been verified and processed lets remove them from the table
-  """
-  def remove_blocks({type, message, block_2, block_1}) do
-    with :ok <- delete(block_2),
-          :ok <- delete(block_1)do
-    :ok
-    end
-  end
-  @doc """
-    this is where we can patch into the validator functions, then return the result
-  """
-  def check_validation_of_blocks({:up, block_forward, block_back}), do: {:ok, "Validated Forwards", block_forward, block_back}
-  def check_validation_of_blocks({:down, block_forward, block_back}), do: {:ok, "Validated Backwards", block_forward, block_back}
+
   @doc """
     Simple Helper Function to verify critical operations
   """
