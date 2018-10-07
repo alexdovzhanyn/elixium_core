@@ -26,6 +26,15 @@ defmodule Elixium.Store.Ledger do
     :ets.insert(@ets_name, {block.index, block.hash, block})
   end
 
+  @spec drop_block(Block) :: none
+  def drop_block(block) do
+    transact @store_dir do
+      &Exleveldb.delete(&1, String.to_atom(block.hash))
+    end
+
+    :ets.delete(@ets_name, block.index)
+  end
+
   @doc """
     Given a block hash, return its contents
   """

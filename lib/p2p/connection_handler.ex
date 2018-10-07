@@ -94,7 +94,7 @@ defmodule Elixium.P2P.ConnectionHandler do
     |> Process.sleep()
 
     case has_existing_connection?(socket) do
-      {true, handler} ->
+      {true, _handler} ->
         Logger.warn("Connection to peer already exists on another handler! Aborting.")
         :gen_tcp.close(socket)
         accept_inbound_connection(listen_socket, master_pid, oracle)

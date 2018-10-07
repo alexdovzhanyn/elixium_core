@@ -3,6 +3,7 @@ defmodule Elixium.Validator do
   alias Elixium.Utilities
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger
+  alias Elixium.Store.Utxo
   alias Decimal, as: D
 
   @moduledoc """
@@ -15,12 +16,12 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
-  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block()) do
+  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &Utxo.in_pool?/1) do
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
          :ok <- valid_hash?(block, difficulty),
          :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block) do
+         :ok <- valid_transactions?(block, pool_check) do
       :ok
     else
       err -> err
@@ -85,21 +86,35 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec valid_transaction?(Transaction) :: boolean
-  def valid_transaction?(%{inputs: inputs}) do
+  @doc """
+    Checks if a transaction is valid. A transaction is considered valid if
+    1) all of its inputs are currently in our UTXO pool and 2) all of its inputs
+    have a valid signature, signed by the owner of the private key associated to
+    the input (the addr). pool_check is a function which tests whether or not a
+    given input is in a pool (this is mostly used in the case of a fork), and
+    this function must return a boolean.
+  """
+  @spec valid_transaction?(Transaction, function) :: boolean
+  def valid_transaction?(%{inputs: inputs}, pool_check \\ &Utxo.in_pool?/1) do
     inputs
     |> Enum.map(fn input ->
-      case {Base.decode16(input.addr), Base.decode16(input.signature)} do
-        {{:ok, pub}, {:ok, sig}} -> KeyPair.verify_signature(pub, sig, input.txoid)
-        _ -> false
+      # Ensure that this input is in our UTXO pool
+      if pool_check.(input) do
+        # Check if this UTXO has a valid signature
+        case {Base.decode16(input.addr), Base.decode16(input.signature)} do
+          {{:ok, pub}, {:ok, sig}} -> KeyPair.verify_signature(pub, sig, input.txoid)
+          _ -> false
+        end
+      else
+        false
       end
     end)
-    |> Enum.all?(&(&1 == true))
+    |> Enum.all?(& &1)
   end
 
-  @spec valid_transactions?(Block) :: :ok | {:error, :invalid_inputs}
-  def valid_transactions?(%{transactions: transactions}) do
-    if Enum.all?(transactions, &valid_transaction?(&1)), do: :ok, else: {:error, :invalid_inputs}
+  @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
+  def valid_transactions?(%{transactions: transactions}, pool_check \\ &Utxo.in_pool?/1) do
+    if Enum.all?(transactions, &valid_transaction?(&1, pool_check)), do: :ok, else: {:error, :invalid_inputs}
   end
 
   @spec is_coinbase?(Transaction) :: :ok | {:error, {:not_coinbase, String.t()}}
