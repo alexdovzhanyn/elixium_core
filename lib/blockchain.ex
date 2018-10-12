@@ -13,6 +13,7 @@ defmodule Elixium.Blockchain do
   @doc """
     Creates a List with a genesis block in it or returns the existing blockchain
   """
+  @spec initialize :: list
   def initialize do
     if Ledger.empty?() do
       add_block(Block.initialize())

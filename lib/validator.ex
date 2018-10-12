@@ -30,32 +30,28 @@ defmodule Elixium.Validator do
 
   @spec valid_index(number, number) :: :ok | {:error, {:invalid_index, number, number}}
   defp valid_index(index, prev_index) when index > prev_index, do: :ok
+  defp valid_index(idx, prev), do: {:error, {:invalid_index, prev, idx}}
 
-  defp valid_index(index, prev_index) when index <= prev_index,
-    do: {:error, {:invalid_index, prev_index, index}}
-
-  @spec valid_prev_hash?(String.t(), String.t()) ::
-          :ok | {:error, {:wrong_hash, {:doesnt_match_last, String.t(), String.t()}}}
+  @spec valid_prev_hash?(String.t(), String.t()) :: :ok | {:error, {:wrong_hash, {:doesnt_match_last, String.t(), String.t()}}}
   defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash == last_block_hash, do: :ok
-
-  defp valid_prev_hash?(prev_hash, last_block_hash) when prev_hash != last_block_hash,
-    do: {:error, {:wrong_hash, {:doesnt_match_last, prev_hash, last_block_hash}}}
+  defp valid_prev_hash?(phash, lbhash), do: {:error, {:wrong_hash, {:doesnt_match_last, phash, lbhash}}}
 
   @spec valid_hash?(Block, number) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
-  defp valid_hash?(%{
-         index: index,
-         previous_hash: previous_hash,
-         timestamp: timestamp,
-         nonce: nonce,
-         hash: hash,
-         merkle_root: merkle_root
-       }, difficulty) do
-    with :ok <- compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash),
-         :ok <- (fn -> if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}), do: :ok, else: {:error, {:wrong_hash, {:too_high, hash, difficulty}}} end).()
+  defp valid_hash?(b, difficulty) do
+    with :ok <- compare_hash({b.index, b.previous_hash, b.timestamp, b.nonce, b.merkle_root}, b.hash),
+         :ok <- beat_target?(b.hash, b.difficulty)
          do
       :ok
     else
       err -> err
+    end
+  end
+
+  defp beat_target?(hash, difficulty) do
+    if Block.hash_beat_target?(%{hash: hash, difficulty: difficulty}) do
+      :ok
+    else
+      {:error, {:wrong_hash, {:too_high, hash, difficulty}}}
     end
   end
 
@@ -77,7 +73,7 @@ defmodule Elixium.Validator do
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = hd(transactions)
 
-    with :ok <- (&if(&1 != nil, do: :ok, else: {:error, :no_coinbase})).(coinbase),
+    with :ok <- coinbase_exist?(coinbase),
          :ok <- is_coinbase?(coinbase),
          :ok <- appropriate_coinbase_output?(transactions, block_index) do
       :ok
@@ -85,6 +81,9 @@ defmodule Elixium.Validator do
       err -> err
     end
   end
+
+  def coinbase_exist?(nil), do: {:error, :no_coinbase}
+  def coinbase_exist?(_coinbase), do: :ok
 
   @doc """
     Checks if a transaction is valid. A transaction is considered valid if
@@ -96,20 +95,19 @@ defmodule Elixium.Validator do
   """
   @spec valid_transaction?(Transaction, function) :: boolean
   def valid_transaction?(%{inputs: inputs}, pool_check \\ &Utxo.in_pool?/1) do
-    inputs
-    |> Enum.map(fn input ->
+    Enum.map(inputs, fn input ->
       # Ensure that this input is in our UTXO pool
       if pool_check.(input) do
+        {:ok, pub} = Base.decode16(input.addr)
+        {:ok, sig} = Base.decode16(input.signature)
+
         # Check if this UTXO has a valid signature
-        case {Base.decode16(input.addr), Base.decode16(input.signature)} do
-          {{:ok, pub}, {:ok, sig}} -> KeyPair.verify_signature(pub, sig, input.txoid)
-          _ -> false
-        end
+        KeyPair.verify_signature(pub, sig, input.txoid)
       else
         false
       end
     end)
-    |> Enum.all?(& &1)
+    |> Enum.all?()
   end
 
   @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
@@ -118,9 +116,8 @@ defmodule Elixium.Validator do
   end
 
   @spec is_coinbase?(Transaction) :: :ok | {:error, {:not_coinbase, String.t()}}
-  defp is_coinbase?(tx) do
-    if tx.txtype == "COINBASE", do: :ok, else: {:error, {:not_coinbase, tx.txtype}}
-  end
+  defp is_coinbase?(%{txtype: "COINBASE"}), do: :ok
+  defp is_coinbase?(tx), do: {:error, {:not_coinbase, tx.txtype}}
 
   @spec appropriate_coinbase_output?(list, number) :: :ok | {:error, :invalid_coinbase}
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
