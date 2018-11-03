@@ -84,7 +84,8 @@ defmodule Elixium.Blockchain do
       |> Kernel./(1_000_000)
       |> Kernel./(@diff_rebalance_offset)
 
-    @target_blocktime / avg_secs_per_block
+    @target_blocktime
+    |> div(avg_secs_per_block)
     |> :math.log()
     |> Kernel./(:math.log(16))
   end

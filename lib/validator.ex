@@ -95,7 +95,8 @@ defmodule Elixium.Validator do
   """
   @spec valid_transaction?(Transaction, function) :: boolean
   def valid_transaction?(%{inputs: inputs}, pool_check \\ &Utxo.in_pool?/1) do
-    Enum.map(inputs, fn input ->
+    inputs
+    |> Enum.map(fn input ->
       # Ensure that this input is in our UTXO pool
       if pool_check.(input) do
         {:ok, pub} = Base.decode16(input.addr)

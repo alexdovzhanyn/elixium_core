@@ -67,7 +67,9 @@ defmodule Elixium.Store.Utxo do
 
   @spec retrieve_all_utxos :: list(utxo())
   def retrieve_all_utxos do
-    # TODO: Fetch UTXOs from ETS if possible
+    # It might be better to get from ets here, but there might be the issue
+    # that ets wont have an UTXO that the store does, causing a block to be
+    # invalidated somewhere down the line even if the inputs are all valid.
     transact @store_dir do
       &Exleveldb.map(&1, fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
     end
@@ -106,15 +108,18 @@ defmodule Elixium.Store.Utxo do
   @spec find_by_address(String.t()) :: list(utxo())
   def find_by_address(public_key) do
     case :ets.match(@ets_name, {'_', public_key, '$1'}) do
-      [] ->
-        transact @store_dir do
-          fn ref ->
-            ref
-            |> Exleveldb.map(fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
-            |> Enum.filter(&(&1.addr == public_key))
-          end
-        end
+      [] -> do_find_by_address_from_store(public_key)
       utxos -> utxos
+    end
+  end
+
+  defp do_find_by_address_from_store(public_key) do
+    transact @store_dir do
+      fn ref ->
+        ref
+        |> Exleveldb.map(fn {_, utxo} -> :erlang.binary_to_term(utxo) end)
+        |> Enum.filter(&(&1.addr == public_key))
+      end
     end
   end
 end

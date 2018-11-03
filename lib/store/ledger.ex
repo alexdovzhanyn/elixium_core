@@ -42,16 +42,19 @@ defmodule Elixium.Store.Ledger do
   def retrieve_block(hash) do
     # Only check the store if we don't have this hash in our ETS cache
     case :ets.match(@ets_name, {'_', hash, '$1'}) do
-      [] ->
-        transact @store_dir do
-          fn ref ->
-            case Exleveldb.get(ref, hash) do
-              {:ok, block} -> :erlang.binary_to_term(block)
-              err -> err
-            end
-          end
-        end
+      [] -> do_retrieve_block_from_store(hash)
       [block] -> block
+    end
+  end
+
+  defp do_retrieve_block_from_store(hash) do
+    transact @store_dir do
+      fn ref ->
+        case Exleveldb.get(ref, hash) do
+          {:ok, block} -> :erlang.binary_to_term(block)
+          err -> err
+        end
+      end
     end
   end
 
