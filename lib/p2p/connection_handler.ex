@@ -64,7 +64,7 @@ defmodule Elixium.P2P.ConnectionHandler do
 
         Oracle.inquire(oracle, {:save_known_peer, [{ip, port}]})
 
-        prepare_connection_loop(connection, shared_secret, master_pid, oracle)
+        prepare_connection_loop(connection, shared_secret, master_pid, oracle, :outbound)
 
       {:error, reason} ->
         Logger.warn("Error connecting to peer: #{reason}. Starting listener instead.")
@@ -114,11 +114,11 @@ defmodule Elixium.P2P.ConnectionHandler do
             %{identifier: identifier} -> Authentication.inbound_peer(identifier, socket, oracle)
           end
 
-        prepare_connection_loop(socket, shared_secret, master_pid, oracle)
+        prepare_connection_loop(socket, shared_secret, master_pid, oracle, :inbound)
     end
   end
 
-  defp prepare_connection_loop(socket, shared_secret, master_pid, oracle) do
+  defp prepare_connection_loop(socket, shared_secret, master_pid, oracle, conn_type) do
     session_key = generate_session_key(shared_secret)
     Logger.info("Authenticated with peer.")
 
@@ -127,6 +127,11 @@ defmodule Elixium.P2P.ConnectionHandler do
     # Set the connected flag so that the parent process knows we've connected
     # to a peer.
     Process.put(:connected, peername)
+
+    # Tell the master pid that we have a new connection
+    if conn_type == :outbound do
+      send(master_pid, {:new_outbound_connection, self()})
+    end
 
     handle_connection(socket, session_key, master_pid, oracle)
   end
@@ -147,7 +152,7 @@ defmodule Elixium.P2P.ConnectionHandler do
 
         # Send out the messages to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
-        Enum.each(messages, &(send(master_pid, &1)))
+        Enum.each(messages, &(send(master_pid, {&1, self()})))
       {:tcp_closed, _} ->
         Logger.info("Lost connection from peer: #{peername}. TCP closed")
         Process.exit(self(), :normal)
