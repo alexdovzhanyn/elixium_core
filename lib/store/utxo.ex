@@ -62,8 +62,8 @@ defmodule Elixium.Store.Utxo do
   @doc """
     Check if a UTXO is currently in the pool
   """
-  @spec in_pool?(String.t()) :: true | false
-  def in_pool?(txoid), do: retrieve_utxo(txoid) != []
+  @spec in_pool?(utxo()) :: true | false
+  def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != []
 
   @spec retrieve_all_utxos :: list(utxo())
   def retrieve_all_utxos do

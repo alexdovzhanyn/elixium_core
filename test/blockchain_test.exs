@@ -2,10 +2,12 @@ defmodule BlockchainTest do
   alias Elixium.Blockchain
   alias Elixium.Store.Ledger
   alias Elixium.Blockchain.Block
-  use ExUnit.Case, async: true
+  alias Elixium.Store.Utxo
+  use ExUnit.Case, async: false
 
   setup _ do
     Ledger.initialize()
+    Utxo.initialize()
 
     on_exit(fn ->
       File.rm_rf!(".chaindata")
