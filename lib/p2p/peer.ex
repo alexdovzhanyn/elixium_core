@@ -44,9 +44,9 @@ defmodule Elixium.P2P.Peer do
   @doc """
     Broadcast a message to all peers
   """
-  @spec gossip(string, map) :: none
+  @spec gossip(String.t(), map) :: none
   def gossip(type, message) do
-    Enum.each(connected_handlers, &(send(&1, {type, message})))
+    Enum.each(connected_handlers(), &(send(&1, {type, message})))
   end
 
   # Opens a socket listening on the given port

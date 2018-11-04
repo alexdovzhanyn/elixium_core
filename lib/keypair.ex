@@ -5,36 +5,37 @@ defmodule Elixium.KeyPair do
   @hashtype :sha256
 
   @moduledoc """
-    All the functions responsible for creating keypairs and using them to sign data / verify signatures
+    All the functions responsible for creating keypairs and using them to sign
+    data / verify signatures
   """
 
   @doc """
-    Creates a new keypair and stores the private key in a keyfile. Returns the public and private key
+    Creates a new keypair and stores the private key in a keyfile. Returns the
+    public and private key
   """
   @spec create_keypair :: {binary, binary}
   def create_keypair do
     keypair = :crypto.generate_key(@algorithm, @curve)
-    keypair |> create_keyfile
+    create_keyfile(keypair)
 
     keypair
   end
 
   @doc """
-    Reads in a private key from the given file, and returns a tuple with the public and private key
+    Reads in a private key from the given file, and returns a tuple with the
+    public and private key
   """
   @spec get_from_file(String.t()) :: {binary, binary}
   def get_from_file(path) do
     {:ok, private} = File.read(path)
-
-    private
-    |> (fn pkey -> :crypto.generate_key(@algorithm, @curve, pkey) end).()
+    :crypto.generate_key(@algorithm, @curve, private)
   end
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
     if !File.dir?(".keys"), do: File.mkdir(".keys")
 
-    pub_hex = public |> Base.encode16()
+    pub_hex = Base.encode16(public)
     File.write(".keys/#{pub_hex}.key", private)
   end
 

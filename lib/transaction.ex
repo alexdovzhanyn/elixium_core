@@ -28,8 +28,8 @@ defmodule Elixium.Transaction do
       |> Enum.map(fn {designation, idx} ->
         %{
           txoid: "#{transaction.id}:#{idx}",
-          addr: designation[:addr],
-          amount: designation[:amount]
+          addr: designation.addr,
+          amount: designation.amount
         }
       end)
 
@@ -37,23 +37,25 @@ defmodule Elixium.Transaction do
   end
 
   @doc """
-    Each transaction consists of multiple inputs and outputs. Inputs to any particular transaction are just outputs
-    from other transactions. This is called the UTXO model. In order to efficiently represent the UTXOs within the transaction,
-    we can calculate the merkle root of the inputs of the transaction.
+    Each transaction consists of multiple inputs and outputs. Inputs to any
+    particular transaction are just outputs from other transactions. This is
+    called the UTXO model. In order to efficiently represent the UTXOs within
+    the transaction, we can calculate the merkle root of the inputs of the
+    transaction.
   """
   @spec calculate_hash(Transaction) :: String.t()
   def calculate_hash(transaction) do
     transaction.inputs
-    |> Enum.map(& &1[:txoid])
+    |> Enum.map(& &1.txoid)
     |> Utilities.calculate_merkle_root()
   end
 
   @doc """
-    In order for a block to be considered valid, it must have a coinbase as the FIRST transaction in the block.
-    This coinbase has a single output, designated to the address of the miner, and the output amount is
-    the block reward plus any transaction fees from within the transaction
+    In order for a block to be considered valid, it must have a coinbase as the
+    FIRST transaction in the block. This coinbase has a single output, designated
+    to the address of the miner, and the output amount is the block reward plus
+    any transaction fees from within the transaction
   """
-
   @spec generate_coinbase(Decimal, String.t()) :: Transaction
   def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now() |> DateTime.to_string()
