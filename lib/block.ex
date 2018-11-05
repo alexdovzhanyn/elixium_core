@@ -3,6 +3,7 @@ defmodule Elixium.Blockchain.Block do
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Decimal, as: D
+  alias Elixium.Constants
 
   @moduledoc """
     Provides functions for creating blocks and mining new ones
@@ -16,6 +17,8 @@ defmodule Elixium.Blockchain.Block do
             timestamp: nil,
             merkle_root: nil,
             transactions: []
+
+  @sigma_full_emission Constants.sigma_full_emission_blocks(Constants.block_at_full_emission())
 
   @doc """
     When the first node on the Elixium network spins up, there won't be any
@@ -134,9 +137,23 @@ defmodule Elixium.Blockchain.Block do
   @spec calculate_target(float) :: number
   def calculate_target(difficulty), do: round(:math.pow(16, 64 - difficulty)) - 1
 
+  @doc """
+    Calculates the block reward for a given block index, following our weighted
+    smooth emission algorithm.
+
+    Where x is total token supply, t is block at full emission, i is block index,
+    and s is the sigma of the total_token_supply, the Smooth emission algorithm
+    is as follows: (x * max{0, t - i}) / s
+  """
   @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
-    D.div(D.new(100), D.new(:math.pow(2, Integer.floor_div(block_index, 200_000))))
+    D.div(
+      D.mult(
+        D.new(Constants.total_token_supply),
+        D.new(max(0, Constants.block_at_full_emission - block_index))
+      ),
+      D.new(@sigma_full_emission)
+    )
   end
 
   @spec total_block_fees(list) :: Decimal
