@@ -127,6 +127,9 @@ defined in the core. Check the
 [Developer Setup Guide](https://github.com/ElixiumNetwork/elixium_core/wiki/Developer-Setup-Guide)
 for detailed step-by-step instructions on how to do this.
 
+Documentation for core can be found both in the codebase itself and on
+[Hexdocs](https://hexdocs.pm/elixium_core/api-reference.html).
+
 If you want to interact with strictly with core, it's possible (although much
 more tedious) by using the test suite or the Elixir interactive shell. To do this,
 run `mix deps.get` to fetch any dependencies needed to run Elixium. After
