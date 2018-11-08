@@ -63,7 +63,7 @@ defmodule Elixium.Blockchain do
     Same as recalculate_difficulty/0 except that instead of reading values from
     the ledger, the blocks at the start and end of an epoch are explicitly passed
     in. Although this will work properly otherwise, it is intended that blocks
-    passed in have an index which is a multiple of the diff_rebalance_offset
+    passed in have an index which is a multiple of the diff_rebalance_offset 
   """
   @spec recalculate_difficulty(Block, Block) :: number
   def recalculate_difficulty(epoch_start, epoch_end) do
