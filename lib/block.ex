@@ -1,9 +1,8 @@
-defmodule Elixium.Blockchain.Block do
-  alias Elixium.Blockchain.Block
+defmodule Elixium.Block do
+  alias Elixium.Block
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Decimal, as: D
-  alias Elixium.Constants
 
   @moduledoc """
     Provides functions for creating blocks and mining new ones
@@ -17,8 +16,6 @@ defmodule Elixium.Blockchain.Block do
             timestamp: nil,
             merkle_root: nil,
             transactions: []
-
-  @sigma_full_emission Constants.sigma_full_emission_blocks(Constants.block_at_full_emission())
 
   @doc """
     When the first node on the Elixium network spins up, there won't be any
@@ -147,12 +144,16 @@ defmodule Elixium.Blockchain.Block do
   """
   @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
+    sigma_full_emission = Application.get_env(:elixium_core, :sigma_full_emission)
+    total_token_supply = Application.get_env(:elixium_core, :total_token_supply)
+    block_at_full_emission = Application.get_env(:elixium_core, :block_at_full_emission)
+
     D.div(
       D.mult(
-        D.new(Constants.total_token_supply),
-        D.new(max(0, Constants.block_at_full_emission - block_index))
+        D.new(total_token_supply),
+        D.new(max(0, block_at_full_emission - block_index))
       ),
-      D.new(@sigma_full_emission)
+      D.new(sigma_full_emission)
     )
   end
 
@@ -170,5 +171,14 @@ defmodule Elixium.Blockchain.Block do
     |> header()
     |> Map.keys()
     |> Enum.filter(&(Map.get(block1, &1) != Map.get(block2, &1)))
+  end
+
+  @doc """
+    Calculates the difficulty for a block using the WWHM difficulty algorithm
+    described at https://getmasari.org/research-papers/wwhm.pdf
+  """
+  @spec calculate_difficulty(Block) :: number
+  def calculate_difficulty(block) do
+
   end
 end

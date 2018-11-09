@@ -1,5 +1,5 @@
 defmodule Elixium.Validator do
-  alias Elixium.Blockchain.Block
+  alias Elixium.Block
   alias Elixium.Utilities
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger

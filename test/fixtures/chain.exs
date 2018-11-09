@@ -1,5 +1,5 @@
 [
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "00003DB0C5652613D75A428EE7213F8948DDA272B9FAAC5EDDC5E78193673FA2",
     index: 10,
@@ -26,7 +26,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "0000F9B65027DE0F15A97F3EC70FCC9732026F231367908A993154508E922AF5",
     index: 9,
@@ -53,7 +53,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "00002A8EA8F98A02098C2E6C0DF7CDA9AF1781349C4646BC2520009519891AE4",
     index: 8,
@@ -80,7 +80,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "0000E1BA6AD3A6FA288D2EBBEE843375DEEF50AAB7C15517E5BD404ED549769C",
     index: 7,
@@ -107,7 +107,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "00009D2BAB1C74824847A4C985D912EDCBB6A9B458E5CAB8C1B165C82712498E",
     index: 6,
@@ -134,7 +134,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "000031E6C2F65EE24B3F0455B29B919D83952169ED285B6998D13BABEA9AEC91",
     index: 5,
@@ -161,7 +161,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "00000ABCBAEF13E5BB23B1833E8E3C6DF2630C939B916A77689B50F541181832",
     index: 4,
@@ -188,7 +188,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "0000194E801B050AFBC86D9643FF39C0A777FEC467AD3B62D2C9342613554C59",
     index: 3,
@@ -215,7 +215,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "0000912365E1DC6A2C4E58FB8B0EA78E7D1B8095DDB4AE1E876181DA210CA08C",
     index: 2,
@@ -242,7 +242,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "0000CBF7F60385B7AED0D468CD4A0334D634E14E974A0C67946BEE8FEA13655A",
     index: 1,
@@ -269,7 +269,7 @@
       }
     ]
   },
-  %Elixium.Blockchain.Block{
+  %Elixium.Block{
     difficulty: 4.0,
     hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
     index: 0,

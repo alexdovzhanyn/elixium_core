@@ -1,13 +1,12 @@
 defmodule Elixium.P2P.GhostProtocol.Message do
-  require IEx
   alias Elixium.Utilities
   require Logger
+
+  @version Application.get_env(:elixium, :ghost_protocol_version)
 
   @moduledoc """
     Create and read messages that are sent over TCP
   """
-
-  @protocol_version "v1.0"
 
   @doc """
     Create an unencrypted message that will be passed to a peer, with the
@@ -18,7 +17,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     message = binary_message(type, message_map)
     bytes = message_byte_size(message)
 
-    ["Ghost", bytes, @protocol_version, message]
+    ["Ghost", bytes, @version, message]
     |> Enum.join("|")
   end
 
@@ -36,7 +35,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     bytes = message_byte_size(encrypted_message)
 
     message =
-      ["Ghost", bytes, @protocol_version, encrypted_message]
+      ["Ghost", bytes, @version, encrypted_message]
       |> Enum.join("|")
 
     {:ok, message}

@@ -43,4 +43,43 @@ defmodule Elixium.Mixfile do
       links: %{"GitHub" => "https://github.com/elixium/elixium_core"}
     ]
   end
+
+  def application do
+    [
+      env: [
+        # Total amount of tokens that will ever exist.
+        total_token_supply: 1_000_000_000.0,
+
+        # Block at which last block reward will be distributed. Logic behind this
+        # number is to have tokens distributed over X period of time. We're going for
+        # a total emission period of 10 years. 10 years at 2 minutes per block gives
+        # us this 2_628_000 number.
+        block_at_full_emission: 2_628_000,
+
+        sigma_full_emission: sigma_full_emission_blocks(2_628_000),
+
+        # Amount of seconds we want to spend mining each block
+        target_solvetime: 120,
+
+        diff_rebalance_offset: 10_080,
+
+        # Number of blocks in difficulty retargeting window
+        retargeting_window: 60,
+
+        ghost_protocol_version: "v1.0",
+
+        # Url used to bootstrap node connections
+        registry_url: 'https://registry.testnet.elixium.app/',
+
+      ]
+    ]
+  end
+
+  @doc """
+    Sigma of the block number @block_at_full_emission. Used in emission algorithm
+  """
+  defp sigma_full_emission_blocks(0), do: 0
+  defp sigma_full_emission_blocks(n) do
+    n + sigma_full_emission_blocks(n - 1)
+  end
 end
