@@ -2,6 +2,7 @@ defmodule Elixium.Block do
   alias Elixium.Block
   alias Elixium.Utilities
   alias Elixium.Transaction
+  alias Elixium.Store.Ledger
   alias Decimal, as: D
 
   @moduledoc """
@@ -31,8 +32,8 @@ defmodule Elixium.Block do
     %Block{
       index: 0,
       hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
-      difficulty: 5.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_string(),
+      difficulty: 3_000_000,
+      timestamp: DateTime.utc_now() |> DateTime.to_unix,
       transactions: [
         %{
           inputs: [],
@@ -55,12 +56,16 @@ defmodule Elixium.Block do
   """
   @spec initialize(Block) :: Block
   def initialize(%{index: index, hash: previous_hash}) do
-    %Block{
+    block = %Block{
       index: index + 1,
       previous_hash: previous_hash,
       difficulty: 4.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_string()
+      timestamp: DateTime.utc_now() |> DateTime.to_unix
     }
+
+    difficulty = calculate_difficulty(block)
+
+    Map.put(block, :difficulty, difficulty)
   end
 
   @doc """
@@ -132,7 +137,7 @@ defmodule Elixium.Block do
     which means any hash is valid.
   """
   @spec calculate_target(float) :: number
-  def calculate_target(difficulty), do: round(:math.pow(16, 64 - difficulty)) - 1
+  def calculate_target(difficulty), do: round((:math.pow(16, 64) / difficulty)) - 1
 
   @doc """
     Calculates the block reward for a given block index, following our weighted
@@ -178,7 +183,51 @@ defmodule Elixium.Block do
     described at https://getmasari.org/research-papers/wwhm.pdf
   """
   @spec calculate_difficulty(Block) :: number
-  def calculate_difficulty(block) do
+  def calculate_difficulty(%{index: index}) when index < 11, do: 3_000_000
 
+  def calculate_difficulty(block) do
+    retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
+    target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
+
+    # If we don't have enough blocks to fill our retargeting window, the
+    # algorithm won't run properly (difficulty will be set too high). Let's scale
+    # the algo down until then.
+    retargeting_window = min(block.index, retargeting_window)
+
+    {weighted_solvetimes, summed_difficulties} =
+      retargeting_window
+      |> Ledger.last_n_blocks()
+      |> weight_solvetimes_and_sum_difficulties()
+
+
+    min_timespan = (target_solvetime * retargeting_window) / 2
+
+    weighted_solvetimes = if weighted_solvetimes < min_timespan, do: min_timespan, else: weighted_solvetimes
+
+    target = (retargeting_window + 1) / 2 * target_solvetime
+
+    summed_difficulties * target / weighted_solvetimes
+  end
+
+  def weight_solvetimes_and_sum_difficulties(blocks) do
+    target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
+    max_solvetime = target_solvetime * 10
+
+    {_, weighted_solvetimes, summed_difficulties, _} =
+      blocks
+      |> Enum.scan({nil, 0, 0, 0}, fn block, {last_block_timestamp, weighted_solvetimes, sum_difficulties, i} ->
+        if i == 0 do
+          {block.timestamp, 0, 0, 1}
+        else
+          solvetime = block.timestamp - last_block_timestamp
+          solvetime = if solvetime > max_solvetime, do: max_solvetime, else: solvetime
+          solvetime = if solvetime == 0, do: 1, else: solvetime
+
+          {block.timestamp, weighted_solvetimes + (solvetime * i), sum_difficulties + block.difficulty, i + 1}
+        end
+      end)
+      |> List.last()
+
+    {weighted_solvetimes, summed_difficulties}
   end
 end

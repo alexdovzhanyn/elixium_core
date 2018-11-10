@@ -114,6 +114,19 @@ defmodule Elixium.Store.Ledger do
   end
 
   @doc """
+    Returns the last N blocks in the chain
+  """
+  @spec last_n_blocks(integer) :: list
+  def last_n_blocks(n) do
+    last = last_block()
+
+    last.index - (n - 1)
+    |> max(0)
+    |> Range.new(last.index)
+    |> Enum.map(&block_at_height/1)
+  end
+
+  @doc """
     Returns the number of blocks in the chain
   """
   @spec count_blocks :: integer
