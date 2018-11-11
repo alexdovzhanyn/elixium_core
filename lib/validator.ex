@@ -38,7 +38,7 @@ defmodule Elixium.Validator do
 
   @spec valid_hash?(Block, number) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
   defp valid_hash?(b, difficulty) do
-    with :ok <- compare_hash({b.index, b.previous_hash, b.timestamp, b.nonce, b.merkle_root}, b.hash),
+    with :ok <- compare_hash({b.index, b.version, b.previous_hash, b.timestamp, b.nonce, b.merkle_root}, b.hash),
          :ok <- beat_target?(b.hash, b.difficulty)
          do
       :ok
@@ -55,11 +55,11 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec compare_hash({number, String.t(), String.t(), number, String.t()}, String.t()) ::
+  @spec compare_hash({number, number, String.t(), String.t(), number, String.t()}, String.t()) ::
           :ok | {:error, {:wrong_hash, {:doesnt_match_provided, String.t(), String.t()}}}
-  defp compare_hash({index, previous_hash, timestamp, nonce, merkle_root}, hash) do
+  defp compare_hash({index, version, previous_hash, timestamp, nonce, merkle_root}, hash) do
     computed =
-      [Integer.to_string(index), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]
+      [Integer.to_string(index), Integer.to_string(version), previous_hash, timestamp, Integer.to_string(nonce), merkle_root]
       |> Utilities.sha3_base16()
 
     if computed == hash do

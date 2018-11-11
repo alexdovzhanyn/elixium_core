@@ -11,6 +11,7 @@ defmodule Elixium.Block do
 
   defstruct index: nil,
             hash: nil,
+            version: 1,
             previous_hash: nil,
             difficulty: nil,
             nonce: 0,
@@ -29,11 +30,10 @@ defmodule Elixium.Block do
   """
   @spec initialize :: Block
   def initialize do
-    %Block{
+    block = %Block{
       index: 0,
-      hash: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA",
       difficulty: 3_000_000,
-      timestamp: DateTime.utc_now() |> DateTime.to_unix,
+      timestamp: DateTime.utc_now() |> DateTime.to_unix(),
       transactions: [
         %{
           inputs: [],
@@ -48,6 +48,9 @@ defmodule Elixium.Block do
         }
       ]
     }
+
+    %{block | hash: calculate_block_hash(block)}
+
   end
 
   @doc """
@@ -58,6 +61,7 @@ defmodule Elixium.Block do
   def initialize(%{index: index, hash: previous_hash}) do
     block = %Block{
       index: index + 1,
+      version: 1,
       previous_hash: previous_hash,
       difficulty: 4.0,
       timestamp: DateTime.utc_now() |> DateTime.to_unix
@@ -66,6 +70,28 @@ defmodule Elixium.Block do
     difficulty = calculate_difficulty(block)
 
     Map.put(block, :difficulty, difficulty)
+  end
+
+
+  @spec calculate_block_hash(Block) :: String.t()
+  def calculate_block_hash(block) do
+    %{
+      index: index,
+      version: version,
+      previous_hash: previous_hash,
+      timestamp: timestamp,
+      nonce: nonce,
+      merkle_root: merkle_root
+    } = block
+
+    Utilities.sha3_base16([
+      Integer.to_string(index),
+      Integer.to_string(version),
+      previous_hash,
+      timestamp,
+      Integer.to_string(nonce),
+      merkle_root
+    ])
   end
 
   @doc """
@@ -79,22 +105,9 @@ defmodule Elixium.Block do
   """
   @spec mine(Block) :: Block
   def mine(block) do
-    %{
-      index: index,
-      previous_hash: previous_hash,
-      timestamp: timestamp,
-      nonce: nonce,
-      merkle_root: merkle_root
-    } = block
+    %{nonce: nonce } = block
 
-    block =
-      Map.put(block, :hash, Utilities.sha3_base16([
-        Integer.to_string(index),
-        previous_hash,
-        timestamp,
-        Integer.to_string(nonce),
-        merkle_root
-      ]))
+    block = Map.put(block, :hash, calculate_block_hash(block))
 
     if hash_beat_target?(block) do
       block
@@ -111,6 +124,7 @@ defmodule Elixium.Block do
     %{
       hash: block.hash,
       index: block.index,
+      version: block.version,
       previous_hash: block.previous_hash,
       merkle_root: block.merkle_root,
       nonce: block.nonce,
