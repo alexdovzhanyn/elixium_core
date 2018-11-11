@@ -8,7 +8,8 @@ defmodule BlockTest do
     genesis = Block.initialize()
 
     assert genesis.index == 0
-    assert genesis.hash == "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA"
+    assert genesis.hash == Block.calculate_block_hash(genesis)
+    assert genesis.version == 1
   end
 
   test "can create a new empty block" do
@@ -20,7 +21,9 @@ defmodule BlockTest do
 
     assert block.index == genesis.index + 1
     assert block.previous_hash == genesis.hash
+    assert block.version == 1
   end
+
 
   test "can mine a block" do
     genesis = Block.initialize()
