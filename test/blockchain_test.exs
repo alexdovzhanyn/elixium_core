@@ -41,4 +41,13 @@ defmodule BlockchainTest do
 
     assert Blockchain.recalculate_difficulty() == 0
   end
+
+  test "chain.exs contains valid block hash" do
+    {chain, _} = Code.eval_file("test/fixtures/chain.exs")
+    ok = chain
+    |> Enum.map(& &1.hash == Block.calculate_block_hash(&1))
+    |> Enum.all?()
+    assert ok
+  end
+
 end
