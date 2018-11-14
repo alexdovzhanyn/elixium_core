@@ -1,6 +1,10 @@
 defmodule Base58 do
   @alphabet '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
+  @moduledoc """
+    Provides functionality for encoding and decoding in Base58
+  """
+
   def encode(data, hash \\ "")
 
   def encode(data, hash) when is_binary(data) do
