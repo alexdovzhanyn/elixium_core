@@ -29,4 +29,15 @@ defmodule KeyPairTest do
 
     assert KeyPair.verify_signature(pub, signature, data) == true
   end
+
+  test "can generate an address from keypair" do
+    {pub, _priv} = KeyPair.create_keypair()
+
+    address = KeyPair.address_from_pubkey(pub)
+
+    <<version::bytes-size(3), _rest::binary>> = address
+
+    assert version == "EX0"
+    assert pub == KeyPair.address_to_pubkey(address)
+  end
 end

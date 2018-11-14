@@ -71,6 +71,8 @@ defmodule Elixium.Mixfile do
         # Url used to bootstrap node connections
         registry_url: 'https://registry.testnet.elixium.app/',
 
+        address_version: "EX0"
+
       ]
     ]
   end
