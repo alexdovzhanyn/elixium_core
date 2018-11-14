@@ -1,5 +1,5 @@
 defmodule Elixium.Store.Ledger do
-  alias Elixium.Blockchain.Block
+  alias Elixium.Block
   use Elixium.Store
 
   @moduledoc """
@@ -71,11 +71,15 @@ defmodule Elixium.Store.Ledger do
         end
       end
 
-
-    ets_hydrate = Enum.map(chain, &({&1.index, String.to_atom(&1.hash), &1}))
-    :ets.insert(@ets_name, ets_hydrate)
-
     chain
+  end
+
+  @doc """
+    Hydrate ETS with our chain data
+  """
+  def hydrate do
+    ets_hydrate = Enum.map(retrieve_chain(), &({&1.index, String.to_atom(&1.hash), &1}))
+    :ets.insert(@ets_name, ets_hydrate)
   end
 
   @doc """
@@ -107,6 +111,19 @@ defmodule Elixium.Store.Ledger do
       [] -> :none
       [{_index, _key, block}] -> block
     end
+  end
+
+  @doc """
+    Returns the last N blocks in the chain
+  """
+  @spec last_n_blocks(integer) :: list
+  def last_n_blocks(n) do
+    last = last_block()
+
+    last.index - (n - 1)
+    |> max(0)
+    |> Range.new(last.index)
+    |> Enum.map(&block_at_height/1)
   end
 
   @doc """

@@ -1,6 +1,6 @@
 defmodule ValidatorTest do
   alias Elixium.Validator
-  alias Elixium.Blockchain.Block
+  alias Elixium.Block
   alias Elixium.KeyPair
   alias Elixium.Transaction
   alias Elixium.Store.Utxo

@@ -1,9 +1,9 @@
-defmodule Elixium.Blockchain.Block do
-  alias Elixium.Blockchain.Block
+defmodule Elixium.Block do
+  alias Elixium.Block
   alias Elixium.Utilities
   alias Elixium.Transaction
+  alias Elixium.Store.Ledger
   alias Decimal, as: D
-  alias Elixium.Constants
 
   @moduledoc """
     Provides functions for creating blocks and mining new ones
@@ -19,8 +19,6 @@ defmodule Elixium.Blockchain.Block do
             merkle_root: nil,
             transactions: []
 
-  @sigma_full_emission Constants.sigma_full_emission_blocks(Constants.block_at_full_emission())
-
   @doc """
     When the first node on the Elixium network spins up, there won't be any
     blocks in the chain. In order to create a base from which all nodes can agree,
@@ -34,9 +32,8 @@ defmodule Elixium.Blockchain.Block do
   def initialize do
     block = %Block{
       index: 0,
-      hash: "",
-      difficulty: 5.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_string(),
+      difficulty: 3_000_000,
+      timestamp: DateTime.utc_now() |> DateTime.to_unix(),
       transactions: [
         %{
           inputs: [],
@@ -62,13 +59,17 @@ defmodule Elixium.Blockchain.Block do
   """
   @spec initialize(Block) :: Block
   def initialize(%{index: index, hash: previous_hash}) do
-    %Block{
+    block = %Block{
       index: index + 1,
       version: 1,
       previous_hash: previous_hash,
       difficulty: 4.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_string()
+      timestamp: DateTime.utc_now() |> DateTime.to_unix
     }
+
+    difficulty = calculate_difficulty(block)
+
+    Map.put(block, :difficulty, difficulty)
   end
 
 
@@ -150,7 +151,7 @@ defmodule Elixium.Blockchain.Block do
     which means any hash is valid.
   """
   @spec calculate_target(float) :: number
-  def calculate_target(difficulty), do: round(:math.pow(16, 64 - difficulty)) - 1
+  def calculate_target(difficulty), do: round((:math.pow(16, 64) / difficulty)) - 1
 
   @doc """
     Calculates the block reward for a given block index, following our weighted
@@ -162,12 +163,16 @@ defmodule Elixium.Blockchain.Block do
   """
   @spec calculate_block_reward(number) :: Decimal
   def calculate_block_reward(block_index) do
+    sigma_full_emission = Application.get_env(:elixium_core, :sigma_full_emission)
+    total_token_supply = Application.get_env(:elixium_core, :total_token_supply)
+    block_at_full_emission = Application.get_env(:elixium_core, :block_at_full_emission)
+
     D.div(
       D.mult(
-        D.new(Constants.total_token_supply),
-        D.new(max(0, Constants.block_at_full_emission - block_index))
+        D.new(total_token_supply),
+        D.new(max(0, block_at_full_emission - block_index))
       ),
-      D.new(@sigma_full_emission)
+      D.new(sigma_full_emission)
     )
   end
 
@@ -185,5 +190,58 @@ defmodule Elixium.Blockchain.Block do
     |> header()
     |> Map.keys()
     |> Enum.filter(&(Map.get(block1, &1) != Map.get(block2, &1)))
+  end
+
+  @doc """
+    Calculates the difficulty for a block using the WWHM difficulty algorithm
+    described at https://getmasari.org/research-papers/wwhm.pdf
+  """
+  @spec calculate_difficulty(Block) :: number
+  def calculate_difficulty(%{index: index}) when index < 11, do: 3_000_000
+
+  def calculate_difficulty(block) do
+    retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
+    target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
+
+    # If we don't have enough blocks to fill our retargeting window, the
+    # algorithm won't run properly (difficulty will be set too high). Let's scale
+    # the algo down until then.
+    retargeting_window = min(block.index, retargeting_window)
+
+    {weighted_solvetimes, summed_difficulties} =
+      retargeting_window
+      |> Ledger.last_n_blocks()
+      |> weight_solvetimes_and_sum_difficulties()
+
+
+    min_timespan = (target_solvetime * retargeting_window) / 2
+
+    weighted_solvetimes = if weighted_solvetimes < min_timespan, do: min_timespan, else: weighted_solvetimes
+
+    target = (retargeting_window + 1) / 2 * target_solvetime
+
+    summed_difficulties * target / weighted_solvetimes
+  end
+
+  def weight_solvetimes_and_sum_difficulties(blocks) do
+    target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
+    max_solvetime = target_solvetime * 10
+
+    {_, weighted_solvetimes, summed_difficulties, _} =
+      blocks
+      |> Enum.scan({nil, 0, 0, 0}, fn block, {last_block_timestamp, weighted_solvetimes, sum_difficulties, i} ->
+        if i == 0 do
+          {block.timestamp, 0, 0, 1}
+        else
+          solvetime = block.timestamp - last_block_timestamp
+          solvetime = if solvetime > max_solvetime, do: max_solvetime, else: solvetime
+          solvetime = if solvetime == 0, do: 1, else: solvetime
+
+          {block.timestamp, weighted_solvetimes + (solvetime * i), sum_difficulties + block.difficulty, i + 1}
+        end
+      end)
+      |> List.last()
+
+    {weighted_solvetimes, summed_difficulties}
   end
 end

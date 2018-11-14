@@ -1,7 +1,7 @@
 defmodule BlockchainTest do
   alias Elixium.Blockchain
   alias Elixium.Store.Ledger
-  alias Elixium.Blockchain.Block
+  alias Elixium.Block
   alias Elixium.Store.Utxo
   use ExUnit.Case, async: false
 
