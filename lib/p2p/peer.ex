@@ -97,7 +97,7 @@ defmodule Elixium.P2P.Peer do
   @spec fetch_peers_from_registry(integer) :: List
   defp fetch_peers_from_registry(port) do
     url = Application.get_env(:elixium_core, :registry_url)
-    IO.inspect url
+    
     case :httpc.request(url ++ '/' ++ Integer.to_charlist(port)) do
       {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
         peers =
