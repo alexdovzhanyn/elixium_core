@@ -55,7 +55,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     if protocol == "Ghost" do
       {:ok, data} = :gen_tcp.recv(socket, need)
 
-      :erlang.binary_to_term(predata<>data)
+      :erlang.binary_to_term(predata <> data)
     else
       {:error, :invalid_protocol}
     end
@@ -76,7 +76,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     {bytes_body, _} = Integer.parse(bytes)
     take_bytes = bytes_body + byte_size(header)
     need_bytes = take_bytes - byte_size(data)
-    IO.inspect(take_bytes, label: "Message Byte Size")
+
 
     # Sometimes we get a packet with incomplete data. Parse use the byte count
     # in the message header to determine how many bytes we're waiting for and
@@ -114,7 +114,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   @spec send(binary, reference) :: :ok | any
   def send(message, socket) do
     case :gen_tcp.send(socket, message) do
-      :ok -> socket
+      :ok -> :ok
       err -> err
     end
   end
