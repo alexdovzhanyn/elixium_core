@@ -62,7 +62,7 @@ defmodule Elixium.P2P.Authentication do
       public_value: public_value,
       identifier: identifier
     })
-    |> Message.send(peer)
+    |> Message.send(peer) |> IO.inspect
 
     %{public_value: peer_public_value} = Message.read(peer)
 

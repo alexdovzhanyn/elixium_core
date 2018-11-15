@@ -13,7 +13,8 @@ defmodule Elixium.Mixfile do
       description: description(),
       source_url: "https://github.com/elixium/elixium_core",
       homepage_url: "https://elixium.app",
-      package: package()
+      package: package(),
+      application: application()
     ]
   end
 
@@ -69,7 +70,7 @@ defmodule Elixium.Mixfile do
         ghost_protocol_version: "v1.0",
 
         # Url used to bootstrap node connections
-        registry_url: 'https://registry.testnet.elixium.app/',
+        registry_url: 'https://registry.testnet.elixium.app/'
 
       ]
     ]
