@@ -30,27 +30,12 @@ defmodule Elixium.Block do
   """
   @spec initialize :: Block
   def initialize do
-    block = %Block{
+    %Block{
       index: 0,
       difficulty: 3_000_000,
       timestamp: DateTime.utc_now() |> DateTime.to_unix(),
-      transactions: [
-        %{
-          inputs: [],
-          outputs: [
-            %{
-              txoid: "79644A8F062F1BA9F7A32AF2242C04711A634D42F0628ADA6B985B3D21296EEA:0",
-              data: "GENESIS BLOCK",
-              addr: nil,
-              amount: nil
-            }
-          ]
-        }
-      ]
+      version: 1
     }
-
-    %{block | hash: calculate_block_hash(block)}
-
   end
 
   @doc """
