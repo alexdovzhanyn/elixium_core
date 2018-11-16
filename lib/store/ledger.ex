@@ -88,7 +88,7 @@ defmodule Elixium.Store.Ledger do
   @spec last_block :: Block
   def last_block do
     case :ets.last(@ets_name) do
-      [] ->
+      :"$end_of_table" ->
         transact @store_dir do
           fn ref ->
             :err
