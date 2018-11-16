@@ -70,7 +70,9 @@ defmodule Elixium.Mixfile do
         ghost_protocol_version: "v1.0",
 
         # Url used to bootstrap node connections
-        registry_url: 'https://registry.testnet.elixium.app/'
+        registry_url: 'https://registry.testnet.elixium.app/',
+
+        address_version: "EX0"
 
       ]
     ]

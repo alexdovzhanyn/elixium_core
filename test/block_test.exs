@@ -38,26 +38,26 @@ defmodule BlockTest do
 
   test "can properly calculate target with integer difficulty" do
     difficulty0 =
-      0
-      |> Block.calculate_target()
-      |> :binary.encode_unsigned()
-      |> Base.encode16()
-
-    difficulty1 =
       1
       |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
+    difficulty1 =
+      100_000
+      |> Block.calculate_target()
+      |> :binary.encode_unsigned()
+      |> Base.encode16()
+
     difficulty2 =
-      2
+      1_000_000_000
       |> Block.calculate_target()
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
     assert difficulty0 == "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-    assert difficulty1 == "0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-    assert difficulty2 == "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+    assert difficulty1 == "A7C5AC471B4787FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+    assert difficulty2 == "044B82FA09B5A53FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
   end
 
   test "can properly calculate target with float difficulty" do
@@ -79,9 +79,9 @@ defmodule BlockTest do
       |> :binary.encode_unsigned()
       |> Base.encode16()
 
-    assert difficulty0 == "0696B6E3238C7B7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-    assert difficulty1 == "1A2D8DDEF4082AFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-    assert difficulty2 == "92"
+    assert difficulty0 == "C1F07C1F07C1EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+    assert difficulty1 == "2585F625AAA801FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+    assert difficulty2 == "041DA22928559B7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
   end
 
   test "can correctly calculate block reward" do
