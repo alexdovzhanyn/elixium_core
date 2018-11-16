@@ -54,12 +54,24 @@ defmodule Elixium.KeyPair do
     :crypto.verify(@sigtype, @hashtype, data, signature, [public_key, @curve])
   end
 
+  @doc """
+    Returns a 4 byte checksum of the provided pubkey
+  """
+  @spec checksum(String.t(), binary) :: binary
   def checksum(version, compressed_pubkey) do
     <<check::bytes-size(4), _::bits>> = :crypto.hash(:sha256, version <> compressed_pubkey)
 
     check
   end
 
+  @doc """
+    Generates a Base58 encoded compressed address based on a public key.
+    First 3 bytes of the address are the version number of the address, and last
+    4 bytes of the address are the checksum of the public key. This checksum
+    allows for address validation, i.e. checking mistyped addresses before creating
+    a transaction.
+  """
+  @spec address_from_pubkey(binary) :: String.t()
   def address_from_pubkey(pubkey) do
     version = Application.get_env(:elixium_core, :address_version)
     compressed_pubkey = compress_pubkey(pubkey)
@@ -71,6 +83,11 @@ defmodule Elixium.KeyPair do
     version <> addr
   end
 
+  @doc """
+    Compresses an ECDSA public key from 65 bytes to 33 bytes by discarding
+    the y coordinate.
+  """
+  @spec compress_pubkey(binary) :: binary
   def compress_pubkey(<<4, x::bytes-size(32), y::bytes-size(32)>>) do
     y_even =
       y
@@ -82,6 +99,10 @@ defmodule Elixium.KeyPair do
     prefix <> x
   end
 
+  @doc """
+    Returns the uncompressed public key stored within the given address.
+  """
+  @spec address_to_pubkey(String.t()) :: binary
   def address_to_pubkey(address) do
     version = Application.get_env(:elixium_core, :address_version)
 
