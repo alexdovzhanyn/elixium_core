@@ -16,6 +16,11 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
+  def is_block_valid?(%{index: 0} = block, difficulty) do
+    valid_hash?(block, difficulty)
+  end
+
+
   def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &Utxo.in_pool?/1) do
     with :ok <- valid_index(block.index, last_block.index),
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
@@ -28,6 +33,8 @@ defmodule Elixium.Validator do
     end
   end
 
+
+
   @spec valid_index(number, number) :: :ok | {:error, {:invalid_index, number, number}}
   defp valid_index(index, prev_index) when index > prev_index, do: :ok
   defp valid_index(idx, prev), do: {:error, {:invalid_index, prev, idx}}
@@ -39,8 +46,7 @@ defmodule Elixium.Validator do
   @spec valid_hash?(Block, number) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
   defp valid_hash?(b, difficulty) do
     with :ok <- compare_hash({b.index, b.version, b.previous_hash, b.timestamp, b.nonce, b.merkle_root}, b.hash),
-         :ok <- beat_target?(b.hash, b.difficulty)
-         do
+         :ok <- beat_target?(b.hash, b.difficulty) do
       :ok
     else
       err -> err
@@ -101,7 +107,6 @@ defmodule Elixium.Validator do
       if pool_check.(input) do
         {:ok, pub} = Base.decode16(input.addr)
         {:ok, sig} = Base.decode16(input.signature)
-
         # Check if this UTXO has a valid signature
         KeyPair.verify_signature(pub, sig, input.txoid)
       else
