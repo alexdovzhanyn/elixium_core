@@ -244,7 +244,5 @@ defmodule Elixium.P2P.ConnectionHandler do
       :not_found -> false
       {_identifier, _password} -> true
     end
-
-    false
   end
 end
