@@ -127,6 +127,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     # Set the connected flag so that the parent process knows we've connected
     # to a peer.
     Process.put(:connected, peername)
+    #Initialize Ping to prevent default errors
+    Process.put(:ping, 0)
 
     # Tell the master pid that we have a new connection
     if conn_type == :outbound do
@@ -152,7 +154,20 @@ defmodule Elixium.P2P.ConnectionHandler do
 
         # Send out the messages to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
-        Enum.each(messages, &(send(master_pid, {&1, self()})))
+        #Enum.each(messages, &(send(master_pid, {&1, self()})))
+
+        Enum.each(messages, fn message ->
+          case message do
+            %{type: "PING"} ->
+              {:ok, m} = Message.build("PANG", %{}, session_key)
+              Message.send(m, socket)
+            %{type: "PANG"} ->
+              last_ping = Process.get(:last_ping_time)
+              ping = :os.system_time(:millisecond) - last_ping
+              Process.put(:ping, ping)
+            message -> send(master_pid, {message, self()})
+          end
+        end)
       {:tcp_closed, _} ->
         Logger.info("Lost connection from peer: #{peername}. TCP closed")
         Process.exit(self(), :normal)
@@ -162,11 +177,19 @@ defmodule Elixium.P2P.ConnectionHandler do
       {type, data} ->
         Logger.info("Sending data to peer: #{peername}")
         Logger.info("Time #{:os.system_time(:millisecond)}")
+        if type == "PING" do
+          Process.put(:last_ping_time, :os.system_time(:millisecond))
+        end
 
         case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
           :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
         end
+      #{"PING", _} ->
+      #  Logger.info("Recieved sucessful PING from #{peername}")
+    #    send(peername, {"PONG", %{}})
+    #  {"PONG", _} ->
+    #    Logger.info("Recieved sucessful PONG from #{peername}")
       m ->
         Logger.warn("Received message we haven't accounted for. Skipping! Message: #{inspect m}")
     end
@@ -228,4 +251,17 @@ defmodule Elixium.P2P.ConnectionHandler do
       {_identifier, _password} -> true
     end
   end
+
+  def ping_peer(peer) do
+    with {"PING", %{}} <- send(peer, {"PING", %{}}) do
+      peer
+      |> Process.info()
+      |> Keyword.get(:dictionary)
+      |> Keyword.get(:ping)
+    end
+  end
+
+
+
+
 end

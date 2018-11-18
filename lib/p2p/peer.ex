@@ -24,6 +24,8 @@ defmodule Elixium.P2P.Peer do
     |> start_listener()
     |> generate_handlers(port, comm_pid)
     |> Supervisor.start_link(strategy: :one_for_one, name: :peer_supervisor, max_restarts: 20)
+
+    Elixium.HostAvailability.Supervisor.start_link() |> IO.inspect
   end
 
   @doc """
@@ -42,6 +44,7 @@ defmodule Elixium.P2P.Peer do
       end)
   end
 
+
   @doc """
     Broadcast a message to all peers
   """
@@ -49,6 +52,8 @@ defmodule Elixium.P2P.Peer do
   def gossip(type, message) do
     Enum.each(connected_handlers(), &(send(&1, {type, message})))
   end
+
+
 
   # Opens a socket listening on the given port
   defp start_listener(port) do

@@ -194,6 +194,7 @@ defmodule Elixium.Block do
   end
 
   def calculate_difficulty(block, blocks_to_weight) do
+
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
 
