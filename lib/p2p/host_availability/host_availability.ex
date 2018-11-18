@@ -15,10 +15,6 @@ defmodule Elixium.HostAvailability do
     {:ok, %{listen: socket}}
   end
 
-  def start_accept do
-    GenServer.cast(__MODULE__, :start_accept)
-  end
-
   def handle_info(:start_accept, state) do
     Logger.info("Host Availability Listening")
 
@@ -28,8 +24,8 @@ defmodule Elixium.HostAvailability do
     {:noreply, state}
   end
 
-  def handle_info({:tcp, _, data}, state) do
-    Logger.info("Received Data from Host: #{data}")
+  def handle_info({:tcp, _, <<0>>}, state) do
+    Logger.info("Received Data from Host ")
 
     :gen_tcp.send(state.socket, "HELLO")
     :gen_tcp.close(state.socket)

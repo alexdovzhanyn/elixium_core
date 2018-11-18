@@ -8,7 +8,8 @@ defmodule Elixium.HostAvailability.Supervisor do
 
   def init(_args) do
     children = [
-      Elixium.HostAvailability
+      Elixium.HostAvailability,
+      Elixium.HostCheck
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

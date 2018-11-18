@@ -44,7 +44,6 @@ defmodule Elixium.P2P.Peer do
       end)
   end
 
-
   @doc """
     Broadcast a message to all peers
   """
