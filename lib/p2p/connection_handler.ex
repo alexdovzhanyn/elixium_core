@@ -152,7 +152,20 @@ defmodule Elixium.P2P.ConnectionHandler do
 
         # Send out the messages to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
-        Enum.each(messages, &(send(master_pid, {&1, self()})))
+        Enum.each(messages, fn message ->
+          case message do
+            %{type: "PING"} ->
+              {:ok, m} = Message.build("PANG", %{}, session_key)
+              Message.send(m, socket)
+            %{type: "PANG"} ->
+              # Handle ping response here
+              last_ping = Process.get(:last_ping_time)
+              ping = :os.system_time(:millisecond) - last_ping
+
+              Process.put(:ping, ping)
+            message -> send(master_pid, {message, self()})
+          end
+        end)
       {:tcp_closed, _} ->
         Logger.info("Lost connection from peer: #{peername}. TCP closed")
         Process.exit(self(), :normal)
@@ -162,6 +175,10 @@ defmodule Elixium.P2P.ConnectionHandler do
       {type, data} ->
         Logger.info("Sending data to peer: #{peername}")
         Logger.info("Time #{:os.system_time(:millisecond)}")
+
+        if (type == "PING") do
+          Process.put(:last_ping_time, :os.system_time(:millisecond))
+        end
 
         case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
@@ -227,5 +244,7 @@ defmodule Elixium.P2P.ConnectionHandler do
       :not_found -> false
       {_identifier, _password} -> true
     end
+
+    false
   end
 end
