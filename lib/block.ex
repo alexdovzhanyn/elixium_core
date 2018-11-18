@@ -185,6 +185,15 @@ defmodule Elixium.Block do
   def calculate_difficulty(%{index: index}) when index < 11, do: 3_000_000
 
   def calculate_difficulty(block) do
+    blocks_to_weight =
+      :elixium_core
+      |> Application.get_env(:retargeting_window)
+      |> Ledger.last_n_blocks()
+
+    calculate_difficulty(block, blocks_to_weight)
+  end
+
+  def calculate_difficulty(block, blocks_to_weight) do
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
 
@@ -193,11 +202,7 @@ defmodule Elixium.Block do
     # the algo down until then.
     retargeting_window = min(block.index, retargeting_window)
 
-    {weighted_solvetimes, summed_difficulties} =
-      retargeting_window
-      |> Ledger.last_n_blocks()
-      |> weight_solvetimes_and_sum_difficulties()
-
+    {weighted_solvetimes, summed_difficulties} = weight_solvetimes_and_sum_difficulties(blocks_to_weight)
 
     min_timespan = (target_solvetime * retargeting_window) / 2
 

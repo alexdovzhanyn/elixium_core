@@ -117,12 +117,10 @@ defmodule Elixium.Store.Ledger do
     Returns the last N blocks in the chain
   """
   @spec last_n_blocks(integer) :: list
-  def last_n_blocks(n) do
-    last = last_block()
-
-    last.index - (n - 1)
+  def last_n_blocks(n, starting_at \\ last_block().index) do
+    starting_at - (n - 1)
     |> max(0)
-    |> Range.new(last.index)
+    |> Range.new(starting_at)
     |> Enum.map(&block_at_height/1)
   end
 
