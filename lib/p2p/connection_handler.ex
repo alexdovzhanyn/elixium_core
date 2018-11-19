@@ -131,6 +131,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     # Tell the master pid that we have a new connection
     if conn_type == :outbound do
       send(master_pid, {:new_outbound_connection, self()})
+    else
+      send(master_pid, {:new_inbound_connection, self()})
     end
 
     handle_connection(socket, session_key, master_pid, oracle)
