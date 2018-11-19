@@ -28,6 +28,7 @@ defmodule Elixium.HostAvailability do
     Logger.info("Received Data from Host ")
 
     :gen_tcp.send(state.socket, <<1>>)
+    :timer.sleep(1000)
     :gen_tcp.close(state.socket)
 
     {:ok, socket} = :gen_tcp.accept(state.listen)
@@ -36,4 +37,5 @@ defmodule Elixium.HostAvailability do
     {:noreply, state}
   end
 
+  def handle_info({:tcp, _, _} state), do: {:noreply, state} 
 end
