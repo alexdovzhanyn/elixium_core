@@ -26,7 +26,8 @@ defmodule Elixium.Validator do
          :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
          :ok <- valid_hash?(block, difficulty),
          :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block, pool_check) do
+         :ok <- valid_transactions?(block, pool_check),
+         :ok <- valid_timetamp?(block) do
       :ok
     else
       err -> err
@@ -136,5 +137,16 @@ defmodule Elixium.Validator do
     else
       {:error, {:invalid_coinbase, total_fees, reward, amount}}
     end
+  end
+
+  @spec valid_timetamp?(Block) :: :ok | {:error, :timestamp_too_high}
+  defp valid_timetamp?(%{timestamp: timestamp}) do
+    ftl = Application.get_env(:elixium_core, :future_time_limit)
+
+    current_time =
+      DateTime.utc_now()
+      |> DateTime.to_unix()
+
+    if timestamp < current_time + ftl, do: :ok, else: {:error, :timestamp_too_high}
   end
 end
