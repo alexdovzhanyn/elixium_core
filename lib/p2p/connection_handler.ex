@@ -176,7 +176,7 @@ defmodule Elixium.P2P.ConnectionHandler do
         Logger.info("Sending data to peer: #{peername}")
         Logger.info("Time #{:os.system_time(:millisecond)}")
 
-        if (type == "PING") do
+        if type == "PING" do
           Process.put(:last_ping_time, :os.system_time(:millisecond))
         end
 
