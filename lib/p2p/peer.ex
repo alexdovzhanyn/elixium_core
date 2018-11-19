@@ -25,7 +25,7 @@ defmodule Elixium.P2P.Peer do
     |> generate_handlers(port, comm_pid)
     |> Supervisor.start_link(strategy: :one_for_one, name: :peer_supervisor, max_restarts: 20)
 
-    Elixium.HostAvailability.Supervisor.start_link() |> IO.inspect
+    Elixium.HostAvailability.Supervisor.start_link()
   end
 
   @doc """
