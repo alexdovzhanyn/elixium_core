@@ -4,7 +4,6 @@ defmodule Elixium.HostAvailability do
   require Logger
 
   def start_link(_args) do
-    Logger.info("Starting Host Availability through Port 31014..")
     {:ok, socket} = :gen_tcp.listen(31014, [:binary, active: true, reuseaddr: true])
     GenServer.start_link(__MODULE__, socket, name: __MODULE__)
   end
@@ -16,8 +15,6 @@ defmodule Elixium.HostAvailability do
   end
 
   def handle_info(:start_accept, state) do
-    Logger.info("Host Availability Listening")
-
     {:ok, socket} = :gen_tcp.accept(state.listen)
 
     state = Map.put(state, :socket, socket)
@@ -25,8 +22,6 @@ defmodule Elixium.HostAvailability do
   end
 
   def handle_info({:tcp, _, <<0>>}, state) do
-    Logger.info("Received Data from Host ")
-
     :gen_tcp.send(state.socket, <<1>>)
     :timer.sleep(1000)
     :gen_tcp.close(state.socket)
@@ -37,5 +32,5 @@ defmodule Elixium.HostAvailability do
     {:noreply, state}
   end
 
-  def handle_info({:tcp, _, _}, state), do: {:noreply, state} 
+  def handle_info({:tcp, _, _}, state), do: {:noreply, state}
 end

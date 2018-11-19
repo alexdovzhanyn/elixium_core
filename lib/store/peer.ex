@@ -37,13 +37,11 @@ defmodule Elixium.Store.Peer do
   end
 
   def reorder_peers(ip) do
-    IO.inspect(ip, label: "IP RAW")
-  
     transact @store_dir do
       fn ref ->
         {:ok, peers} = Exleveldb.get(ref, "known_peers")
-        peers = :erlang.binary_to_term(peers) |> IO.inspect(label: "PEERS")
-        peer = Enum.find(peers, &(elem(&1, 0) == ip)) |> IO.inspect(label: "PEER")
+        peers = :erlang.binary_to_term(peers)
+        peer = Enum.find(peers, &(elem(&1, 0) == ip))
 
         Exleveldb.put(ref, "known_peers", :erlang.term_to_binary([peer | peers -- [peer]]))
       end

@@ -177,21 +177,17 @@ defmodule Elixium.P2P.ConnectionHandler do
       # When receiving data from the parent process, send it to the network
       # through TCP
       {type, data} ->
-        Logger.info("Sending data to peer: #{peername}")
-        Logger.info("Time #{:os.system_time(:millisecond)}")
         if type == "PING" do
           Process.put(:last_ping_time, :os.system_time(:millisecond))
+        else
+          Logger.info("Sending data to peer: #{peername}")
+          Logger.info("Time #{:os.system_time(:millisecond)}")
         end
 
         case Message.build(type, data, session_key) do
           {:ok, m} -> Message.send(m, socket)
           :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
         end
-      #{"PING", _} ->
-      #  Logger.info("Recieved sucessful PING from #{peername}")
-    #    send(peername, {"PONG", %{}})
-    #  {"PONG", _} ->
-    #    Logger.info("Recieved sucessful PONG from #{peername}")
       m ->
         Logger.warn("Received message we haven't accounted for. Skipping! Message: #{inspect m}")
     end
