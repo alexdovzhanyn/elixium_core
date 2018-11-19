@@ -37,5 +37,5 @@ defmodule Elixium.HostAvailability do
     {:noreply, state}
   end
 
-  def handle_info({:tcp, _, _} state), do: {:noreply, state} 
+  def handle_info({:tcp, _, _}, state), do: {:noreply, state} 
 end
