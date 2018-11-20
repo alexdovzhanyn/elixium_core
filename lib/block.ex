@@ -9,7 +9,7 @@ defmodule Elixium.Block do
     Provides functions for creating blocks and mining new ones
   """
 
-  defstruct index: nil,
+  defstruct index: <<0, 0, 0, 0>>,
             hash: nil,
             version: <<0, 0>>,
             previous_hash: nil,
@@ -29,12 +29,7 @@ defmodule Elixium.Block do
     as its previous_hash to be valid
   """
   @spec initialize :: Block
-  def initialize do
-    %Block{
-      index: 0,
-      timestamp: time_unix()
-    }
-  end
+  def initialize, do: %Block{ timestamp: time_unix() }
 
   @doc """
     Takes the previous block as an argument (This is the way we create every
@@ -42,8 +37,15 @@ defmodule Elixium.Block do
   """
   @spec initialize(Block) :: Block
   def initialize(%{index: index, hash: previous_hash}) do
+    index =
+      index
+      |> :binary.decode_unsigned()
+      |> Kernel.+(1)
+      |> :binary.encode_unsigned()
+      |> Utilities.zero_pad(4)
+
     block = %Block{
-      index: index + 1,
+      index: index,
       previous_hash: previous_hash,
       timestamp: time_unix()
     }
@@ -66,7 +68,7 @@ defmodule Elixium.Block do
     } = block
 
     Utilities.sha3_base16([
-      Integer.to_string(index),
+      index,
       version,
       previous_hash,
       timestamp,
@@ -101,11 +103,9 @@ defmodule Elixium.Block do
           |> :binary.decode_unsigned()
           |> Kernel.+(1)
           |> :binary.encode_unsigned()
+          |> Utilities.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
 
-        # Add trailing zero bytes since they're removed when encoding / decoding
-        padding = String.duplicate(<<0>>, 8 - byte_size(nonce))
-
-        mine(%{block | nonce: padding <> nonce})
+        mine(%{block | nonce: nonce})
       end
     end
   end
@@ -191,19 +191,23 @@ defmodule Elixium.Block do
     described at https://getmasari.org/research-papers/wwhm.pdf
   """
   @spec calculate_difficulty(Block) :: number
-  def calculate_difficulty(%{index: index}) when index < 11, do: 3_000_000
-
   def calculate_difficulty(block) do
-    blocks_to_weight =
-      :elixium_core
-      |> Application.get_env(:retargeting_window)
-      |> Ledger.last_n_blocks()
+    index = :binary.decode_unsigned(block.index)
 
-    calculate_difficulty(block, blocks_to_weight)
+    if index < 11 do
+      3_000_000
+    else
+      blocks_to_weight =
+        :elixium_core
+        |> Application.get_env(:retargeting_window)
+        |> Ledger.last_n_blocks()
+        |> Enum.map(&(%{&1 | index: :binary.encode_unsigned(&1.index)}))
+
+      calculate_difficulty(%{block | index: index}, blocks_to_weight)
+    end
   end
 
   def calculate_difficulty(block, blocks_to_weight) do
-
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
 

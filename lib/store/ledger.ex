@@ -1,5 +1,6 @@
 defmodule Elixium.Store.Ledger do
   alias Elixium.Block
+  alias Elixium.Utilities
   use Elixium.Store
 
   @moduledoc """
@@ -107,6 +108,11 @@ defmodule Elixium.Store.Ledger do
   """
   @spec block_at_height(integer) :: Block
   def block_at_height(height) do
+    height =
+      height
+      |> :binary.encode_unsigned()
+      |> Utilities.zero_pad(4)
+
     case :ets.lookup(@ets_name, height) do
       [] -> :none
       [{_index, _key, block}] -> block
@@ -117,7 +123,7 @@ defmodule Elixium.Store.Ledger do
     Returns the last N blocks in the chain
   """
   @spec last_n_blocks(integer) :: list
-  def last_n_blocks(n, starting_at \\ last_block().index) do
+  def last_n_blocks(n, starting_at \\ :binary.decode_unsigned(last_block().index)) do
     starting_at - (n - 1)
     |> max(0)
     |> Range.new(starting_at)

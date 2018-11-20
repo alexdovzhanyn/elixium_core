@@ -16,20 +16,19 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
-  def is_block_valid?(%{index: 0} = block, difficulty) do
-    valid_hash?(block, difficulty)
-  end
-
-
   def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &Utxo.in_pool?/1) do
-    with :ok <- valid_index(block.index, last_block.index),
-         :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
-         :ok <- valid_hash?(block, difficulty),
-         :ok <- valid_coinbase?(block),
-         :ok <- valid_transactions?(block, pool_check) do
-      :ok
+    if :binary.decode_unsigned(block.index) == 0 do
+      valid_hash?(block, difficulty)
     else
-      err -> err
+      with :ok <- valid_index(block.index, last_block.index),
+           :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
+           :ok <- valid_hash?(block, difficulty),
+           :ok <- valid_coinbase?(block),
+           :ok <- valid_transactions?(block, pool_check) do
+        :ok
+      else
+        err -> err
+      end
     end
   end
 
@@ -64,7 +63,7 @@ defmodule Elixium.Validator do
   @spec compare_hash(Block, String.t()) :: :ok | {:error, {:wrong_hash, {:doesnt_match_provided, String.t(), String.t()}}}
   defp compare_hash(block, hash) do
     computed = Block.calculate_block_hash(block)
-    
+
     if computed == hash do
       :ok
     else
@@ -125,7 +124,12 @@ defmodule Elixium.Validator do
   @spec appropriate_coinbase_output?(list, number) :: :ok | {:error, :invalid_coinbase}
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
     total_fees = Block.total_block_fees(transactions)
-    reward = Block.calculate_block_reward(block_index)
+
+    reward =
+      block_index
+      |> :binary.decode_unsigned()
+      |> Block.calculate_block_reward()
+
     amount = hd(coinbase.outputs).amount
 
     if D.equal?(D.add(total_fees, reward), amount) do
