@@ -13,8 +13,8 @@ defmodule Elixium.Block do
             hash: nil,
             version: 1,
             previous_hash: nil,
-            difficulty: nil,
-            nonce: 0,
+            difficulty: 3_000_000,
+            nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>,
             timestamp: nil,
             merkle_root: nil,
             transactions: []
@@ -32,9 +32,7 @@ defmodule Elixium.Block do
   def initialize do
     %Block{
       index: 0,
-      difficulty: 3_000_000,
-      timestamp: DateTime.utc_now() |> DateTime.to_unix(),
-      version: 1
+      timestamp: time_unix()
     }
   end
 
@@ -46,10 +44,8 @@ defmodule Elixium.Block do
   def initialize(%{index: index, hash: previous_hash}) do
     block = %Block{
       index: index + 1,
-      version: 1,
       previous_hash: previous_hash,
-      difficulty: 4.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_unix
+      timestamp: time_unix()
     }
 
     difficulty = calculate_difficulty(block)
@@ -74,7 +70,7 @@ defmodule Elixium.Block do
       Integer.to_string(version),
       previous_hash,
       timestamp,
-      Integer.to_string(nonce),
+      nonce,
       merkle_root
     ])
   end
@@ -90,14 +86,27 @@ defmodule Elixium.Block do
   """
   @spec mine(Block) :: Block
   def mine(block) do
-    %{nonce: nonce } = block
-
     block = Map.put(block, :hash, calculate_block_hash(block))
 
     if hash_beat_target?(block) do
       block
     else
-      mine(%{block | nonce: nonce + 1})
+      # Wrap nonce back to 0 if we're about to overflow 8 bytes.
+      # We increase the timestamp and try again
+      if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
+        mine(%{block | nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>, timestamp: time_unix()})
+      else
+        nonce =
+          block.nonce
+          |> :binary.decode_unsigned()
+          |> Kernel.+(1)
+          |> :binary.encode_unsigned()
+
+        # Add trailing zero bytes since they're removed when encoding / decoding
+        padding = String.duplicate(<<0>>, 8 - byte_size(nonce))
+
+        mine(%{block | nonce: padding <> nonce})
+      end
     end
   end
 
@@ -234,5 +243,9 @@ defmodule Elixium.Block do
       |> List.last()
 
     {weighted_solvetimes, summed_difficulties}
+  end
+
+  defp time_unix do
+    DateTime.utc_now() |> DateTime.to_unix()
   end
 end
