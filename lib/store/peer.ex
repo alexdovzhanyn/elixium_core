@@ -29,6 +29,25 @@ defmodule Elixium.Store.Peer do
     end
   end
 
+  #Removes peer if no response was heard
+  def remove_peer(identifier) do
+    transact @store_dir do
+      &Exleveldb.delete(&1, identifier)
+    end
+  end
+
+  def reorder_peers(ip) do
+    transact @store_dir do
+      fn ref ->
+        {:ok, peers} = Exleveldb.get(ref, "known_peers")
+        peers = :erlang.binary_to_term(peers)
+        peer = Enum.find(peers, &(elem(&1, 0) == ip))
+
+        Exleveldb.put(ref, "known_peers", :erlang.term_to_binary([peer | peers -- [peer]]))
+      end
+    end
+  end
+
   def save_self(identifier, password, ip) do
     transact @store_dir do
       &Exleveldb.put(&1, "self_#{ip}", :erlang.term_to_binary({identifier, password}))
@@ -55,7 +74,7 @@ defmodule Elixium.Store.Peer do
             peers =
               [peer | :erlang.binary_to_term(peers)]
               |> Enum.uniq()
-              
+
             Exleveldb.put(ref, "known_peers", :erlang.term_to_binary(peers))
 
           :not_found ->
