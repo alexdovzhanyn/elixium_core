@@ -11,7 +11,7 @@ defmodule Elixium.Block do
 
   defstruct index: nil,
             hash: nil,
-            version: 1,
+            version: <<0, 0>>,
             previous_hash: nil,
             difficulty: 3_000_000,
             nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -67,7 +67,7 @@ defmodule Elixium.Block do
 
     Utilities.sha3_base16([
       Integer.to_string(index),
-      Integer.to_string(version),
+      version,
       previous_hash,
       timestamp,
       nonce,
