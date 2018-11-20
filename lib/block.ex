@@ -201,7 +201,7 @@ defmodule Elixium.Block do
         :elixium_core
         |> Application.get_env(:retargeting_window)
         |> Ledger.last_n_blocks()
-        |> Enum.map(&(%{&1 | index: :binary.encode_unsigned(&1.index)}))
+        |> Enum.map(&(%{&1 | index: :binary.decode_unsigned(&1.index)}))
 
       calculate_difficulty(%{block | index: index}, blocks_to_weight)
     end

@@ -107,12 +107,16 @@ defmodule Elixium.Store.Ledger do
     Returns the block at a given index
   """
   @spec block_at_height(integer) :: Block
-  def block_at_height(height) do
+  def block_at_height(height) when is_integer(height) do
     height =
       height
       |> :binary.encode_unsigned()
       |> Utilities.zero_pad(4)
 
+    block_at_height(height)
+  end
+
+  def block_at_height(height) when is_binary(height) do
     case :ets.lookup(@ets_name, height) do
       [] -> :none
       [{_index, _key, block}] -> block
