@@ -1,19 +1,27 @@
 defmodule Elixium.BlockEncoder do
   alias Elixium.Block
 
+  @moduledoc """
+    Provides functionality for encoding and decoding blocks
+  """
+
   @encoding_order [
     :index, :hash, :previous_hash,
     :merkle_root, :timestamp, :nonce,
     :difficulty, :version, :transactions
   ]
 
+  @doc """
+    Encode a block to a binary representation based on the encoding order:
+    @encoding_order
+  """
   @spec encode(Block) :: binary
   def encode(block) do
     block = Map.delete(block, :__struct__)
     Enum.reduce(@encoding_order, <<>>, fn attr, bin -> encode(attr, bin, block[attr]) end)
   end
 
-  def encode(:difficulty, bin, value) do
+  defp encode(:difficulty, bin, value) do
     # Convert to binary and strip out ETF bytes (we dont need them for storage,
     # we can add them back in when we need to read)
     <<131, 70, difficulty::binary>> = :erlang.term_to_binary(value)
@@ -21,19 +29,22 @@ defmodule Elixium.BlockEncoder do
     bin <> difficulty
   end
 
-  def encode(:transactions, bin, value) do
+  defp encode(:transactions, bin, value) do
     # Add transactions in as raw ETF encoding for easy decoding later
     bin <> :erlang.term_to_binary(value)
   end
 
-  def encode(_attr, bin, value) when is_binary(value) do
+  defp encode(_attr, bin, value) when is_binary(value) do
     bin <> value
   end
 
-  def encode(_attr, bin, value) when is_number(value) do
+  defp encode(_attr, bin, value) when is_number(value) do
     bin <> :binary.encode_unsigned(value)
   end
 
+  @doc """
+    Decode a block from binary that was previously encoded by encode/1
+  """
   @spec decode(binary) :: Block
   def decode(block_binary) do
     <<index::bytes-size(4),
