@@ -1,5 +1,6 @@
 defmodule Elixium.Store.Ledger do
   alias Elixium.Block
+  alias Elixium.BlockEncoder
   alias Elixium.Utilities
   use Elixium.Store
 
@@ -21,7 +22,7 @@ defmodule Elixium.Store.Ledger do
   """
   def append_block(block) do
     transact @store_dir do
-      &Exleveldb.put(&1, String.to_atom(block.hash), :erlang.term_to_binary(block))
+      &Exleveldb.put(&1, String.to_atom(block.hash), BlockEncoder.encode(block))
     end
 
     :ets.insert(@ets_name, {block.index, block.hash, block})
@@ -52,7 +53,7 @@ defmodule Elixium.Store.Ledger do
     transact @store_dir do
       fn ref ->
         case Exleveldb.get(ref, hash) do
-          {:ok, block} -> :erlang.binary_to_term(block)
+          {:ok, block} -> BlockEncoder.decode(block)
           err -> err
         end
       end
@@ -67,7 +68,7 @@ defmodule Elixium.Store.Ledger do
       transact @store_dir do
         fn ref ->
           ref
-          |> Exleveldb.map(fn {_, block} -> :erlang.binary_to_term(block) end)
+          |> Exleveldb.map(fn {_, block} -> BlockEncoder.decode(block) end)
           |> Enum.sort_by(& &1.index, &>=/2)
         end
       end

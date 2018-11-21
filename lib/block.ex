@@ -13,7 +13,7 @@ defmodule Elixium.Block do
             hash: nil,
             version: <<0, 0>>,
             previous_hash: nil,
-            difficulty: 3_000_000,
+            difficulty: 3_000_000.0,
             nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>,
             timestamp: nil,
             merkle_root: nil,
@@ -29,7 +29,12 @@ defmodule Elixium.Block do
     as its previous_hash to be valid
   """
   @spec initialize :: Block
-  def initialize, do: %Block{ timestamp: time_unix() }
+  def initialize do
+    %Block{
+      timestamp: time_unix(),
+      previous_hash: String.duplicate(<<0>>, 64) # 64 bytes of 0
+    }
+  end
 
   @doc """
     Takes the previous block as an argument (This is the way we create every
@@ -195,7 +200,7 @@ defmodule Elixium.Block do
     index = :binary.decode_unsigned(block.index)
 
     if index < 11 do
-      3_000_000
+      3_000_000.0
     else
       blocks_to_weight =
         :elixium_core
