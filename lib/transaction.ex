@@ -10,17 +10,14 @@ defmodule Elixium.Transaction do
   defstruct id: nil,
             inputs: [],
             outputs: [],
-            fee: 0,
-            designations: [],
-            timestamp: nil,
             # Most transactions will be pay-to-public-key
             txtype: "P2PK"
 
-  @spec calculate_outputs(Transaction) :: %{outputs: list, fee: Decimal}
-  def calculate_outputs(transaction) do
-    %{designations: designations} = transaction
+  @spec calculate_outputs(Transaction, Map) :: %{outputs: list, fee: Decimal}
+  def calculate_outputs(transaction, designations) do
 
-    fee = calculate_fee(transaction)
+
+    fee = calculate_fee(transaction, designations)
 
     outputs =
       designations
@@ -33,7 +30,7 @@ defmodule Elixium.Transaction do
         }
       end)
 
-    %{outputs: outputs, fee: fee}
+    %{outputs: outputs}
   end
 
   @doc """
@@ -58,13 +55,12 @@ defmodule Elixium.Transaction do
   """
   @spec generate_coinbase(Decimal, String.t()) :: Transaction
   def generate_coinbase(amount, miner_address) do
-    timestamp = DateTime.utc_now() |> DateTime.to_string()
+    timestamp = DateTime.utc_now()
     txid = Utilities.sha_base16(miner_address <> timestamp)
 
     %Transaction{
       id: txid,
       txtype: "COINBASE",
-      timestamp: timestamp,
       outputs: [
         %{txoid: "#{txid}:0", addr: miner_address, amount: amount}
       ]
@@ -76,8 +72,8 @@ defmodule Elixium.Transaction do
     Enum.reduce(inputs, D.new(0), fn %{amount: amount}, acc -> D.add(amount, acc) end)
   end
 
-  @spec calculate_fee(Transaction) :: Decimal
-  def calculate_fee(transaction) do
-    D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.designations))
+  @spec calculate_fee(Transaction, Map) :: Decimal
+  def calculate_fee(transaction, designations) do
+    D.sub(sum_inputs(transaction.inputs), sum_inputs(designations))
   end
 end

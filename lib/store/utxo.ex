@@ -102,6 +102,27 @@ defmodule Elixium.Store.Utxo do
     end
   end
 
+
+  @doc """
+    Fetches all keys from the wallet and passes them through to return the signed utxo's for later use
+  """
+  @spec retrieve_wallet_utxos :: list(utxo())
+  def retrieve_wallet_utxos do
+    path = Path.expand("../../.keys")
+    case File.ls(path) do
+      {:ok, keyfiles} ->
+        Enum.flat_map(keyfiles, fn file ->
+          {pub, priv} = Elixium.KeyPair.get_from_file(path <> "/#{file}")
+
+          pub
+          |> Elixium.KeyPair.address_from_pubkey
+          |> find_by_address()
+          |> Enum.map( &(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})) )
+        end)
+      {:error, :enoent} -> IO.puts "No keypair file found"
+    end
+end
+
   @doc """
     Return a list of UTXOs that a given address (public key) can use as inputs
   """
