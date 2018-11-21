@@ -1,6 +1,7 @@
 defmodule Elixium.Transaction do
   alias Elixium.Transaction
   alias Elixium.Utilities
+  alias Elixium.Utxo
   alias Decimal, as: D
 
   @moduledoc """
@@ -58,7 +59,7 @@ defmodule Elixium.Transaction do
       id: txid,
       txtype: "COINBASE",
       outputs: [
-        %{txoid: "#{txid}:0", addr: miner_address, amount: amount}
+        %Utxo{txoid: "#{txid}:0", addr: miner_address, amount: amount}
       ]
     }
   end
@@ -71,5 +72,15 @@ defmodule Elixium.Transaction do
   @spec calculate_fee(Transaction) :: Decimal
   def calculate_fee(transaction) do
     D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.outputs))
+  end
+
+  def sanitize(unsanitized_transaction) do
+    sanitized_transaction = struct(Transaction, Map.delete(unsanitized_transaction, :__struct__))
+    sanitized_inputs = Enum.map(sanitized_transaction.inputs, &Utxo.sanitize/1)
+    sanitized_outputs = Enum.map(sanitized_transaction.outputs, &Utxo.sanitize/1)
+
+    sanitized_transaction
+    |> Map.put(:inputs, sanitized_inputs)
+    |> Map.put(:outputs, sanitized_outputs)
   end
 end

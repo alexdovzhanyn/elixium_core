@@ -3,6 +3,7 @@ defmodule Elixium.Block do
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Elixium.Store.Ledger
+  alias Elixium.Utxo
   alias Decimal, as: D
 
   @moduledoc """
@@ -252,6 +253,20 @@ defmodule Elixium.Block do
       |> List.last()
 
     {weighted_solvetimes, summed_difficulties}
+  end
+
+  @doc """
+    Takes in a block received from a peer which may have malicious or extra
+    attributes attached. Removes all extra parameters which are not defined
+    explicitly by the block struct.
+  """
+  @spec sanitize(Block) :: Block
+  def sanitize(unsanitized_block) do
+    sanitized_block = struct(Block, Map.delete(unsanitized_block, :__struct__))
+
+    sanitized_transactions = Enum.map(sanitized_block.transactions, &Transaction.sanitize/1)
+
+    Map.put(sanitized_block, :transactions, sanitized_transactions)
   end
 
   defp time_unix do
