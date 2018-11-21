@@ -101,7 +101,7 @@ defmodule Elixium.Validator do
     |> Enum.map(fn input ->
       # Ensure that this input is in our UTXO pool
       if pool_check.(input) do
-        {:ok, pub} = Base.decode16(input.addr)
+        pub = KeyPair.address_to_pubkey(input.addr)
         {:ok, sig} = Base.decode16(input.signature)
         # Check if this UTXO has a valid signature
         KeyPair.verify_signature(pub, sig, input.txoid)

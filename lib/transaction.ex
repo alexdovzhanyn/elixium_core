@@ -15,10 +15,6 @@ defmodule Elixium.Transaction do
 
   @spec calculate_outputs(Transaction, Map) :: %{outputs: list, fee: Decimal}
   def calculate_outputs(transaction, designations) do
-
-
-    fee = calculate_fee(transaction, designations)
-
     outputs =
       designations
       |> Enum.with_index()
@@ -55,7 +51,7 @@ defmodule Elixium.Transaction do
   """
   @spec generate_coinbase(Decimal, String.t()) :: Transaction
   def generate_coinbase(amount, miner_address) do
-    timestamp = DateTime.utc_now()
+    timestamp = DateTime.utc_now() |> DateTime.to_string()
     txid = Utilities.sha_base16(miner_address <> timestamp)
 
     %Transaction{
