@@ -72,8 +72,8 @@ defmodule Elixium.Transaction do
     Enum.reduce(inputs, D.new(0), fn %{amount: amount}, acc -> D.add(amount, acc) end)
   end
 
-  @spec calculate_fee(Transaction, Map) :: Decimal
-  def calculate_fee(transaction, designations) do
-    D.sub(sum_inputs(transaction.inputs), sum_inputs(designations))
+  @spec calculate_fee(Transaction) :: Decimal
+  def calculate_fee(transaction) do
+    D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.outputs))
   end
 end
