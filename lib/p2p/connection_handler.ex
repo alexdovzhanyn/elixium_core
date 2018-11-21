@@ -156,8 +156,6 @@ defmodule Elixium.P2P.ConnectionHandler do
 
         # Send out the messages to the parent of this process (a.k.a the pid that
         # was passed in when calling start/2)
-        #Enum.each(messages, &(send(master_pid, {&1, self()})))
-
         Enum.each(messages, fn message ->
           case message do
             %{type: "PING"} ->
@@ -182,6 +180,10 @@ defmodule Elixium.P2P.ConnectionHandler do
         else
           Logger.info("Sending data to peer: #{peername}")
           Logger.info("Time #{:os.system_time(:millisecond)}")
+        end
+
+        if type == "PING" do
+          Process.put(:last_ping_time, :os.system_time(:millisecond))
         end
 
         case Message.build(type, data, session_key) do
@@ -258,8 +260,4 @@ defmodule Elixium.P2P.ConnectionHandler do
       |> Keyword.get(:ping)
     end
   end
-
-
-
-
 end
