@@ -78,7 +78,9 @@ defmodule Elixium.Mixfile do
 
         address_version: "EX0",
 
-        block_size_limit: 240_000 #8_388_608
+        block_size_limit: 240_000, #8_388_608
+
+        unix_key_address: Path.expand("../../.keys")
 
       ]
     ]

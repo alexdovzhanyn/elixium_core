@@ -8,6 +8,7 @@ defmodule Elixium.Store.Utxo do
 
   @store_dir ".utxo"
   @ets_name :utxo
+  
 
   @type utxo() :: %{
     txoid: String.t(),
@@ -111,11 +112,11 @@ defmodule Elixium.Store.Utxo do
   """
   @spec retrieve_wallet_utxos :: list(utxo())
   def retrieve_wallet_utxos do
-    path = Path.expand("../../.keys")
-    case File.ls(path) do
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    case File.ls(unix_address) do
       {:ok, keyfiles} ->
         Enum.flat_map(keyfiles, fn file ->
-          {pub, priv} = Elixium.KeyPair.get_from_file(path <> "/#{file}")
+          {pub, priv} = Elixium.KeyPair.get_from_file(unix_address <> "/#{file}")
 
           pub
           |> Elixium.KeyPair.address_from_pubkey
