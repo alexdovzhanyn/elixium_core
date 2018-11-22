@@ -74,6 +74,12 @@ defmodule Elixium.Transaction do
     D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.outputs))
   end
 
+  @doc """
+    Takes in a transaction received from a peer which may have malicious or extra
+    attributes attached. Removes all extra parameters which are not defined
+    explicitly by the transaction struct.
+  """
+  @spec sanitize(Transaction) :: Transaction
   def sanitize(unsanitized_transaction) do
     sanitized_transaction = struct(Transaction, Map.delete(unsanitized_transaction, :__struct__))
     sanitized_inputs = Enum.map(sanitized_transaction.inputs, &Utxo.sanitize/1)
