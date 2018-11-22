@@ -51,8 +51,10 @@ defmodule Elixium.Store.Utxo do
       [] ->
         transact @store_dir do
           fn ref ->
-            {:ok, utxo} = Exleveldb.get(ref, String.to_atom(txoid))
-            :erlang.binary_to_term(utxo)
+            case Exleveldb.get(ref, String.to_atom(txoid)) do
+              {:ok, utxo} -> :erlang.binary_to_term(utxo)
+              :not_found -> :not_found
+            end
           end
         end
       [{_txoid, _addr, utxo}] -> utxo
@@ -63,7 +65,7 @@ defmodule Elixium.Store.Utxo do
     Check if a UTXO is currently in the pool
   """
   @spec in_pool?(utxo()) :: true | false
-  def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != []
+  def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != :not_found
 
   @spec retrieve_all_utxos :: list(utxo())
   def retrieve_all_utxos do
