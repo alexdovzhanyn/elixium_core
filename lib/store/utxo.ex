@@ -84,6 +84,7 @@ defmodule Elixium.Store.Utxo do
           |> Enum.flat_map(& &1.inputs)
           |> Enum.map(&{:delete, &1.txoid})
 
+
         add =
           transactions
           |> Enum.flat_map(& &1.outputs)
@@ -117,7 +118,7 @@ defmodule Elixium.Store.Utxo do
           pub
           |> Elixium.KeyPair.address_from_pubkey
           |> find_by_address()
-          |> Enum.map( &(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})) )
+          |> Stream.map( &(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})) )
         end)
       {:error, :enoent} -> IO.puts "No keypair file found"
     end
