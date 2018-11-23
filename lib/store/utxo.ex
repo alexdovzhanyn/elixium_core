@@ -8,7 +8,7 @@ defmodule Elixium.Store.Utxo do
 
   @store_dir ".utxo"
   @ets_name :utxo
-  
+
 
   @type utxo() :: %{
     txoid: String.t(),
@@ -121,7 +121,7 @@ defmodule Elixium.Store.Utxo do
           pub
           |> Elixium.KeyPair.address_from_pubkey
           |> find_by_address()
-          |> Stream.map( &(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})) )
+          |> Stream.map(&(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})))
         end)
       {:error, :enoent} -> IO.puts "No keypair file found"
     end
