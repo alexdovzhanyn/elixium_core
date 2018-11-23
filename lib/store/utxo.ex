@@ -9,6 +9,7 @@ defmodule Elixium.Store.Utxo do
   @store_dir ".utxo"
   @ets_name :utxo
 
+
   @type utxo() :: %{
     txoid: String.t(),
     addr: String.t(),
@@ -51,8 +52,10 @@ defmodule Elixium.Store.Utxo do
       [] ->
         transact @store_dir do
           fn ref ->
-            {:ok, utxo} = Exleveldb.get(ref, String.to_atom(txoid))
-            :erlang.binary_to_term(utxo)
+            case Exleveldb.get(ref, String.to_atom(txoid)) do
+              {:ok, utxo} -> :erlang.binary_to_term(utxo)
+              :not_found -> :not_found
+            end
           end
         end
       [{_txoid, _addr, utxo}] -> utxo
@@ -63,7 +66,7 @@ defmodule Elixium.Store.Utxo do
     Check if a UTXO is currently in the pool
   """
   @spec in_pool?(utxo()) :: true | false
-  def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != []
+  def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != :not_found
 
   @spec retrieve_all_utxos :: list(utxo())
   def retrieve_all_utxos do
@@ -84,6 +87,7 @@ defmodule Elixium.Store.Utxo do
           |> Enum.flat_map(& &1.inputs)
           |> Enum.map(&{:delete, &1.txoid})
 
+
         add =
           transactions
           |> Enum.flat_map(& &1.outputs)
@@ -101,6 +105,27 @@ defmodule Elixium.Store.Utxo do
       end
     end
   end
+
+
+  @doc """
+    Fetches all keys from the wallet and passes them through to return the signed utxo's for later use
+  """
+  @spec retrieve_wallet_utxos :: list(utxo())
+  def retrieve_wallet_utxos do
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    case File.ls(unix_address) do
+      {:ok, keyfiles} ->
+        Enum.flat_map(keyfiles, fn file ->
+          {pub, priv} = Elixium.KeyPair.get_from_file(unix_address <> "/#{file}")
+
+          pub
+          |> Elixium.KeyPair.address_from_pubkey
+          |> find_by_address()
+          |> Stream.map(&(Map.merge(&1, %{signature: Elixium.KeyPair.sign(priv, &1.txoid) |> Base.encode16})))
+        end)
+      {:error, :enoent} -> IO.puts "No keypair file found"
+    end
+end
 
   @doc """
     Return a list of UTXOs that a given address (public key) can use as inputs

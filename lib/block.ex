@@ -3,18 +3,19 @@ defmodule Elixium.Block do
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Elixium.Store.Ledger
+  alias Elixium.Utxo
   alias Decimal, as: D
 
   @moduledoc """
     Provides functions for creating blocks and mining new ones
   """
 
-  defstruct index: nil,
+  defstruct index: <<0, 0, 0, 0>>,
             hash: nil,
-            version: 1,
+            version: <<0, 0>>,
             previous_hash: nil,
-            difficulty: nil,
-            nonce: 0,
+            difficulty: 3_000_000.0,
+            nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>,
             timestamp: nil,
             merkle_root: nil,
             transactions: []
@@ -31,10 +32,8 @@ defmodule Elixium.Block do
   @spec initialize :: Block
   def initialize do
     %Block{
-      index: 0,
-      difficulty: 3_000_000,
-      timestamp: DateTime.utc_now() |> DateTime.to_unix(),
-      version: 1
+      timestamp: time_unix(),
+      previous_hash: String.duplicate(<<0>>, 64) # 64 bytes of 0
     }
   end
 
@@ -44,12 +43,17 @@ defmodule Elixium.Block do
   """
   @spec initialize(Block) :: Block
   def initialize(%{index: index, hash: previous_hash}) do
+    index =
+      index
+      |> :binary.decode_unsigned()
+      |> Kernel.+(1)
+      |> :binary.encode_unsigned()
+      |> Utilities.zero_pad(4)
+
     block = %Block{
-      index: index + 1,
-      version: 1,
+      index: index,
       previous_hash: previous_hash,
-      difficulty: 4.0,
-      timestamp: DateTime.utc_now() |> DateTime.to_unix
+      timestamp: time_unix()
     }
 
     difficulty = calculate_difficulty(block)
@@ -70,11 +74,11 @@ defmodule Elixium.Block do
     } = block
 
     Utilities.sha3_base16([
-      Integer.to_string(index),
-      Integer.to_string(version),
+      index,
+      version,
       previous_hash,
       timestamp,
-      Integer.to_string(nonce),
+      nonce,
       merkle_root
     ])
   end
@@ -90,14 +94,25 @@ defmodule Elixium.Block do
   """
   @spec mine(Block) :: Block
   def mine(block) do
-    %{nonce: nonce } = block
-
     block = Map.put(block, :hash, calculate_block_hash(block))
 
     if hash_beat_target?(block) do
       block
     else
-      mine(%{block | nonce: nonce + 1})
+      # Wrap nonce back to 0 if we're about to overflow 8 bytes.
+      # We increase the timestamp and try again
+      if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
+        mine(%{block | nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>, timestamp: time_unix()})
+      else
+        nonce =
+          block.nonce
+          |> :binary.decode_unsigned()
+          |> Kernel.+(1)
+          |> :binary.encode_unsigned()
+          |> Utilities.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
+
+        mine(%{block | nonce: nonce})
+      end
     end
   end
 
@@ -182,19 +197,23 @@ defmodule Elixium.Block do
     described at https://getmasari.org/research-papers/wwhm.pdf
   """
   @spec calculate_difficulty(Block) :: number
-  def calculate_difficulty(%{index: index}) when index < 11, do: 3_000_000
-
   def calculate_difficulty(block) do
-    blocks_to_weight =
-      :elixium_core
-      |> Application.get_env(:retargeting_window)
-      |> Ledger.last_n_blocks()
+    index = :binary.decode_unsigned(block.index)
 
-    calculate_difficulty(block, blocks_to_weight)
+    if index < 11 do
+      3_000_000.0
+    else
+      blocks_to_weight =
+        :elixium_core
+        |> Application.get_env(:retargeting_window)
+        |> Ledger.last_n_blocks()
+        |> Enum.map(&(%{&1 | index: :binary.decode_unsigned(&1.index)}))
+
+      calculate_difficulty(%{block | index: index}, blocks_to_weight)
+    end
   end
 
   def calculate_difficulty(block, blocks_to_weight) do
-
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
 
@@ -234,5 +253,23 @@ defmodule Elixium.Block do
       |> List.last()
 
     {weighted_solvetimes, summed_difficulties}
+  end
+
+  @doc """
+    Takes in a block received from a peer which may have malicious or extra
+    attributes attached. Removes all extra parameters which are not defined
+    explicitly by the block struct.
+  """
+  @spec sanitize(Block) :: Block
+  def sanitize(unsanitized_block) do
+    sanitized_block = struct(Block, Map.delete(unsanitized_block, :__struct__))
+
+    sanitized_transactions = Enum.map(sanitized_block.transactions, &Transaction.sanitize/1)
+
+    Map.put(sanitized_block, :transactions, sanitized_transactions)
+  end
+
+  defp time_unix do
+    DateTime.utc_now() |> DateTime.to_unix()
   end
 end

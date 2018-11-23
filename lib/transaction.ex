@@ -1,6 +1,7 @@
 defmodule Elixium.Transaction do
   alias Elixium.Transaction
   alias Elixium.Utilities
+  alias Elixium.Utxo
   alias Decimal, as: D
 
   @moduledoc """
@@ -10,18 +11,11 @@ defmodule Elixium.Transaction do
   defstruct id: nil,
             inputs: [],
             outputs: [],
-            fee: 0,
-            designations: [],
-            timestamp: nil,
             # Most transactions will be pay-to-public-key
             txtype: "P2PK"
 
-  @spec calculate_outputs(Transaction) :: %{outputs: list, fee: Decimal}
-  def calculate_outputs(transaction) do
-    %{designations: designations} = transaction
-
-    fee = calculate_fee(transaction)
-
+  @spec calculate_outputs(Transaction, Map) :: %{outputs: list, fee: Decimal}
+  def calculate_outputs(transaction, designations) do
     outputs =
       designations
       |> Enum.with_index()
@@ -33,7 +27,7 @@ defmodule Elixium.Transaction do
         }
       end)
 
-    %{outputs: outputs, fee: fee}
+    %{outputs: outputs}
   end
 
   @doc """
@@ -64,9 +58,8 @@ defmodule Elixium.Transaction do
     %Transaction{
       id: txid,
       txtype: "COINBASE",
-      timestamp: timestamp,
       outputs: [
-        %{txoid: "#{txid}:0", addr: miner_address, amount: amount}
+        %Utxo{txoid: "#{txid}:0", addr: miner_address, amount: amount}
       ]
     }
   end
@@ -78,6 +71,22 @@ defmodule Elixium.Transaction do
 
   @spec calculate_fee(Transaction) :: Decimal
   def calculate_fee(transaction) do
-    D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.designations))
+    D.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.outputs))
+  end
+
+  @doc """
+    Takes in a transaction received from a peer which may have malicious or extra
+    attributes attached. Removes all extra parameters which are not defined
+    explicitly by the transaction struct.
+  """
+  @spec sanitize(Transaction) :: Transaction
+  def sanitize(unsanitized_transaction) do
+    sanitized_transaction = struct(Transaction, Map.delete(unsanitized_transaction, :__struct__))
+    sanitized_inputs = Enum.map(sanitized_transaction.inputs, &Utxo.sanitize/1)
+    sanitized_outputs = Enum.map(sanitized_transaction.outputs, &Utxo.sanitize/1)
+
+    sanitized_transaction
+    |> Map.put(:inputs, sanitized_inputs)
+    |> Map.put(:outputs, sanitized_outputs)
   end
 end
