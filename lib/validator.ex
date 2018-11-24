@@ -26,6 +26,7 @@ defmodule Elixium.Validator do
            :ok <- valid_hash?(block, difficulty),
            :ok <- valid_coinbase?(block),
            :ok <- valid_transactions?(block, pool_check),
+           :ok <- valid_timestamp?(block),
            :ok <- valid_block_size?(block) do
         :ok
       else
@@ -142,7 +143,7 @@ defmodule Elixium.Validator do
   end
 
   @spec valid_timetamp?(Block) :: :ok | {:error, :timestamp_too_high}
-  defp valid_timetamp?(%{timestamp: timestamp}) do
+  defp valid_timestamp?(%{timestamp: timestamp}) do
     ftl = Application.get_env(:elixium_core, :future_time_limit)
 
     current_time =
