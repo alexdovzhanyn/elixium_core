@@ -8,7 +8,7 @@ defmodule Elixium.Pool.Orphan do
   def initialize, do: :ets.new(@pool_name, [:bag, :public, :named_table])
 
   @spec add(Elixium.Block) :: none
-  def add(block), do: :ets.insert(@pool_name, {block.index, block})
+  def add(block), do: :ets.insert(@pool_name, {:binary.decode_unsigned(block.index), block})
 
   def remove(block) do
     exact_object =
