@@ -1,5 +1,7 @@
 defmodule Elixium.Store.Ledger do
   alias Elixium.Block
+  alias Elixium.BlockEncoder
+  alias Elixium.Utilities
   use Elixium.Store
 
   @moduledoc """
@@ -20,7 +22,7 @@ defmodule Elixium.Store.Ledger do
   """
   def append_block(block) do
     transact @store_dir do
-      &Exleveldb.put(&1, String.to_atom(block.hash), :erlang.term_to_binary(block))
+      &Exleveldb.put(&1, String.to_atom(block.hash), BlockEncoder.encode(block))
     end
 
     :ets.insert(@ets_name, {block.index, block.hash, block})
@@ -51,7 +53,7 @@ defmodule Elixium.Store.Ledger do
     transact @store_dir do
       fn ref ->
         case Exleveldb.get(ref, hash) do
-          {:ok, block} -> :erlang.binary_to_term(block)
+          {:ok, block} -> BlockEncoder.decode(block)
           err -> err
         end
       end
@@ -66,7 +68,7 @@ defmodule Elixium.Store.Ledger do
       transact @store_dir do
         fn ref ->
           ref
-          |> Exleveldb.map(fn {_, block} -> :erlang.binary_to_term(block) end)
+          |> Exleveldb.map(fn {_, block} -> BlockEncoder.decode(block) end)
           |> Enum.sort_by(& &1.index, &>=/2)
         end
       end
@@ -106,7 +108,16 @@ defmodule Elixium.Store.Ledger do
     Returns the block at a given index
   """
   @spec block_at_height(integer) :: Block
-  def block_at_height(height) do
+  def block_at_height(height) when is_integer(height) do
+    height =
+      height
+      |> :binary.encode_unsigned()
+      |> Utilities.zero_pad(4)
+
+    block_at_height(height)
+  end
+
+  def block_at_height(height) when is_binary(height) do
     case :ets.lookup(@ets_name, height) do
       [] -> :none
       [{_index, _key, block}] -> block
@@ -117,7 +128,7 @@ defmodule Elixium.Store.Ledger do
     Returns the last N blocks in the chain
   """
   @spec last_n_blocks(integer) :: list
-  def last_n_blocks(n, starting_at \\ last_block().index) do
+  def last_n_blocks(n, starting_at \\ :binary.decode_unsigned(last_block().index)) do
     starting_at - (n - 1)
     |> max(0)
     |> Range.new(starting_at)

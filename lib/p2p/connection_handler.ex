@@ -127,6 +127,8 @@ defmodule Elixium.P2P.ConnectionHandler do
     # Set the connected flag so that the parent process knows we've connected
     # to a peer.
     Process.put(:connected, peername)
+    #Initialize Ping to prevent default errors
+    Process.put(:ping, 0)
 
     # Tell the master pid that we have a new connection
     if conn_type == :outbound do
@@ -160,10 +162,8 @@ defmodule Elixium.P2P.ConnectionHandler do
               {:ok, m} = Message.build("PANG", %{}, session_key)
               Message.send(m, socket)
             %{type: "PANG"} ->
-              # Handle ping response here
               last_ping = Process.get(:last_ping_time)
               ping = :os.system_time(:millisecond) - last_ping
-
               Process.put(:ping, ping)
             message -> send(master_pid, {message, self()})
           end
@@ -175,10 +175,14 @@ defmodule Elixium.P2P.ConnectionHandler do
       # When receiving data from the parent process, send it to the network
       # through TCP
       {type, data} ->
-        Logger.info("Sending data to peer: #{peername}")
-        Logger.info("Time #{:os.system_time(:millisecond)}")
+        if type == "PING" do
+          Process.put(:last_ping_time, :os.system_time(:millisecond))
+        else
+          Logger.info("Sending data to peer: #{peername}")
+          Logger.info("Time #{:os.system_time(:millisecond)}")
+        end
 
-        if (type == "PING") do
+        if type == "PING" do
           Process.put(:last_ping_time, :os.system_time(:millisecond))
         end
 
@@ -245,6 +249,15 @@ defmodule Elixium.P2P.ConnectionHandler do
     case Oracle.inquire(oracle, {:load_self, [ip]}) do
       :not_found -> false
       {_identifier, _password} -> true
+    end
+  end
+
+  def ping_peer(peer) do
+    with {"PING", %{}} <- send(peer, {"PING", %{}}) do
+      peer
+      |> Process.info()
+      |> Keyword.get(:dictionary)
+      |> Keyword.get(:ping)
     end
   end
 end

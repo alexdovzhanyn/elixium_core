@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.2.11",
+      version: "0.3.0",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -67,6 +67,10 @@ defmodule Elixium.Mixfile do
         # Number of blocks in difficulty retargeting window
         retargeting_window: 60,
 
+        # Maximum number of seconds ahead of our current time that a blocks
+        # timestamp can be and still be considered valid.
+        future_time_limit: 360,
+
         ghost_protocol_version: "v1.0",
 
         # Url used to bootstrap node connections
@@ -75,7 +79,9 @@ defmodule Elixium.Mixfile do
         address_version: "EX0",
 
         # 8 Megabyte block size
-        block_size_limit: 8_388_608
+        block_size_limit: 8_388_608,
+
+        unix_key_address: Path.expand("../../.keys")
 
       ]
     ]

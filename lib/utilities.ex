@@ -42,4 +42,8 @@ defmodule Elixium.Utilities do
     to_add = block_size - rem(byte_size(data), block_size)
     data <> String.duplicate(<<to_add>>, to_add)
   end
+
+  def zero_pad(bytes, size) do
+    String.duplicate(<<0>>, size - byte_size(bytes)) <> bytes
+  end
 end
