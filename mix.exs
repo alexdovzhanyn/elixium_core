@@ -72,7 +72,10 @@ defmodule Elixium.Mixfile do
         # Url used to bootstrap node connections
         registry_url: 'https://registry.testnet.elixium.app/',
 
-        address_version: "EX0"
+        address_version: "EX0",
+
+        # 8 Megabyte block size
+        block_size_limit: 8_388_608
 
       ]
     ]
