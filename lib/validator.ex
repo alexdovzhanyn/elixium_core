@@ -4,6 +4,7 @@ defmodule Elixium.Validator do
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger
   alias Elixium.Store.Utxo
+  alias Elixium.BlockEncoder
   alias Decimal, as: D
 
   @moduledoc """
@@ -24,7 +25,8 @@ defmodule Elixium.Validator do
            :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
            :ok <- valid_hash?(block, difficulty),
            :ok <- valid_coinbase?(block),
-           :ok <- valid_transactions?(block, pool_check) do
+           :ok <- valid_transactions?(block, pool_check),
+           :ok <- valid_block_size?(block) do
         :ok
       else
         err -> err
@@ -148,5 +150,18 @@ defmodule Elixium.Validator do
       |> DateTime.to_unix()
 
     if timestamp < current_time + ftl, do: :ok, else: {:error, :timestamp_too_high}
+  end
+
+  @spec valid_block_size?(Block) :: {:ok} | {:error, :block_too_large}
+  defp valid_block_size?(block) do
+    block_size_limit = Application.get_env(:elixium_core, :block_size_limit)
+
+    under_size_limit =
+      block
+      |> BlockEncoder.encode()
+      |> byte_size()
+      |> Kernel.<=(block_size_limit)
+
+    if under_size_limit, do: :ok, else: {:error, :block_too_large}
   end
 end
