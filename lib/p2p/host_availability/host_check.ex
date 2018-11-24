@@ -35,15 +35,17 @@ defmodule Elixium.HostCheck do
 
   def handle_info({:tcp, socket, <<1>>}, state) do
     #Shuffle List
-    {:ok, {add, _port}} = :inet.peername(socket)
-    ip =
-      add
-      |> :inet_parse.ntoa()
-
-    GenServer.call(:"Elixir.Elixium.Store.PeerOracle", {:reorder_peers, [ip]})
+    case :inet.peername(socket) do
+      {:error, :einval} -> Logger.info("ERROR IN PING SHUFFLE")
+      {:ok, {add, _port}} ->
+        ip =
+          add
+          |> :inet_parse.ntoa()
+          GenServer.call(:"Elixir.Elixium.Store.PeerOracle", {:reorder_peers, [ip]})
+    end
     {:noreply, state}
   end
 
-  def handle_info({:tcp, _, _}, state), do: {:noreply, state} 
+  def handle_info({:tcp, _, _}, state), do: {:noreply, state}
 
 end
