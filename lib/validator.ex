@@ -142,7 +142,7 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec valid_timetamp?(Block) :: :ok | {:error, :timestamp_too_high}
+  @spec valid_timestamp?(Block) :: :ok | {:error, :timestamp_too_high}
   defp valid_timestamp?(%{timestamp: timestamp}) do
     ftl = Application.get_env(:elixium_core, :future_time_limit)
 
