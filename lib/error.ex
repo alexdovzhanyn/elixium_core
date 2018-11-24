@@ -15,6 +15,8 @@ defmodule Elixium.Error do
   defp str(:no_coinbase), do: "No coinbase found in a block"
   defp str(:invalid_inputs), do: "Invalid transaction inputs"
 
+  defp str(:block_too_large), do: "Block too large -- Exceeds byte limit"
+
   defp str({:not_coinbase, txtype}),
     do: "The first transaction is not a coinbase, but a #{txtype}"
 
