@@ -169,7 +169,7 @@ defmodule Elixium.Block do
 
     D.div(
       D.mult(
-        D.new(total_token_supply),
+        D.from_float(total_token_supply),
         D.new(max(0, block_at_full_emission - block_index))
       ),
       D.new(sigma_full_emission)
