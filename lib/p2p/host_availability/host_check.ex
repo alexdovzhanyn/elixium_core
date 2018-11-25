@@ -42,6 +42,7 @@ defmodule Elixium.HostCheck do
            |> :inet_parse.ntoa()
            Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:reorder_peers, [ip]})
     end
+     {:noreply, state}
   end
 
   def handle_info({:tcp, _, _}, state), do: {:noreply, state}
