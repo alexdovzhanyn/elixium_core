@@ -127,7 +127,7 @@ defmodule Elixium.Node.ConnectionHandler do
     session_key = generate_session_key(shared_secret)
     Logger.info("#{state.handler_name} authenticated with peer.")
 
-    :inet.setopts(socket, active: true)
+    :inet.setopts(socket, active: :once)
 
     peername = get_peername(socket)
 
@@ -153,6 +153,8 @@ defmodule Elixium.Node.ConnectionHandler do
   """
   def handle_info({:tcp, _port, data}, state) do
     messages = Message.read(data, state.session_key, state.socket)
+
+    :inet.setopts(state.socket, active: :once)
 
     # Send out the messages to the parent of this process (a.k.a the pid that
     # was passed in when calling start/2)
