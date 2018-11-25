@@ -34,7 +34,6 @@ defmodule Elixium.HostCheck do
   end
 
   def handle_info({:tcp, socket, <<1>>}, state) do
-    #Shuffle List
     case :inet.peername(socket) do
        {:error, :einval} -> Logger.error("ERROR IN PING SHUFFLE")
        {:ok, {add, _port}} ->
