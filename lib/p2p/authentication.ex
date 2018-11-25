@@ -6,20 +6,20 @@ defmodule Elixium.P2P.Authentication do
     SRP authentication handshakes and generation of credentials
   """
 
-  @spec load_credentials(String.t(), integer, pid) :: {bitstring, bitstring}
-  def load_credentials(ip, port, peer_oracle) do
+  @spec load_credentials(String.t(), integer) :: {bitstring, bitstring}
+  def load_credentials(ip, port) do
     ip = List.to_string(ip) <> ":" <> Integer.to_string(port)
 
-    case Oracle.inquire(peer_oracle, {:load_self, [ip]}) do
-      :not_found -> generate_and_store_credentials(ip, peer_oracle)
+    case Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:load_self, [ip]}) do
+      :not_found -> generate_and_store_credentials(ip)
       {identifier, password} -> {identifier, password}
     end
   end
 
-  @spec generate_and_store_credentials(String.t(), pid) :: {bitstring, bitstring}
-  defp generate_and_store_credentials(ip, peer_oracle) do
+  @spec generate_and_store_credentials(String.t()) :: {bitstring, bitstring}
+  defp generate_and_store_credentials(ip) do
     {identifier, password} = {:crypto.strong_rand_bytes(32), :crypto.strong_rand_bytes(32)}
-    Oracle.inquire(peer_oracle, {:save_self, [identifier, password, ip]})
+    Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:save_self, [identifier, password, ip]})
 
     {identifier, password}
   end
@@ -105,8 +105,8 @@ defmodule Elixium.P2P.Authentication do
     shared_master_key
   end
 
-  @spec inbound_new_peer(map, reference, pid) :: bitstring
-  def inbound_new_peer(message, socket, peer_oracle) do
+  @spec inbound_new_peer(map, reference) :: bitstring
+  def inbound_new_peer(message, socket) do
     %{
       public_value: peer_public_value,
       generator: generator,
@@ -138,16 +138,16 @@ defmodule Elixium.P2P.Authentication do
     # Now that we've successfully authenticated the peer, we save this data for use
     # in future authentications
 
-    Oracle.inquire(peer_oracle, {:register_peer, [{peer_identifier, salt, prime, generator, peer_verifier}]})
+    Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:register_peer, [{peer_identifier, salt, prime, generator, peer_verifier}]})
 
     shared_master_key
   end
 
   # Using the identifier, find the verifier, generator, and prime for a peer we know
   # and then communicate back and forth with them until we've verified them
-  @spec inbound_peer(String.t(), reference, pid) :: bitstring
-  def inbound_peer(identifier, socket, peer_oracle) do
-    {salt, prime, generator, peer_verifier} = Oracle.inquire(peer_oracle, {:load_peer, [identifier]})
+  @spec inbound_peer(String.t(), reference) :: bitstring
+  def inbound_peer(identifier, socket) do
+    {salt, prime, generator, peer_verifier} = Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:load_peer, [identifier]})
 
     # Necesarry in order to generate the public value & session key
     server =

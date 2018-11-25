@@ -148,15 +148,17 @@ defmodule Elixium.P2P.GhostProtocol.Message do
   # by the length, in bytes, of the rest of the message
   @spec parse_header(reference) :: {String.t(), integer}
   defp parse_header(socket) do
-    {:ok, header} =
-      socket
-      # Will get "Ghost|00000000|v1.0|" from socket
-      |> :gen_tcp.recv(20)
+    case :gen_tcp.recv(socket, 20) do
+      {:ok, header} ->
+        # Will get "Ghost|00000000|v1.0|" from socket
+        [protocol, bytes, version, predata] = String.split(header, "|")
+        {bytes, _} = Integer.parse(bytes)
 
-    [protocol, bytes, version, predata] = String.split(header, "|")
-    {bytes, _} = Integer.parse(bytes)
-
-    {protocol, bytes, predata}
+        {protocol, bytes, predata}
+      {:error, :closed} ->
+        Logger.info("Lost connection to peer")
+        Process.exit(self(), :normal)
+    end
   end
 
   @spec decrypt(bitstring, <<_::256>>) :: map
