@@ -3,7 +3,8 @@ defmodule Elixium.Validator do
   alias Elixium.Utilities
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger
-  alias Elixium.Store.Utxo
+  alias Elixium.Store.Utxo, as: UtxoStore
+  alias Elixium.Utxo
   alias Elixium.BlockEncoder
   alias Decimal, as: D
 
@@ -17,7 +18,7 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
-  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &Utxo.in_pool?/1) do
+  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &UtxoStore.in_pool?/1) do
     if :binary.decode_unsigned(block.index) == 0 do
       valid_hash?(block, difficulty)
     else
@@ -99,7 +100,7 @@ defmodule Elixium.Validator do
     this function must return a boolean.
   """
   @spec valid_transaction?(Transaction, function) :: boolean
-  def valid_transaction?(%{inputs: inputs}, pool_check \\ &Utxo.in_pool?/1) do
+  def valid_transaction?(%{inputs: inputs}, pool_check \\ &UtxoStore.in_pool?/1) do
     inputs
     |> Enum.map(fn input ->
       # Ensure that this input is in our UTXO pool
@@ -107,7 +108,7 @@ defmodule Elixium.Validator do
         pub = KeyPair.address_to_pubkey(input.addr)
         {:ok, sig} = Base.decode16(input.signature)
         # Check if this UTXO has a valid signature
-        KeyPair.verify_signature(pub, sig, input.txoid)
+        KeyPair.verify_signature(pub, sig, Utxo.hash(input))
       else
         false
       end
@@ -116,7 +117,7 @@ defmodule Elixium.Validator do
   end
 
   @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
-  def valid_transactions?(%{transactions: transactions}, pool_check \\ &Utxo.in_pool?/1) do
+  def valid_transactions?(%{transactions: transactions}, pool_check \\ &UtxoStore.in_pool?/1) do
     if Enum.all?(transactions, &valid_transaction?(&1, pool_check)), do: :ok, else: {:error, :invalid_inputs}
   end
 
