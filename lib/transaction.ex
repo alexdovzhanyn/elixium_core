@@ -21,7 +21,7 @@ defmodule Elixium.Transaction do
       designations
       |> Enum.with_index()
       |> Enum.map(fn {designation, idx} ->
-        %{
+        %Utxo{
           txoid: "#{transaction.id}:#{idx}",
           addr: designation.addr,
           amount: designation.amount

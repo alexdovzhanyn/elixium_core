@@ -35,6 +35,17 @@ defmodule Elixium.KeyPair do
     :crypto.generate_key(@algorithm, @curve, private)
   end
 
+  @doc """
+    Using a public address, fetch the correct keyfile and return the only the private key
+  """
+  @spec get_priv_from_file(String.t()) :: {binary, binary}
+  def get_priv_from_file(pub) do
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    key_path = unix_address <> "/" <> pub <>".key"
+    {pub, priv} = get_from_file(key_path)
+    priv
+  end
+
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
     unix_address = Application.get_env(:elixium_core, :unix_key_address)
