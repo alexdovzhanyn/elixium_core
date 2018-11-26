@@ -11,6 +11,7 @@ defmodule Elixium.Transaction do
   defstruct id: nil,
             inputs: [],
             outputs: [],
+            sigs: [],
             # Most transactions will be pay-to-public-key
             txtype: "P2PK"
 
@@ -88,5 +89,15 @@ defmodule Elixium.Transaction do
     sanitized_transaction
     |> Map.put(:inputs, sanitized_inputs)
     |> Map.put(:outputs, sanitized_outputs)
+  end
+
+  @doc """
+    Returns the data that a signer of the transaction needs to sign
+  """
+  @spec signing_digest(Transaction) :: binary
+  def signing_digest(%{inputs: inputs, outputs: outputs, id: id, txtype: txtype}) do
+    digest = :erlang.term_to_binary(inputs) <> :erlang.term_to_binary(outputs) <> id <> txtype
+
+    :crypto.hash(:sha256, digest)
   end
 end

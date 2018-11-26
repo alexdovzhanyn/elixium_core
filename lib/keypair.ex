@@ -7,7 +7,7 @@ defmodule Elixium.KeyPair do
   @sigtype :ecdsa
   @curve :secp256k1
   @hashtype :sha256
-  
+
   @moduledoc """
     All the functions responsible for creating keypairs and using them to sign
     data / verify signatures
@@ -34,10 +34,6 @@ defmodule Elixium.KeyPair do
     {:ok, private} = File.read(path)
     :crypto.generate_key(@algorithm, @curve, private)
   end
-
-
-
-
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
