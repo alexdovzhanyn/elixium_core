@@ -11,6 +11,7 @@ defmodule Elixium.Node.Supervisor do
   def start_link([port]) when is_number(port), do: start_link(self(), port)
   def start_link([nil]), do: start_link(self(), @default_port)
   def start_link([router_pid, nil]), do: start_link(router_pid, @default_port)
+  def start_link([router_pid, port]), do: start_link(router_pid, port)
 
   def start_link(router_pid, port) do
     Supervisor.start_link(__MODULE__, [router_pid, port], name: __MODULE__)
