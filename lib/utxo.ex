@@ -1,7 +1,7 @@
 defmodule Elixium.Utxo do
   alias Elixium.Utxo
 
-  defstruct [:addr, :amount, :txoid, :signature]
+  defstruct [:addr, :amount, :txoid]
 
   @doc """
     Takes in a utxo received from a peer which may have malicious or extra

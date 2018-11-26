@@ -78,7 +78,7 @@ defmodule Elixium.Node.Supervisor do
   # Connects to the bootstrapping peer registry and returns a list of
   # previously connected peers.
   @spec fetch_peers_from_registry(integer) :: List
-  defp fetch_peers_from_registry(port) do
+  def fetch_peers_from_registry(port) do
     url = Application.get_env(:elixium_core, :registry_url)
 
     case :httpc.request(url ++ '/' ++ Integer.to_charlist(port)) do

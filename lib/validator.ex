@@ -6,6 +6,7 @@ defmodule Elixium.Validator do
   alias Elixium.Store.Utxo, as: UtxoStore
   alias Elixium.Utxo
   alias Elixium.BlockEncoder
+  alias Elixium.Transaction
   alias Decimal, as: D
 
   @moduledoc """
@@ -75,45 +76,90 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec valid_coinbase?(Block) :: :ok | {:error, :no_coinbase}
+  @spec valid_coinbase?(Block) :: :ok | {:error, :no_coinbase} | {:error, :too_many_coinbase}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = hd(transactions)
 
     with :ok <- coinbase_exist?(coinbase),
          :ok <- is_coinbase?(coinbase),
-         :ok <- appropriate_coinbase_output?(transactions, block_index) do
+         :ok <- appropriate_coinbase_output?(transactions, block_index),
+         :ok <- one_coinbase?(transactions) do
       :ok
     else
       err -> err
     end
   end
 
+  def one_coinbase?(transactions) do
+    one =
+      transactions
+      |> Enum.filter(& &1.txtype == "COINBASE")
+      |> length()
+      |> Kernel.==(1)
+
+    if one, do: :ok, else: {:error, :too_many_coinbase}
+  end
+
   def coinbase_exist?(nil), do: {:error, :no_coinbase}
   def coinbase_exist?(_coinbase), do: :ok
 
+
+  @spec valid_transaction?(Transaction, function) :: boolean
+  def valid_transaction?(transaction, pool_check \\ &UtxoStore.in_pool?/1)
+
+  @doc """
+    Coinbase transactions are validated separately. If a coinbase transaction
+    gets here it'll always return true
+  """
+  def valid_transaction?(%{txtype: "COINBASE"}, _pool_check), do: true
+
   @doc """
     Checks if a transaction is valid. A transaction is considered valid if
-    1) all of its inputs are currently in our UTXO pool and 2) all of its inputs
-    have a valid signature, signed by the owner of the private key associated to
-    the input (the addr). pool_check is a function which tests whether or not a
+    1) all of its inputs are currently in our UTXO pool and 2) all addresses
+    listed in the inputs have a corresponding signature in the sig set of the
+    transaction. pool_check is a function which tests whether or not a
     given input is in a pool (this is mostly used in the case of a fork), and
     this function must return a boolean.
   """
-  @spec valid_transaction?(Transaction, function) :: boolean
-  def valid_transaction?(%{inputs: inputs}, pool_check \\ &UtxoStore.in_pool?/1) do
-    inputs
-    |> Enum.map(fn input ->
-      # Ensure that this input is in our UTXO pool
-      if pool_check.(input) do
-        pub = KeyPair.address_to_pubkey(input.addr)
-        {:ok, sig} = Base.decode16(input.signature)
-        # Check if this UTXO has a valid signature
-        KeyPair.verify_signature(pub, sig, Utxo.hash(input))
-      else
-        false
-      end
+  def valid_transaction?(transaction, pool_check) do
+    with true <- Enum.all?(transaction.inputs, & pool_check.(&1)),
+         true <- tx_addr_match?(transaction),
+         true <- tx_sigs_valid?(transaction),
+         true <- outputs_dont_exceed_inputs?(transaction) do
+      true
+    else
+      _ -> false
+    end
+  end
+
+  @spec tx_addr_match?(Transaction) :: boolean
+  defp tx_addr_match?(transaction) do
+    signed_addresses = Enum.map(transaction.sigs, fn {addr, _sig} -> addr end)
+
+    # Check that all addresses in the inputs are also part of the signature set
+    transaction.inputs
+    |> Enum.map(& &1.addr)
+    |> Enum.uniq()
+    |> Enum.all?(& Enum.member?(signed_addresses, &1))
+  end
+
+  @spec tx_sigs_valid?(Transaction) :: boolean
+  defp tx_sigs_valid?(transaction) do
+    Enum.all?(transaction.sigs, fn {addr, sig} ->
+      pub = KeyPair.address_to_pubkey(addr)
+
+      transaction_digest = Transaction.signing_digest(transaction)
+
+      KeyPair.verify_signature(pub, sig, transaction_digest)
     end)
-    |> Enum.all?()
+  end
+
+  @spec outputs_dont_exceed_inputs?(Transaction) :: boolean
+  defp outputs_dont_exceed_inputs?(transaction) do
+    input_total = Transaction.sum_inputs(transaction.inputs)
+    output_total = Transaction.sum_inputs(transaction.outputs)
+
+    D.cmp(output_total, input_total) != :gt
   end
 
   @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
