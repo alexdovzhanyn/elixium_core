@@ -76,21 +76,42 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec valid_coinbase?(Block) :: :ok | {:error, :no_coinbase}
+  @spec valid_coinbase?(Block) :: :ok | {:error, :no_coinbase} | {:error, :too_many_coinbase}
   def valid_coinbase?(%{transactions: transactions, index: block_index}) do
     coinbase = hd(transactions)
 
     with :ok <- coinbase_exist?(coinbase),
          :ok <- is_coinbase?(coinbase),
-         :ok <- appropriate_coinbase_output?(transactions, block_index) do
+         :ok <- appropriate_coinbase_output?(transactions, block_index),
+         :ok <- one_coinbase?(transactions) do
       :ok
     else
       err -> err
     end
   end
 
+  def one_coinbase?(transactions) do
+    one =
+      transactions
+      |> Enum.filter(& &1.txtype == "COINBASE")
+      |> length()
+      |> Kernel.==(1)
+
+    if one, do: :ok, else: {:error, :too_many_coinbase}
+  end
+
   def coinbase_exist?(nil), do: {:error, :no_coinbase}
   def coinbase_exist?(_coinbase), do: :ok
+
+
+  @spec valid_transaction?(Transaction, function) :: boolean
+  def valid_transaction?(transaction, pool_check \\ &UtxoStore.in_pool?/1)
+
+  @doc """
+    Coinbase transactions are validated separately. If a coinbase transaction
+    gets here it'll always return true
+  """
+  def valid_transaction?(%{txtype: "COINBASE"}, _pool_check), do: true
 
   @doc """
     Checks if a transaction is valid. A transaction is considered valid if
@@ -100,8 +121,7 @@ defmodule Elixium.Validator do
     given input is in a pool (this is mostly used in the case of a fork), and
     this function must return a boolean.
   """
-  @spec valid_transaction?(Transaction, function) :: boolean
-  def valid_transaction?(transaction, pool_check \\ &UtxoStore.in_pool?/1) do
+  def valid_transaction?(transaction, pool_check) do
     with true <- Enum.all?(transaction.inputs, & pool_check.(&1)),
          true <- tx_addr_match?(transaction),
          true <- tx_sigs_valid?(transaction),
