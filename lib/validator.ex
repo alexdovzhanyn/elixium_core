@@ -112,7 +112,7 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec tx_addr_match(Transaction) :: boolean
+  @spec tx_addr_match?(Transaction) :: boolean
   defp tx_addr_match?(transaction) do
     signed_addresses = Enum.map(transaction.sigs, fn {addr, _sig} -> addr end)
 
@@ -136,8 +136,8 @@ defmodule Elixium.Validator do
 
   @spec outputs_dont_exceed_inputs?(Transaction) :: boolean
   defp outputs_dont_exceed_inputs?(transaction) do
-    input_total = Transactions.sum_inputs(transaction.inputs)
-    output_total = Transactions.sum_inputs(transaction.outputs)
+    input_total = Transaction.sum_inputs(transaction.inputs)
+    output_total = Transaction.sum_inputs(transaction.outputs)
 
     D.cmp(output_total, input_total) != :gt
   end
