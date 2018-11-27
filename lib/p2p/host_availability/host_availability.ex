@@ -1,6 +1,5 @@
 defmodule Elixium.HostAvailability do
   use GenServer
-  require IEx
   require Logger
 
   def start_link(_args) do

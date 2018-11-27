@@ -21,13 +21,23 @@ defmodule Elixium.Validator do
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
   def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &UtxoStore.in_pool?/1) do
     if :binary.decode_unsigned(block.index) == 0 do
-      valid_hash?(block, difficulty)
+      with :ok <- valid_coinbase?(block),
+           :ok <- valid_transactions?(block, pool_check),
+           :ok <- valid_merkle_root?(block.merkle_root, block.transactions),
+           :ok <- valid_hash?(block, difficulty),
+           :ok <- valid_timestamp?(block),
+           :ok <- valid_block_size?(block) do
+        :ok
+      else
+        err -> err
+      end
     else
       with :ok <- valid_index(block.index, last_block.index),
            :ok <- valid_prev_hash?(block.previous_hash, last_block.hash),
-           :ok <- valid_hash?(block, difficulty),
            :ok <- valid_coinbase?(block),
            :ok <- valid_transactions?(block, pool_check),
+           :ok <- valid_merkle_root?(block.merkle_root, block.transactions),
+           :ok <- valid_hash?(block, difficulty),
            :ok <- valid_timestamp?(block),
            :ok <- valid_block_size?(block) do
         :ok
@@ -37,7 +47,15 @@ defmodule Elixium.Validator do
     end
   end
 
+  @spec valid_merkle_root?(binary, list) :: :ok | {:error, :invalid_merkle_root}
+  defp valid_merkle_root?(merkle_root, transactions) do
+    calculated_root =
+      transactions
+      |> Enum.map(&:erlang.term_to_binary/1)
+      |> Utilities.calculate_merkle_root()
 
+    if calculated_root == merkle_root, do: :ok, else: {:error, :invalid_merkle_root}
+  end
 
   @spec valid_index(number, number) :: :ok | {:error, {:invalid_index, number, number}}
   defp valid_index(index, prev_index) when index > prev_index, do: :ok

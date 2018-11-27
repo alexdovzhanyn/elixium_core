@@ -4,7 +4,6 @@ defmodule Elixium.Node.ConnectionHandler do
   alias Elixium.Store.Oracle
   use GenServer
   require Logger
-  require IEx
 
   @moduledoc """
     Manage inbound and outbound connections

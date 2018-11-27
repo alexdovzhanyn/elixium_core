@@ -3,7 +3,6 @@ defmodule Elixium.Node.Supervisor do
   use Supervisor
   require Logger
 
-
   @default_port 31013
 
   def start_link, do: start_link(self(), @default_port)
