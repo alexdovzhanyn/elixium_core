@@ -28,11 +28,7 @@ defmodule Elixium.Node.Supervisor do
 
     handlers = generate_handlers(socket, port, router_pid, peers)
 
-    # Allow for supervisor to be passed in instead of a pid to have the core
-    # start the router
-    router_sup = if !is_pid(router_pid), do: [router_pid], else: []
-
-    children = handlers ++ [Elixium.HostAvailability.Supervisor] #++ router_sup
+    children = handlers ++ [Elixium.HostAvailability.Supervisor]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
