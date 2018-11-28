@@ -34,6 +34,12 @@ defmodule Elixium.BlockEncoder do
     bin <> :erlang.term_to_binary(value)
   end
 
+  defp encode(:hash, bin, value), do: b16encode(bin, value)
+
+  defp encode(:previous_hash, bin, value), do: b16encode(bin, value)
+
+  defp encode(:merkle_root, bin, value), do: b16encode(bin, value)
+
   defp encode(_attr, bin, value) when is_binary(value) do
     bin <> value
   end
@@ -42,15 +48,17 @@ defmodule Elixium.BlockEncoder do
     bin <> :binary.encode_unsigned(value)
   end
 
+  defp b16encode(bin, value), do: bin <> Binary.decode16!(value)
+
   @doc """
     Decode a block from binary that was previously encoded by encode/1
   """
   @spec decode(binary) :: Block
   def decode(block_binary) do
     <<index::bytes-size(4),
-      hash::bytes-size(64),
-      previous_hash::bytes-size(64),
-      merkle_root::bytes-size(64),
+      hash::bytes-size(32),
+      previous_hash::bytes-size(32),
+      merkle_root::bytes-size(32),
       timestamp::bytes-size(4),
       nonce::bytes-size(8),
       difficulty::bytes-size(8),
@@ -60,9 +68,9 @@ defmodule Elixium.BlockEncoder do
 
     %Block{
       index: index,
-      hash: hash,
-      previous_hash: previous_hash,
-      merkle_root: merkle_root,
+      hash: Base.encode16(hash),
+      previous_hash: Base.encode16(previous_hash),
+      merkle_root: Base.encode16(merkle_root),
       timestamp: :binary.decode_unsigned(timestamp),
       nonce: nonce,
       difficulty: :erlang.binary_to_term(<<131, 70>> <> difficulty),
