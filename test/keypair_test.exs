@@ -18,6 +18,13 @@ defmodule KeyPairTest do
     assert private == priv_from_mne
   end
 
+  test "Key pair is generated and the private key is able to generate the correct pub key" do
+    {public, private} = KeyPair.create_keypair
+    {pub_from_mne, priv_from_mne} = KeyPair.gen_keypair(private)
+
+    assert public == pub_from_mne
+  end
+
   test "Can create a signature in the correct format" do
     {_, priv} = KeyPair.create_keypair()
     signature = KeyPair.sign(priv, "this is a string of arbitrary data")
