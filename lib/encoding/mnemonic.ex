@@ -1,6 +1,6 @@
 defmodule Elixium.Mnemonic do
   alias Elixium.Utilities
-  
+
   @leading_zeros_for_mnemonic 8
   @leading_zeros_of_mnemonic 11
   @regex_chunk_from_entropy Regex.compile!(".{1,#{@leading_zeros_of_mnemonic}}")
@@ -15,45 +15,30 @@ defmodule Elixium.Mnemonic do
 
   @allowed_lengths [128, 160, 192, 224, 256]
 
-  def words, do: @words
-
-  def allowed_lengths, do: @allowed_lengths
-
-  def random_bytes(entropy_length) do
-    entropy_length
-    |> bits_to_bytes()
-    |> :crypto.strong_rand_bytes()
-  end
-
-  def bits_to_bytes(bits), do: div(bits, 8)
-
+  @doc """
+    Gets the correct checksum of a binary
+  """
+  @spec checksum_length(binary) :: Integer.t()
   def checksum_length(entropy_bytes) do
     entropy_bytes
     |> bit_size()
     |> div(32)
   end
 
+  @doc """
+    Verifies if the binary needs to be normalized
+  """
+  @spec maybe_normalize(binary) :: binary
   def maybe_normalize(binary) do
     binary
     |> String.valid?()
     |> normalize(binary)
   end
 
-  defp normalize(true, string), do: Base.decode16!(string, case: :mixed)
-  defp normalize(false, binary), do: binary
-
-  def generate(entropy_length \\ List.last(@allowed_lengths))
-
-  def generate(entropy_length)
-      when not (entropy_length in @allowed_lengths),
-      do: {:error, "Entropy length must be one of #{inspect(@allowed_lengths)}"}
-
-  def generate(entropy_length) do
-    entropy_length
-    |> random_bytes()
-    |> from_entropy()
-  end
-
+  @doc """
+    Using a private address generate a mnemonic seed
+  """
+  @spec from_entropy(binary) :: String.t()
   def from_entropy(binary) do
     binary
     |> maybe_normalize()
@@ -61,6 +46,10 @@ defmodule Elixium.Mnemonic do
     |> mnemonic()
   end
 
+  @doc """
+    Using a mnemonic seed generate a private seed
+  """
+  @spec to_entropy(String.t()) :: binary
   def to_entropy(mnemonic) do
     mnemonic
     |> indicies()
@@ -128,7 +117,7 @@ defmodule Elixium.Mnemonic do
     |> pick_word()
   end
 
-  defp pick_word(index), do: Enum.at(words(), index)
+  defp pick_word(index), do: Enum.at(@words, index)
 
   defp indicies(mnemonic) do
     mnemonic
@@ -138,7 +127,7 @@ defmodule Elixium.Mnemonic do
   end
 
   defp word_binary_index(word) do
-    words()
+    @words
     |> Enum.find_index(&(&1 == word))
     |> binary_of_index()
   end
@@ -161,4 +150,7 @@ defmodule Elixium.Mnemonic do
     |> Enum.map(&String.to_integer(&1, 2))
     |> :binary.list_to_bin()
   end
+
+  defp normalize(true, string), do: Base.decode16!(string, case: :mixed)
+  defp normalize(false, binary), do: binary
 end
