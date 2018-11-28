@@ -48,7 +48,7 @@ defmodule Elixium.BlockEncoder do
     bin <> :binary.encode_unsigned(value)
   end
 
-  defp b16encode(bin, value), do: bin <> Binary.decode16!(value)
+  defp b16encode(bin, value), do: bin <> Base.decode16!(value)
 
   @doc """
     Decode a block from binary that was previously encoded by encode/1
