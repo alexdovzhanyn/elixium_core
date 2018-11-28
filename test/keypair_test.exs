@@ -10,6 +10,19 @@ defmodule KeyPairTest do
     assert is_binary(priv)
   end
 
+  test "Key pair is generated and saved" do
+    path = Application.get_env(:elixium_core, :unix_key_address)
+    {public, private} = KeyPair.create_keypair
+    compressed_pub_address = KeyPair.address_from_pubkey(public)
+    key_path = path <> "/" <> compressed_pub_address <> ".key"
+    exists? = File.exists?(key_path)
+
+    assert exists? == true
+    with true <- assert exists? do
+      File.rm!(key_path)
+    end
+  end
+
   test "Mnemonic Is generated and returns correct private key" do
     {public, private} = KeyPair.create_keypair
     mnemonic = KeyPair.create_mnemonic(private)
