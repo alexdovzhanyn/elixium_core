@@ -104,11 +104,10 @@ defmodule Elixium.Node.Supervisor do
     On Connection, fetch our public ip and exclude it from the list of registered peers
   """
   @spec fetch_public_ip() :: String.t()
-  def fetch_public_ip do
+  def fetch_public_ip() do
    api_url =  'https://api.ipify.org?format=json'
    case :httpc.request(api_url) do
      {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
-      peers =
          body
          |> Jason.decode!()
      {:error, _} -> :not_found
@@ -119,8 +118,8 @@ defmodule Elixium.Node.Supervisor do
     On Connection, fetch our local ip and exclude it from the list of registered peers so we avoid connections to local
   """
   @spec fetch_local_ip() :: String.t()
-  def fetch_local_ip do
-    {:ok, [_, {adapter, ip_list}]} = :inet.getifaddrs()
+  def fetch_local_ip() do
+    {:ok, [_, {_, ip_list}]} = :inet.getifaddrs()
     ip_list[:addr]
     |> :inet_parse.ntoa()
   end
