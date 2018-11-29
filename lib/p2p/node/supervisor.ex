@@ -3,7 +3,11 @@ defmodule Elixium.Node.Supervisor do
   use Supervisor
   require Logger
 
-  @default_port 31013
+  @moduledoc """
+    Responsible for getting peer information and launching connection handlers
+  """
+
+  @default_port 31_013
 
   def start_link, do: start_link(self(), @default_port)
   def start_link([router_pid]) when is_pid(router_pid), do: start_link(router_pid, @default_port)

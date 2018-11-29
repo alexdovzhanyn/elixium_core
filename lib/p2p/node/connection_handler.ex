@@ -113,7 +113,7 @@ defmodule Elixium.Node.ConnectionHandler do
   end
 
   def handle_info(m, state) do
-    Logger.warn("Received message we haven't accounted for. Skipping! Message: #{IO.inspect m}")
+    Logger.warn("Received message we haven't accounted for. Skipping! Message: #{inspect(m)}")
 
     {:noreply, state}
   end
