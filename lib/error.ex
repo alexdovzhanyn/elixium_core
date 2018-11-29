@@ -10,7 +10,8 @@ defmodule Elixium.Error do
   def to_string({:error, err}), do: str(err)
   def to_string(err), do: "Error #{inspect(err)} isn't a valid error tuple"
 
-  defp str({:invalid_index, prev, index}), do: "Invalid index #{index}, expected >#{prev}"
+  defp str({:invalid_index, prev, index}),
+    do: "Invalid index #{:binary.decode_unsigned(index)}, expected > #{:binary.decode_unsigned(prev)}"
   defp str({:wrong_hash, reason}), do: "Invalid hash: #{hash_err(reason)}"
   defp str(:no_coinbase), do: "No coinbase found in a block"
   defp str(:invalid_inputs), do: "Invalid transaction inputs"
