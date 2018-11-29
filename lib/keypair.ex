@@ -1,5 +1,4 @@
 defmodule Elixium.KeyPair do
-  alias Elixium.Utilities
   alias Elixium.Mnemonic
   use Bitwise
   require Integer
@@ -51,9 +50,9 @@ defmodule Elixium.KeyPair do
     case String.contains?(phrase, " ") do
       true ->
         private = Mnemonic.to_entropy(phrase)
-        keys = get_from_private(private)
+        get_from_private(private)
       false ->
-        keys = get_from_private(phrase)
+        get_from_private(phrase)
     end
   end
 
@@ -74,7 +73,7 @@ defmodule Elixium.KeyPair do
   def get_priv_from_file(pub) do
     unix_address = Application.get_env(:elixium_core, :unix_key_address)
     key_path = unix_address <> "/" <> pub <>".key"
-    {pub, priv} = get_from_file(key_path)
+    {_, priv} = get_from_file(key_path)
     priv
   end
 
