@@ -73,11 +73,12 @@ defmodule Elixium.Store.Peer do
           {:ok, peers} ->
             peers =
               [peer | :erlang.binary_to_term(peers)]
-              |> Enum.uniq()
+              #add here
 
             Exleveldb.put(ref, "known_peers", :erlang.term_to_binary(peers))
 
           :not_found ->
+            #add here
             Exleveldb.put(ref, "known_peers", :erlang.term_to_binary([peer]))
         end
       end

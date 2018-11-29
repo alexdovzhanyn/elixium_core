@@ -40,7 +40,7 @@ defmodule Elixium.KeyPair do
   """
   @spec create_mnemonic(binary) :: String.t()
   def create_mnemonic(private) do
-    Mnemonic.from_entropy(private)
+    #Mnemonic.from_entropy(private)
   end
 
   @doc """
@@ -50,7 +50,7 @@ defmodule Elixium.KeyPair do
   def gen_keypair(phrase) do
     case String.contains?(phrase, " ") do
       true ->
-        private = Mnemonic.to_entropy(phrase)
+        private = "" #Mnemonic.to_entropy(phrase)
         keys = get_from_private(private)
       false ->
         keys = get_from_private(phrase)

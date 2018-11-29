@@ -6,12 +6,13 @@ defmodule Elixium.Mnemonic do
   @regex_chunk_from_entropy Regex.compile!(".{1,#{@leading_zeros_of_mnemonic}}")
   @regex_chunk_to_entropy Regex.compile!(".{1,#{@leading_zeros_for_mnemonic}}")
 
-  @words :elixium_core
-         |> :code.priv_dir()
-         |> Path.join("words.txt")
-         |> File.stream!()
-         |> Stream.map(&String.trim/1)
-         |> Enum.to_list()
+
+
+ @words Path.expand("./priv")
+        |> Path.join("words.txt")
+        |> File.stream!()
+        |> Stream.map(&String.trim/1)
+        |> Enum.to_list()
 
   @allowed_lengths [128, 160, 192, 224, 256]
 

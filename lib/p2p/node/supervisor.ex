@@ -82,12 +82,23 @@ defmodule Elixium.Node.Supervisor do
           body
           |> Jason.decode!()
           |> Enum.map(&peerstring_to_tuple/1)
-          |> Enum.filter(fn {_, port} -> port != nil end)
+          |> Enum.filter(fn {peer, port} -> port != nil && peer !== fetch_own_ip["ip"] end) |> IO.inspect
 
         if peers == [], do: :not_found, else: peers
 
       {:error, _} -> :not_found
     end
+  end
+
+  def fetch_own_ip do
+   api_url =  'https://api.ipify.org?format=json'
+   case :httpc.request(api_url) do
+     {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
+      peers =
+         body
+         |> Jason.decode!()
+     {:error, _} -> :not_found
+   end
   end
 
   @doc """
