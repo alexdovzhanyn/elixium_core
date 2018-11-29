@@ -92,38 +92,39 @@ defmodule Elixium.Block do
     the hash is lower, it is a valid block, and we can broadcast the block to
     other nodes on the network.
   """
-  @spec mine(Block) :: Block
-  def mine(block, hashes \\ 0, last_hashrate_check \\ time_unix()) do
+  @spec mine(Block, Range.t(), number, number) :: Block | :not_in_range
+  def mine(block, nonce_range \\ 0..18446744073709551615, cpu_num \\ 0, hashes \\ 0, last_hashrate_check \\ time_unix()) do
     block = Map.put(block, :hash, calculate_block_hash(block))
 
-    if hash_beat_target?(block) do
-      block
-    else
-      # Output hashrate after every 10 seconds
-      {hashes, last_hashrate_check} =
-        if time_unix() > last_hashrate_check + 30 && rem(time_unix() - last_hashrate_check, 31) == 0 do
-          time = time_unix()
+    cond do
+      hash_beat_target?(block) -> exit(block)
+      :binary.decode_unsigned(block.nonce) not in nonce_range -> exit(:not_in_range)
+      true ->
+        # Output hashrate after every 10 seconds
+        {hashes, last_hashrate_check} =
+          if time_unix() > last_hashrate_check + 30 && rem(time_unix() - last_hashrate_check, 31) == 0 do
+            time = time_unix()
 
-          Logger.info("Hashrate: #{Float.round((hashes / 30) / 1000, 2)} kH/s")
+            Logger.info("CPU ##{cpu_num} Hashrate: #{Float.round((hashes / 30) / 1000, 2)} kH/s")
 
-          {0, time - 1}
+            {0, time - 1}
+          else
+            {hashes + 1, last_hashrate_check}
+          end
+
+        # Wrap nonce back to 0 if we're about to overflow 8 bytes.
+        # We increase the timestamp and try again
+        if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
+          mine(%{block | nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>, timestamp: time_unix()}, nonce_range, cpu_num, hashes, last_hashrate_check)
         else
-          {hashes + 1, last_hashrate_check}
-        end
+          nonce =
+            block.nonce
+            |> :binary.decode_unsigned()
+            |> Kernel.+(1)
+            |> :binary.encode_unsigned()
+            |> Utilities.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
 
-      # Wrap nonce back to 0 if we're about to overflow 8 bytes.
-      # We increase the timestamp and try again
-      if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
-        mine(%{block | nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>, timestamp: time_unix()})
-      else
-        nonce =
-          block.nonce
-          |> :binary.decode_unsigned()
-          |> Kernel.+(1)
-          |> :binary.encode_unsigned()
-          |> Utilities.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
-
-        mine(%{block | nonce: nonce}, hashes, last_hashrate_check)
+          mine(%{block | nonce: nonce}, nonce_range, cpu_num, hashes, last_hashrate_check)
       end
     end
   end
