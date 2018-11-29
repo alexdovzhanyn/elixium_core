@@ -3,6 +3,10 @@ defmodule Elixium.Utxo do
 
   defstruct [:addr, :amount, :txoid]
 
+  @moduledoc """
+    Functionality specific to UTXOs
+  """
+
   @doc """
     Takes in a utxo received from a peer which may have malicious or extra
     attributes attached. Removes all extra parameters which are not defined

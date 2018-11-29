@@ -55,6 +55,69 @@ defmodule Elixium.Node.ConnectionHandler do
     {:noreply, state}
   end
 
+  @doc """
+    When receiving a message through TCP, send the data back to the parent
+    process so it can handle it however it wants
+  """
+  def handle_info({:tcp, _port, data}, state) do
+    messages = Message.read(data, state.session_key, state.socket)
+
+    :inet.setopts(state.socket, active: :once)
+
+    # Send out the messages to the parent of this process (a.k.a the pid that
+    # was passed in when calling start/2)
+    Enum.each(messages, fn message ->
+      case message do
+        %{type: "PING"} ->
+          {:ok, m} = Message.build("PANG", %{}, state.session_key)
+          Message.send(m, state.socket)
+        %{type: "PANG"} ->
+          last_ping = Process.get(:last_ping_time)
+          ping = :os.system_time(:millisecond) - last_ping
+          Process.put(:ping, ping)
+        message ->
+          send(state.router_pid, {message, self()})
+      end
+    end)
+
+    {:noreply, state}
+  end
+
+  def handle_info({:tcp_closed, _}, state) do
+    Logger.info("Lost connection from peer: #{state.peername}. TCP closed")
+    Process.exit(self(), :normal)
+  end
+
+  def handle_info({"PING", _}, state) do
+    Process.put(:last_ping_time, :os.system_time(:millisecond))
+
+    case Message.build("PING", %{}, state.session_key) do
+      {:ok, m} -> Message.send(m, state.socket)
+      :error -> Logger.error("MESSAGE NOT SENT: PING")
+    end
+
+    {:noreply, state}
+  end
+
+  @doc """
+    When receiving data from the parent process, send it to the network
+    through TCP
+  """
+  def handle_info({type, data}, state) do
+    case Message.build(type, data, state.session_key) do
+      {:ok, m} -> Message.send(m, state.socket)
+      :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
+    end
+
+    {:noreply, state}
+  end
+
+  def handle_info(m, state) do
+    Logger.warn("Received message we haven't accounted for. Skipping! Message: #{inspect(m)}")
+
+    {:noreply, state}
+  end
+
   def handle_cast(:accept_inbound_connection, state) do
     {:ok, socket} = :gen_tcp.accept(state.listen_socket)
 
@@ -144,69 +207,6 @@ defmodule Elixium.Node.ConnectionHandler do
     end
 
     {session_key, peername}
-  end
-
-  @doc """
-    When receiving a message through TCP, send the data back to the parent
-    process so it can handle it however it wants
-  """
-  def handle_info({:tcp, _port, data}, state) do
-    messages = Message.read(data, state.session_key, state.socket)
-
-    :inet.setopts(state.socket, active: :once)
-
-    # Send out the messages to the parent of this process (a.k.a the pid that
-    # was passed in when calling start/2)
-    Enum.each(messages, fn message ->
-      case message do
-        %{type: "PING"} ->
-          {:ok, m} = Message.build("PANG", %{}, state.session_key)
-          Message.send(m, state.socket)
-        %{type: "PANG"} ->
-          last_ping = Process.get(:last_ping_time)
-          ping = :os.system_time(:millisecond) - last_ping
-          Process.put(:ping, ping)
-        message ->
-          send(state.router_pid, {message, self()})
-      end
-    end)
-
-    {:noreply, state}
-  end
-
-  def handle_info({:tcp_closed, _}, state) do
-    Logger.info("Lost connection from peer: #{state.peername}. TCP closed")
-    Process.exit(self(), :normal)
-  end
-
-  def handle_info({"PING", _}, state) do
-    Process.put(:last_ping_time, :os.system_time(:millisecond))
-
-    case Message.build("PING", %{}, state.session_key) do
-      {:ok, m} -> Message.send(m, state.socket)
-      :error -> Logger.error("MESSAGE NOT SENT: PING")
-    end
-
-    {:noreply, state}
-  end
-
-  @doc """
-    When receiving data from the parent process, send it to the network
-    through TCP
-  """
-  def handle_info({type, data}, state) do
-    case Message.build(type, data, state.session_key) do
-      {:ok, m} -> Message.send(m, state.socket)
-      :error -> Logger.error("MESSAGE NOT SENT: Invalid message data: expected map.")
-    end
-
-    {:noreply, state}
-  end
-
-  def handle_info(m, state) do
-    Logger.warn("Received message we haven't accounted for. Skipping! Message: #{IO.inspect m}")
-
-    {:noreply, state}
   end
 
   defp generate_session_key(shared_secret) do

@@ -2,8 +2,12 @@ defmodule Elixium.HostAvailability do
   use GenServer
   require Logger
 
+  @moduledoc """
+    Responds to health check requests.
+  """
+
   def start_link(_args) do
-    {:ok, socket} = :gen_tcp.listen(31014, [:binary, active: true, reuseaddr: true])
+    {:ok, socket} = :gen_tcp.listen(31_014, [:binary, active: true, reuseaddr: true])
     GenServer.start_link(__MODULE__, socket, name: __MODULE__)
   end
 
