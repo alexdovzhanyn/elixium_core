@@ -13,6 +13,7 @@ defmodule Elixium.Pool.Orphan do
   def remove(block) do
     exact_object =
       block.index
+      |> :binary.decode_unsigned()
       |> blocks_at_height()
       |> Enum.find(fn {_i, blk} -> blk.hash == block.hash end)
 
