@@ -46,7 +46,7 @@ defmodule Elixium.KeyPair do
   @doc """
     Generates a keypair from the seed phrase or from the private key, leading " " will switch to mnemonic to import key from
   """
-  @spec gen_keypair(String.t()) :: {binary, binary}
+  @spec gen_keypair(String.t() | binary) :: {binary, binary}
   def gen_keypair(phrase) do
     case String.contains?(phrase, " ") do
       true ->
