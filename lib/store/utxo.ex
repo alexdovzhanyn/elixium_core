@@ -116,7 +116,7 @@ defmodule Elixium.Store.Utxo do
     case File.ls(unix_address) do
       {:ok, keyfiles} ->
         Enum.flat_map(keyfiles, fn file ->
-          {pub, priv} = Elixium.KeyPair.get_from_file(unix_address <> "/#{file}")
+          {pub, _priv} = Elixium.KeyPair.get_from_file(unix_address <> "/#{file}")
 
           pub
           |> Elixium.KeyPair.address_from_pubkey

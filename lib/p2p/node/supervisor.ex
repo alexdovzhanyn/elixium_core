@@ -20,20 +20,22 @@ defmodule Elixium.Node.Supervisor do
     Oracle.start_link(Elixium.Store.Peer)
     :pg2.create(:p2p_handlers)
 
-    socket = open_socket(port)
+    case open_socket(port) do
+      :error -> :error
+      socket ->
+        # Fetch known peers. We're going to try to connect to them
+        # before setting up a listener
+        peers = find_potential_peers(port)
 
-    # Fetch known peers. We're going to try to connect to them
-    # before setting up a listener
-    peers = find_potential_peers(port)
+        handlers = generate_handlers(socket, router_pid, peers)
 
-    handlers = generate_handlers(socket, port, router_pid, peers)
+        children = handlers ++ [Elixium.HostAvailability.Supervisor]
 
-    children = handlers ++ [Elixium.HostAvailability.Supervisor]
-
-    Supervisor.init(children, strategy: :one_for_one)
+        Supervisor.init(children, strategy: :one_for_one)
+    end
   end
 
-  defp generate_handlers(socket, port, router_pid, peers) do
+  defp generate_handlers(socket, router_pid, peers) do
     for i <- 1..10 do
       %{
         id: :"ConnectionHandler#{i}",
@@ -48,6 +50,7 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
+  @spec open_socket(pid) :: pid | :error
   defp open_socket(port) do
     options = [:binary, reuseaddr: true, active: false]
 
@@ -55,7 +58,9 @@ defmodule Elixium.Node.Supervisor do
       {:ok, socket} ->
         Logger.info("Opened listener socket on port #{port}.")
         socket
-      _ -> Logger.warn("Listen socket not started, something went wrong.")
+      _ ->
+        Logger.warn("Listen socket not started, something went wrong.")
+        :error
     end
   end
 

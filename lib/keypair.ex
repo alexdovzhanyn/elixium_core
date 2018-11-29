@@ -1,5 +1,4 @@
 defmodule Elixium.KeyPair do
-  alias Elixium.Utilities
   use Bitwise
   require Integer
 
@@ -41,8 +40,8 @@ defmodule Elixium.KeyPair do
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
     unix_address = Application.get_env(:elixium_core, :unix_key_address)
-    key_path = unix_address <> "/" <> pub <>".key"
-    {pub, priv} = get_from_file(key_path)
+    key_path = unix_address <> "/" <> pub <> ".key"
+    {_pub, priv} = get_from_file(key_path)
     priv
   end
 
@@ -116,10 +115,8 @@ defmodule Elixium.KeyPair do
   """
   @spec address_to_pubkey(String.t()) :: binary
   def address_to_pubkey(address) do
-    version = Application.get_env(:elixium_core, :address_version)
-
-    <<key_version::bytes-size(3)>> <> addr = address
-    <<prefix::bytes-size(1), x::bytes-size(32), checksum::binary>> = Base58.decode(addr)
+    <<_key_version::bytes-size(3)>> <> addr = address
+    <<prefix::bytes-size(1), x::bytes-size(32), _checksum::binary>> = Base58.decode(addr)
 
     y = calculate_y_from_x(x, prefix)
 

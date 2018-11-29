@@ -3,7 +3,6 @@ defmodule Elixium.Block do
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Elixium.Store.Ledger
-  alias Elixium.Utxo
   alias Decimal, as: D
 
   @moduledoc """

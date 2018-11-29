@@ -4,7 +4,6 @@ defmodule Elixium.Validator do
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger
   alias Elixium.Store.Utxo, as: UtxoStore
-  alias Elixium.Utxo
   alias Elixium.BlockEncoder
   alias Elixium.Transaction
   alias Decimal, as: D
@@ -68,7 +67,7 @@ defmodule Elixium.Validator do
   @spec valid_hash?(Block, number) :: :ok | {:error, {:wrong_hash, {:too_high, String.t(), number}}}
   defp valid_hash?(b, difficulty) do
     with :ok <- compare_hash(b, b.hash),
-         :ok <- beat_target?(b.hash, b.difficulty) do
+         :ok <- beat_target?(b.hash, difficulty) do
       :ok
     else
       err -> err

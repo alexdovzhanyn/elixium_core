@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.3.14",
+      version: "0.3.15",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -87,9 +87,7 @@ defmodule Elixium.Mixfile do
     ]
   end
 
-  @doc """
-    Sigma of the block number @block_at_full_emission. Used in emission algorithm
-  """
+  # Sigma of the block number @block_at_full_emission. Used in emission algorithm
   defp sigma_full_emission_blocks(0), do: 0
   defp sigma_full_emission_blocks(n) do
     n + sigma_full_emission_blocks(n - 1)

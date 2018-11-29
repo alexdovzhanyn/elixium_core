@@ -151,7 +151,7 @@ defmodule Elixium.P2P.GhostProtocol.Message do
     case :gen_tcp.recv(socket, 20) do
       {:ok, header} ->
         # Will get "Ghost|00000000|v1.0|" from socket
-        [protocol, bytes, version, predata] = String.split(header, "|")
+        [protocol, bytes, _version, predata] = String.split(header, "|")
         {bytes, _} = Integer.parse(bytes)
 
         {protocol, bytes, predata}
