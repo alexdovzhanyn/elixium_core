@@ -90,6 +90,7 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
+
   @doc """
     On Connection, fetch our public ip and exclude it from the list of registered peers
   """
