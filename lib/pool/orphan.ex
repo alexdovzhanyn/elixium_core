@@ -25,6 +25,12 @@ defmodule Elixium.Pool.Orphan do
     Returns a list of all blocks forked at a given height
   """
   @spec blocks_at_height(number) :: list
+  def blocks_at_height(height) when is_binary(height) do
+    height
+    |> :binary.decode_unsigned()
+    |> blocks_at_height()
+  end
+
   def blocks_at_height(height) when is_number(height) do
     @pool_name
     |> :ets.lookup(height)
