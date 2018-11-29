@@ -82,7 +82,7 @@ defmodule Elixium.Node.Supervisor do
           body
           |> Jason.decode!()
           |> Enum.map(&peerstring_to_tuple/1)
-          |> Enum.filter(fn {peer, port} -> port != nil && peer !== fetch_own_ip["ip"] end) |> IO.inspect
+          |> Enum.filter(fn {peer, port} -> port != nil && peer !== fetch_public_ip["ip"] && peer !== fetch_local_ip end)
 
         if peers == [], do: :not_found, else: peers
 
@@ -90,7 +90,11 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
-  def fetch_own_ip do
+  @doc """
+    On Connection, fetch our public ip and exclude it from the list of registered peers
+  """
+  @spec fetch_public_ip() :: String.t()
+  defp fetch_public_ip do
    api_url =  'https://api.ipify.org?format=json'
    case :httpc.request(api_url) do
      {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
@@ -99,6 +103,16 @@ defmodule Elixium.Node.Supervisor do
          |> Jason.decode!()
      {:error, _} -> :not_found
    end
+  end
+
+  @doc """
+    On Connection, fetch our local ip and exclude it from the list of registered peers so we avoid connections to local
+  """
+  @spec fetch_local_ip() :: String.t()
+  defp fetch_local_ip do
+    {:ok, [_, {adapter, ip_list}]} = :inet.getifaddrs()
+    ip_list[:addr]
+    |> :inet_parse.ntoa()
   end
 
   @doc """
