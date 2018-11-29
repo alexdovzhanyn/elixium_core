@@ -4,6 +4,7 @@ defmodule Elixium.Block do
   alias Elixium.Transaction
   alias Elixium.Store.Ledger
   alias Decimal, as: D
+  require Logger
 
   @moduledoc """
     Provides functions for creating blocks and mining new ones
@@ -92,12 +93,24 @@ defmodule Elixium.Block do
     other nodes on the network.
   """
   @spec mine(Block) :: Block
-  def mine(block) do
+  def mine(block, hashes \\ 0, last_hashrate_check \\ time_unix()) do
     block = Map.put(block, :hash, calculate_block_hash(block))
 
     if hash_beat_target?(block) do
       block
     else
+      # Output hashrate after every 10 seconds
+      {hashes, last_hashrate_check} =
+        if time_unix() > last_hashrate_check + 30 && rem(time_unix() - last_hashrate_check, 31) == 0 do
+          time = time_unix()
+
+          Logger.info("Hashrate: #{Float.round((hashes / 30) / 1000, 2)} kH/s")
+
+          {0, time - 1}
+        else
+          {hashes + 1, last_hashrate_check}
+        end
+
       # Wrap nonce back to 0 if we're about to overflow 8 bytes.
       # We increase the timestamp and try again
       if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
@@ -110,7 +123,7 @@ defmodule Elixium.Block do
           |> :binary.encode_unsigned()
           |> Utilities.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
 
-        mine(%{block | nonce: nonce})
+        mine(%{block | nonce: nonce}, hashes, last_hashrate_check)
       end
     end
   end
