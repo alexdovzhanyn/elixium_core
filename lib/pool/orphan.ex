@@ -18,7 +18,7 @@ defmodule Elixium.Pool.Orphan do
       |> Enum.find(& &1.hash == block.hash)
 
     if exact_object do
-      :ets.delete_object(@pool_name, exact_object)
+      :ets.delete_object(@pool_name, {:binary.decode_unsigned(exact_object.index), exact_object})
     end
   end
 
