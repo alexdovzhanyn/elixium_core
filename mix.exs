@@ -12,7 +12,7 @@ defmodule Elixium.Mixfile do
       name: "Elixium Core",
       description: description(),
       source_url: "https://github.com/elixium/elixium_core",
-      homepage_url: "https://elixium.app",
+      homepage_url: "https://elixiumnetwork.org",
       package: package(),
       application: application()
     ]
