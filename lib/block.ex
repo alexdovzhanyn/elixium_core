@@ -33,7 +33,7 @@ defmodule Elixium.Block do
   def initialize do
     %Block{
       timestamp: time_unix(),
-      previous_hash: String.duplicate(<<0>>, 64) # 64 bytes of 0
+      previous_hash: String.duplicate("0", 64) # 32 bytes of 0
     }
   end
 

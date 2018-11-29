@@ -13,8 +13,9 @@ defmodule Elixium.Pool.Orphan do
   def remove(block) do
     exact_object =
       block.index
+      |> :binary.decode_unsigned()
       |> blocks_at_height()
-      |> Enum.find(fn {_i, blk} -> blk.hash == block.hash end)
+      |> Enum.find(& &1.hash == block.hash)
 
     if exact_object do
       :ets.delete_object(@pool_name, exact_object)
@@ -25,6 +26,12 @@ defmodule Elixium.Pool.Orphan do
     Returns a list of all blocks forked at a given height
   """
   @spec blocks_at_height(number) :: list
+  def blocks_at_height(height) when is_binary(height) do
+    height
+    |> :binary.decode_unsigned()
+    |> blocks_at_height()
+  end
+
   def blocks_at_height(height) when is_number(height) do
     @pool_name
     |> :ets.lookup(height)
