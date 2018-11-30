@@ -38,21 +38,20 @@ defmodule Elixium.KeyPair do
     Creates a new mnemonic to give to users based off private key
   """
   @spec create_mnemonic(binary) :: String.t()
-  def create_mnemonic(private) do
-    Mnemonic.from_entropy(private)
-  end
+  def create_mnemonic(private), do: Mnemonic.from_entropy(private)
 
   @doc """
     Generates a keypair from the seed phrase or from the private key, leading " " will switch to mnemonic to import key from
   """
   @spec gen_keypair(String.t() | binary) :: {binary, binary}
   def gen_keypair(phrase) do
-    case String.contains?(phrase, " ") do
-      true ->
+    if String.contains?(phrase, " ") do
         private = Mnemonic.to_entropy(phrase)
-        get_from_private(private)
-      false ->
-        get_from_private(phrase)
+        {pub, priv} = get_from_private(private)
+        create_keyfile({pub, priv})
+      else
+        {pub, priv} = get_from_private(phrase)
+        create_keyfile({pub, priv})
     end
   end
 
@@ -72,7 +71,7 @@ defmodule Elixium.KeyPair do
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
     unix_address = Application.get_env(:elixium_core, :unix_key_address)
-    key_path = unix_address <> "/" <> pub <>".key"
+    key_path = "#{unix_address}/#{pub}.key"
     {_, priv} = get_from_file(key_path)
     priv
   end
@@ -136,8 +135,7 @@ defmodule Elixium.KeyPair do
   end
 
   defp get_from_private(private) do
-    private
-    |> (fn pkey -> :crypto.generate_key(@algorithm, @curve, pkey) end).()
+    :crypto.generate_key(@algorithm, @curve, private)
   end
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
@@ -147,7 +145,7 @@ defmodule Elixium.KeyPair do
 
     address = address_from_pubkey(public)
 
-    File.write(unix_address <> "/#{address}.key", private)
+    File.write!("#{unix_address}/#{address}.key", private)
   end
 
   # Adapted from stackoverflow answer

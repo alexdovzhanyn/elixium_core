@@ -14,7 +14,7 @@ defmodule KeyPairTest do
     path = Application.get_env(:elixium_core, :unix_key_address)
     {public, private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
-    key_path = path <> "/" <> compressed_pub_address <> ".key"
+    key_path = "#{path}/#{compressed_pub_address}.key"
     exists? = File.exists?(key_path)
 
     assert exists? == true

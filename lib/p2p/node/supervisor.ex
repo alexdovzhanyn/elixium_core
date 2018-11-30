@@ -82,16 +82,21 @@ defmodule Elixium.Node.Supervisor do
   # Connects to the bootstrapping peer registry and returns a list of
   # previously connected peers.
   @spec fetch_peers_from_registry(integer) :: List
-  def fetch_peers_from_registry(port) do
+  def fetch_peers_from_registry(port_conf) do
     url = Application.get_env(:elixium_core, :registry_url)
-
-    case :httpc.request(url ++ '/' ++ Integer.to_charlist(port)) do
+    own_local_ip = fetch_local_ip
+    own_public_ip = fetch_public_ip["ip"]
+    case :httpc.request(url ++ '/' ++ Integer.to_charlist(port_conf)) do
       {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
         peers =
           body
           |> Jason.decode!()
           |> Enum.map(&peerstring_to_tuple/1)
-          |> Enum.filter(fn {peer, port} -> port != nil && peer !== fetch_public_ip["ip"] && peer !== fetch_local_ip end)
+          |> Enum.filter(fn {peer, port} ->
+            port != nil &&
+            validate_own_ip_port(peer, own_local_ip, port, port_conf) == false &&
+            validate_own_ip_port(peer, own_public_ip, port, port_conf) == false
+          end)
 
         if peers == [], do: :not_found, else: peers
 
@@ -101,10 +106,10 @@ defmodule Elixium.Node.Supervisor do
 
 
   @doc """
-    On Connection, fetch our public ip and exclude it from the list of registered peers
+    On Connection, fetch our public ip
   """
-  @spec fetch_public_ip() :: String.t()
-  def fetch_public_ip() do
+  @spec fetch_public_ip :: String.t()
+  def fetch_public_ip do
    api_url =  'https://api.ipify.org?format=json'
    case :httpc.request(api_url) do
      {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
@@ -115,13 +120,25 @@ defmodule Elixium.Node.Supervisor do
   end
 
   @doc """
-    On Connection, fetch our local ip and exclude it from the list of registered peers so we avoid connections to local
+    On Connection, fetch our local ip
   """
   @spec fetch_local_ip() :: String.t()
-  def fetch_local_ip() do
+  def fetch_local_ip do
     {:ok, [_, {_, ip_list}]} = :inet.getifaddrs()
     ip_list[:addr]
     |> :inet_parse.ntoa()
+  end
+
+  @doc """
+    Checks Ip address & port match
+  """
+  @spec fetch_local_ip() :: String.t()
+  def validate_own_ip_port(peer, ip, port, port_conf) do
+    if peer !== ip && port !== port_conf do
+      false
+    else
+      true
+    end
   end
 
   @doc """
