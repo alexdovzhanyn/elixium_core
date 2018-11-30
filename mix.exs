@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.3.16",
+      version: "0.3.19",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -12,7 +12,7 @@ defmodule Elixium.Mixfile do
       name: "Elixium Core",
       description: description(),
       source_url: "https://github.com/elixium/elixium_core",
-      homepage_url: "https://elixium.app",
+      homepage_url: "https://elixiumnetwork.org",
       package: package(),
       application: application()
     ]

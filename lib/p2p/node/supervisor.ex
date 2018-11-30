@@ -73,7 +73,7 @@ defmodule Elixium.Node.Supervisor do
   @spec find_potential_peers(integer) :: List | :not_found
   defp find_potential_peers(port) do
     case Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:load_known_peers, []}) do
-      :not_found -> fetch_peers_from_registry(port)
+      [] -> fetch_peers_from_registry(port)
       peers -> peers
     end
   end

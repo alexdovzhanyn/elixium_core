@@ -87,7 +87,7 @@ defmodule Elixium.Store.Peer do
       fn ref ->
         case Exleveldb.get(ref, "known_peers") do
           {:ok, peers} -> :erlang.binary_to_term(peers)
-          :not_found -> :not_found
+          :not_found -> []
         end
       end
     end
