@@ -85,18 +85,20 @@ defmodule Elixium.Node.Supervisor do
   def fetch_peers_from_registry(port_conf) do
     url = Application.get_env(:elixium_core, :registry_url)
     own_local_ip = fetch_local_ip
-    own_public_ip = fetch_public_ip["ip"]
+    own_public_ip = fetch_public_ip["ip"] #add condition here
     case :httpc.request(url ++ '/' ++ Integer.to_charlist(port_conf)) do
       {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
         peers =
           body
           |> Jason.decode!()
           |> Enum.map(&peerstring_to_tuple/1)
+          |> Enum.uniq
           |> Enum.filter(fn {peer, port} ->
             port != nil &&
             validate_own_ip_port(peer, own_local_ip, port, port_conf) == false &&
             validate_own_ip_port(peer, own_public_ip, port, port_conf) == false
           end)
+
 
         if peers == [], do: :not_found, else: peers
 
