@@ -120,8 +120,6 @@ defmodule Elixium.Node.Supervisor do
   end
 
 
-
-
   @doc """
     On Connection, fetch our local ip
   """
@@ -133,6 +131,7 @@ defmodule Elixium.Node.Supervisor do
       |> Enum.reject(fn element -> element == :ok || element == '127.0.0.1' end)
     end) |> List.first
   end
+
 
   defp validate_ip_range(key) do
     case key do
@@ -155,7 +154,11 @@ defmodule Elixium.Node.Supervisor do
     if peer !== ip do
       false
     else
-      true
+      if port !== port_conf do
+        false
+      else
+        true
+      end
     end
   end
 
