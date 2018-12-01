@@ -70,7 +70,7 @@ defmodule Elixium.Validator do
          :ok <- beat_target?(b.hash, difficulty) do
       :ok
     else
-      err -> err
+      err -> IO.inspect(err, label: "Error from validator")
     end
   end
 

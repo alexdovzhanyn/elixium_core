@@ -97,6 +97,9 @@ defmodule Elixium.Store.Ledger do
     end
   end
 
+  @spec block_at_height(integer) :: Atom
+  def block_at_height(height) when is_integer(height) and height < 0, do: :none
+
   @doc """
     Returns the block at a given index
   """
@@ -109,6 +112,8 @@ defmodule Elixium.Store.Ledger do
 
     block_at_height(height)
   end
+
+
 
   def block_at_height(height) when is_binary(height) do
     case :ets.lookup(@ets_name, height) do

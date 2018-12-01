@@ -25,6 +25,6 @@ defmodule NodeTest do
     assert has_own_public? == false
   end
 
-  
+
 
 end

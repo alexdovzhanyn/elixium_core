@@ -119,22 +119,40 @@ defmodule Elixium.Node.Supervisor do
    end
   end
 
+
+
+
   @doc """
     On Connection, fetch our local ip
   """
   @spec fetch_local_ip() :: String.t()
   def fetch_local_ip do
-    {:ok, [_, {_, ip_list}]} = :inet.getifaddrs()
-    ip_list[:addr]
-    |> :inet_parse.ntoa()
+    {:ok, adapter_list} = :inet.getifaddrs()
+    Enum.flat_map(adapter_list, fn {adapter, ip_list} ->
+      Enum.map(ip_list, fn key -> validate_ip_range(key) end)
+      |> Enum.reject(fn element -> element == :ok || element == '127.0.0.1' end)
+    end) |> List.first
   end
 
-  @doc """
-    Checks Ip address & port match
-  """
-  @spec fetch_local_ip() :: String.t()
+  defp validate_ip_range(key) do
+    case key do
+      {:addr, address} ->
+        size =
+          address
+          |> Tuple.to_list
+          |> Enum.count
+        validate_ip(address, size)
+      _->
+      :ok
+    end
+  end
+
+  defp validate_ip(address, size) when size == 4, do: :inet_parse.ntoa(address)
+
+  defp validate_ip(address, size) when size !== 4, do: :ok
+
   def validate_own_ip_port(peer, ip, port, port_conf) do
-    if peer !== ip && port !== port_conf do
+    if peer !== ip do
       false
     else
       true
