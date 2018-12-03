@@ -25,7 +25,7 @@ defmodule Elixium.Store.Ledger do
       &Exleveldb.put(&1, String.to_atom(block.hash), BlockEncoder.encode(block))
     end
 
-    :ets.insert(@ets_name, {block.index, block.hash, block}) |> IO.inspect
+    :ets.insert(@ets_name, {block.index, block.hash, block})
   end
 
   @spec drop_block(Block) :: none
