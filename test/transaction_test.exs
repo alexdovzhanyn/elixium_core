@@ -3,6 +3,10 @@ defmodule TransactionTest do
   alias Decimal, as: D
   use ExUnit.Case, async: true
 
+  @pub_address "EX05BQPcYtf5QQdY3Tg1D8V26dcL2xSiLQwPQ7gfosoza2oRjb23L"
+  @priv <<40, 140, 66, 226, 148, 195, 152, 147, 168, 84, 149, 133, 39, 152, 147, 196,
+  205, 185, 53, 228, 26, 161, 218, 64, 192, 154, 182, 2, 117, 136, 238, 144>>
+
   test "can generate a coinbase transaction" do
     %{
       txtype: txtype,
@@ -28,37 +32,50 @@ defmodule TransactionTest do
     assert tx.id == "F18A8A34A5FAC83AC915329F8237B972EFF929E1AF6E929E6AC586AF32B2ED43"
   end
 
-  test "can generate outputs from designations" do
-    tx = %Transaction{
-      inputs: [
-        %{txoid: "wfwe1d:0", amount: D.new(123.12)},
-        %{txoid: "wfwe1d:4", amount: D.new(31.33)},
-        %{txoid: "wfwe1d:1", amount: D.new(18)}
-      ],
-      designations: [
-        %{addr: "reciever1", amount: D.new(3)},
-        %{addr: "reciever2", amount: D.new(132)}
-      ]
-    }
+  test "Transaction Generates Correct Designations & Outputs" do
+    input_amount = D.new(760.0)
+    input_designations = [%{amount: D.new(100), addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
+    utxos = [%Elixium.Utxo{addr: "EX04wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKQ", amount: D.new(760.0), txoid: "123"}]
+    inputs = utxos
 
-    tx = %{tx | id: Transaction.calculate_hash(tx)}
+    output_amount = Decimal.new(100)
 
-    expected_outputs = %{
-      fee: D.new(37.45),
-      outputs: [
-        %{
-          addr: "reciever1",
-          amount: D.new(3),
-          txoid: "03E4C4FC8EFCB9F5C03CA73E9A7AA3D60A258B5FC52D7A75C7D0DEF69322A93F:0"
-        },
-        %{
-          addr: "reciever2",
-          amount: D.new(132),
-          txoid: "03E4C4FC8EFCB9F5C03CA73E9A7AA3D60A258B5FC52D7A75C7D0DEF69322A93F:1"
-        }
-      ]
-    }
+    designations = Transaction.create_designations(inputs, output_amount, D.new(1.0), "EX04wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKQ", input_designations)
+    tx_timestamp = Elixium.Transaction.create_timestamp
+    tx =
+      %Elixium.Transaction{
+        inputs: inputs
+      }
 
-    assert Transaction.calculate_outputs(tx) == expected_outputs
+    id = Elixium.Transaction.create_tx_id(tx, tx_timestamp)
+    tx = %{tx | id: id}
+    outputs = Transaction.calculate_outputs(tx, designations)
+
+    designations_has_own_address? = designations |> Enum.any?(fn utxo -> utxo.addr == "EX04wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKQ" end)
+    designations_has_send_address? = designations |> Enum.any?(fn utxo -> utxo.addr == "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA" end)
+    designations_has_correct_value? = designations |> Enum.reduce(D.new(0), fn utxo, acc ->  D.add(acc, utxo.amount) end)
+    outputs_has_own_address? = outputs.outputs |> Enum.any?(fn utxo -> utxo.addr == "EX04wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKQ" end)
+    outputs_has_send_address? = outputs.outputs |> Enum.any?(fn utxo -> utxo.addr == "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA" end)
+    outputs_has_correct_value? = outputs.outputs |> Enum.reduce(D.new(0), fn utxo, acc ->  D.add(acc, utxo.amount) end)
+
+    assert designations_has_correct_value? == D.sub(input_amount, D.new(1.0))
+    assert designations_has_own_address? == true
+    assert designations_has_send_address? == true
+    assert outputs_has_correct_value? == D.sub(input_amount, D.new(1.0))
+    assert outputs_has_own_address? == true
+    assert outputs_has_send_address? == true
   end
+
+  test "Correct Transaction is Built and Verified" do
+    #Elixium.Store.Ledger.initialize()
+    #Elixium.Store.Utxo.initialize()
+    #{pub, priv} = Elixium.KeyPair.get_from_private(@priv) |> IO.inspect
+    #addr = Elixium.KeyPair.address_from_pubkey(pub) |> IO.inspect
+    #utxos = Elixium.Store.Utxo.find_by_address(addr) |> IO.inspect
+  end
+
+
+
+
+
 end

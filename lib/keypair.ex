@@ -134,7 +134,7 @@ defmodule Elixium.KeyPair do
     <<4>> <> x <> y
   end
 
-  defp get_from_private(private) do
+  def get_from_private(private) do
     :crypto.generate_key(@algorithm, @curve, private)
   end
 
