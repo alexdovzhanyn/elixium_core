@@ -5,6 +5,7 @@ defmodule Elixium.Validator do
   alias Elixium.Store.Ledger
   alias Elixium.Store.Utxo, as: UtxoStore
   alias Elixium.BlockEncoder
+  alias Elixium.Store.Oracle
   alias Elixium.Transaction
   alias Decimal, as: D
 
@@ -18,7 +19,7 @@ defmodule Elixium.Validator do
     when recalculated, is the same as what the listed block hash is
   """
   @spec is_block_valid?(Block, number) :: :ok | {:error, any}
-  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &UtxoStore.in_pool?/1) do
+  def is_block_valid?(block, difficulty, last_block \\ Ledger.last_block(), pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]})) do
     if :binary.decode_unsigned(block.index) == 0 do
       with :ok <- valid_coinbase?(block),
            :ok <- valid_transactions?(block, pool_check),
@@ -70,7 +71,7 @@ defmodule Elixium.Validator do
          :ok <- beat_target?(b.hash, difficulty) do
       :ok
     else
-      err -> IO.inspect(err, label: "Error from validator")
+      err -> :invalid
     end
   end
 
@@ -122,7 +123,7 @@ defmodule Elixium.Validator do
 
 
   @spec valid_transaction?(Transaction, function) :: boolean
-  def valid_transaction?(transaction, pool_check \\ &UtxoStore.in_pool?/1)
+  def valid_transaction?(transaction, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]}))
 
   @doc """
     Coinbase transactions are validated separately. If a coinbase transaction
@@ -180,7 +181,7 @@ defmodule Elixium.Validator do
   end
 
   @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
-  def valid_transactions?(%{transactions: transactions}, pool_check \\ &UtxoStore.in_pool?/1) do
+  def valid_transactions?(%{transactions: transactions}, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]})) do
     if Enum.all?(transactions, &valid_transaction?(&1, pool_check)), do: :ok, else: {:error, :invalid_inputs}
   end
 

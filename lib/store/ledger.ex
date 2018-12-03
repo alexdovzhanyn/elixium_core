@@ -25,7 +25,7 @@ defmodule Elixium.Store.Ledger do
       &Exleveldb.put(&1, String.to_atom(block.hash), BlockEncoder.encode(block))
     end
 
-    :ets.insert(@ets_name, {block.index, block.hash, block})
+    :ets.insert(@ets_name, {block.index, block.hash, block}) |> IO.inspect
   end
 
   @spec drop_block(Block) :: none
@@ -42,6 +42,7 @@ defmodule Elixium.Store.Ledger do
   """
   @spec retrieve_block(String.t()) :: Block
   def retrieve_block(hash) do
+    :ets.match(@ets_name, {'_', hash, '$1'})
     # Only check the store if we don't have this hash in our ETS cache
     case :ets.match(@ets_name, {'_', hash, '$1'}) do
       [] -> do_retrieve_block_from_store(hash)
@@ -54,7 +55,7 @@ defmodule Elixium.Store.Ledger do
       fn ref ->
         case Exleveldb.get(ref, hash) do
           {:ok, block} -> BlockEncoder.decode(block)
-          err -> err
+          err -> IO.inspect(err, label: "Error")
         end
       end
     end
