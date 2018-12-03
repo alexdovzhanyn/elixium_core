@@ -52,6 +52,4 @@ defmodule Elixium.Utilities do
   def zero_pad(bytes, size) do
     String.duplicate(<<0>>, size - byte_size(bytes)) <> bytes
   end
-
-  
 end
