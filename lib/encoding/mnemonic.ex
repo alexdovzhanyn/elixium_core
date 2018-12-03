@@ -6,9 +6,7 @@ defmodule Elixium.Mnemonic do
   @regex_chunk_from_entropy Regex.compile!(".{1,#{@leading_zeros_of_mnemonic}}")
   @regex_chunk_to_entropy Regex.compile!(".{1,#{@leading_zeros_for_mnemonic}}")
 
-  @words Application.app_dir(:elixium_core, "priv")
-         |> Path.join("words.txt")
-         |> File.stream!()
+  @words File.stream!("priv/words.txt")
          |> Stream.map(&String.trim/1)
          |> Enum.to_list()
 
