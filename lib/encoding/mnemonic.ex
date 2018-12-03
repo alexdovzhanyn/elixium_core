@@ -6,11 +6,11 @@ defmodule Elixium.Mnemonic do
   @regex_chunk_from_entropy Regex.compile!(".{1,#{@leading_zeros_of_mnemonic}}")
   @regex_chunk_to_entropy Regex.compile!(".{1,#{@leading_zeros_for_mnemonic}}")
 
-  @words Path.expand("./priv")
-          |> Path.join("words.txt")
-          |> File.stream!()
-          |> Stream.map(&String.trim/1)
-          |> Enum.to_list()
+  @words Application.app_dir(:elixium_core, "priv")
+         |> Path.join("words.txt")
+         |> File.stream!()
+         |> Stream.map(&String.trim/1)
+         |> Enum.to_list()
 
   @doc """
     Gets the correct checksum of a binary
