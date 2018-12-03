@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.4.3",
+      version: "0.4.4",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -38,7 +38,7 @@ defmodule Elixium.Mixfile do
   defp package() do
     [
       name: "elixium_core",
-      files: ["lib", "mix.exs", "README*", "LICENSE*"],
+      files: ["lib", "mix.exs", "README*", "LICENSE*", "priv"],
       maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman", "Matthew Eaton"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/elixium/elixium_core"}
