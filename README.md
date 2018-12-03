@@ -57,7 +57,7 @@ looking at using Hyrax, a zero knowledge protocol that doesn't need a trusted
 setup.
 
 ## Why Elixir?
-Elixir is a language built with Erlang, andErlang powers the entire telecom
+Elixir is a language built with Erlang, and Erlang powers the entire telecom
 industry. This is the language that supports the infrastructure of our mobile
 phone networks. It was built by a company called Ericcson in 1986 for the
 purposes of being distributed, fault tolerant, and to have support for
