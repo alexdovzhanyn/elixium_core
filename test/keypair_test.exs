@@ -11,7 +11,11 @@ defmodule KeyPairTest do
   end
 
   test "Key pair is generated and saved" do
-    path = Application.get_env(:elixium_core, :unix_key_address)
+    path =
+      :elixium_core
+      |> Application.get_env(:unix_key_address)
+      |> Path.expand()
+
     {public, private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
     key_path = "#{path}/#{compressed_pub_address}.key"
