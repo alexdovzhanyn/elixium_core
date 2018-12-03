@@ -39,7 +39,7 @@ defmodule Elixium.Mixfile do
     [
       name: "elixium_core",
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
-      maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman"],
+      maintainers: ["Alex Dovzhanyn", "Zac Garby", "Nijinsha Rahman", "Matthew Eaton"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/elixium/elixium_core"}
     ]

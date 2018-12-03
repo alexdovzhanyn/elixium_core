@@ -4,6 +4,12 @@ defmodule Elixium.Utilities do
     places for different things
   """
 
+  def sha256(data),
+    do: hash(data, :sha256)
+
+  defp hash(data, algorithm),
+    do: :crypto.hash(algorithm, data)
+
   def sha_base16(input) do
     :sha256
     |> :crypto.hash(input)

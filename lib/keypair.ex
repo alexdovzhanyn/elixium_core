@@ -1,4 +1,5 @@
 defmodule Elixium.KeyPair do
+  alias Elixium.Mnemonic
   use Bitwise
   require Integer
 
@@ -20,7 +21,6 @@ defmodule Elixium.KeyPair do
   def create_keypair do
     keypair = :crypto.generate_key(@algorithm, @curve)
     create_keyfile(keypair)
-
     keypair
   end
 
@@ -35,24 +35,24 @@ defmodule Elixium.KeyPair do
   end
 
   @doc """
-    Using a public address, fetch the correct keyfile and return the only the private key
+    Creates a new mnemonic to give to users based off private key
   """
-  @spec get_priv_from_file(String.t()) :: {binary, binary}
-  def get_priv_from_file(pub) do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
-    key_path = unix_address <> "/" <> pub <> ".key"
-    {_pub, priv} = get_from_file(key_path)
-    priv
-  end
+  @spec create_mnemonic(binary) :: String.t()
+  def create_mnemonic(private), do: Mnemonic.from_entropy(private)
 
-  @spec create_keyfile(tuple) :: :ok | {:error, any}
-  defp create_keyfile({public, private}) do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
-    if !File.dir?(unix_address), do: File.mkdir(unix_address)
-
-    address = address_from_pubkey(public)
-
-    File.write(unix_address <> "/#{address}.key", private)
+  @doc """
+    Generates a keypair from the seed phrase or from the private key, leading " " will switch to mnemonic to import key from
+  """
+  @spec gen_keypair(String.t() | binary) :: {binary, binary}
+  def gen_keypair(phrase) do
+    if String.contains?(phrase, " ") do
+        private = Mnemonic.to_entropy(phrase)
+        {pub, priv} = get_from_private(private)
+        create_keyfile({pub, priv})
+      else
+        {pub, priv} = get_from_private(phrase)
+        create_keyfile({pub, priv})
+    end
   end
 
   @spec sign(binary, String.t()) :: String.t()
@@ -63,6 +63,17 @@ defmodule Elixium.KeyPair do
   @spec verify_signature(binary, binary, String.t()) :: boolean
   def verify_signature(public_key, signature, data) do
     :crypto.verify(@sigtype, @hashtype, data, signature, [public_key, @curve])
+  end
+
+  @doc """
+    Using a public address, fetch the correct keyfile and return the only the private key
+  """
+  @spec get_priv_from_file(String.t()) :: {binary, binary}
+  def get_priv_from_file(pub) do
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    key_path = "#{unix_address}/#{pub}.key"
+    {_, priv} = get_from_file(key_path)
+    priv
   end
 
   @doc """
@@ -121,6 +132,20 @@ defmodule Elixium.KeyPair do
     y = calculate_y_from_x(x, prefix)
 
     <<4>> <> x <> y
+  end
+
+  defp get_from_private(private) do
+    :crypto.generate_key(@algorithm, @curve, private)
+  end
+
+  @spec create_keyfile(tuple) :: :ok | {:error, any}
+  defp create_keyfile({public, private}) do
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    if !File.dir?(unix_address), do: File.mkdir(unix_address)
+
+    address = address_from_pubkey(public)
+
+    File.write!("#{unix_address}/#{address}.key", private)
   end
 
   # Adapted from stackoverflow answer

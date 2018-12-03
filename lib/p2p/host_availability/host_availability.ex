@@ -26,7 +26,7 @@ defmodule Elixium.HostAvailability do
 
   def handle_info({:tcp, _, <<0>>}, state) do
     :gen_tcp.send(state.socket, <<1>>)
-    :timer.sleep(1000)
+    :timer.sleep(1500)
     :gen_tcp.close(state.socket)
 
     {:ok, socket} = :gen_tcp.accept(state.listen)
