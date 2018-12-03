@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.4.6",
+      version: "0.4.7",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -81,7 +81,7 @@ defmodule Elixium.Mixfile do
         # 8 Megabyte block size
         block_size_limit: 8_388_608,
 
-        unix_key_address: "/.keys"
+        unix_key_address: "~/.keys"
 
       ]
     ]

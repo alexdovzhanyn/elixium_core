@@ -70,7 +70,11 @@ defmodule Elixium.KeyPair do
   """
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    unix_address =
+      :elixium_core
+      |> Application.get_env(:unix_key_address)
+      |> Path.expand()
+
     key_path = "#{unix_address}/#{pub}.key"
     {_, priv} = get_from_file(key_path)
     priv
@@ -140,7 +144,11 @@ defmodule Elixium.KeyPair do
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    unix_address =
+      :elixium_core
+      |> Application.get_env(:unix_key_address)
+      |> Path.expand()
+
     if !File.dir?(unix_address), do: File.mkdir(unix_address)
 
     address = address_from_pubkey(public)
