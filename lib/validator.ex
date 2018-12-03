@@ -3,7 +3,6 @@ defmodule Elixium.Validator do
   alias Elixium.Utilities
   alias Elixium.KeyPair
   alias Elixium.Store.Ledger
-  alias Elixium.Store.Utxo, as: UtxoStore
   alias Elixium.BlockEncoder
   alias Elixium.Store.Oracle
   alias Elixium.Transaction
@@ -71,7 +70,7 @@ defmodule Elixium.Validator do
          :ok <- beat_target?(b.hash, difficulty) do
       :ok
     else
-      err -> :invalid
+      err -> err
     end
   end
 

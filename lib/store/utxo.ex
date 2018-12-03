@@ -112,7 +112,11 @@ defmodule Elixium.Store.Utxo do
   """
   @spec retrieve_wallet_utxos :: list(utxo())
   def retrieve_wallet_utxos do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    unix_address =
+      :elixium_core
+      |> Application.get_env(:unix_key_address)
+      |> Path.expand()
+
     case File.ls(unix_address) do
       {:ok, keyfiles} ->
         Enum.flat_map(keyfiles, fn file ->

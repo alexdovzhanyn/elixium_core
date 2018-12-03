@@ -42,7 +42,6 @@ defmodule Elixium.Store.Ledger do
   """
   @spec retrieve_block(String.t()) :: Block
   def retrieve_block(hash) do
-    :ets.match(@ets_name, {'_', hash, '$1'})
     # Only check the store if we don't have this hash in our ETS cache
     case :ets.match(@ets_name, {'_', hash, '$1'}) do
       [] -> do_retrieve_block_from_store(hash)
@@ -55,7 +54,7 @@ defmodule Elixium.Store.Ledger do
       fn ref ->
         case Exleveldb.get(ref, hash) do
           {:ok, block} -> BlockEncoder.decode(block)
-          err -> IO.inspect(err, label: "Error")
+          err -> err
         end
       end
     end
@@ -114,8 +113,6 @@ defmodule Elixium.Store.Ledger do
     block_at_height(height)
   end
 
-
-
   def block_at_height(height) when is_binary(height) do
     case :ets.lookup(@ets_name, height) do
       [] -> :none
@@ -140,7 +137,5 @@ defmodule Elixium.Store.Ledger do
   @spec count_blocks :: integer
   def count_blocks, do: :ets.info(@ets_name, :size)
 
-  def empty? do
-    empty?(@store_dir)
-  end
+  def empty?, do: empty?(@store_dir)
 end
