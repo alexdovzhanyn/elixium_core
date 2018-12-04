@@ -40,11 +40,35 @@ defmodule Elixium.Transaction do
     |> Utilities.sha_base16()
   end
 
+  @doc """
+  Creates a singature list based off the input being passed in and the corresponding private key
+  """
+  @spec create_sig_list(Map, Map) :: Tuple
   def create_sig_list(input, transaction) do
     priv = Elixium.KeyPair.get_priv_from_file(input.addr)
     digest = Elixium.Transaction.signing_digest(transaction)
     sig = Elixium.KeyPair.sign(priv, digest)
     {input.addr, sig}
+  end
+
+  @doc """
+  Take the correct amount of Utxo's to send the alloted amount in a transaction.
+  """
+  @spec take_necessary_utxos(List, Decimal) :: function
+  def take_necessary_utxos(utxos, amount), do: take_necessary_utxos(utxos, [], amount)
+
+  @spec take_necessary_utxos(List, List, Decimal) :: List
+  def take_necessary_utxos(utxos, chosen, amount) do
+    if D.cmp(amount, 0) == :gt do
+      if utxos == [] do
+        :not_enough_balance
+      else
+        [utxo | remaining] = utxos
+        take_necessary_utxos(remaining, [utxo | chosen], D.sub(amount, utxo.amount))
+      end
+    else
+      chosen
+    end
   end
 
   @doc """
