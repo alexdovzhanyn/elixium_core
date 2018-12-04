@@ -40,6 +40,13 @@ defmodule Elixium.Transaction do
     |> Utilities.sha_base16()
   end
 
+  def create_sig_list(input, transaction) do
+    priv = Elixium.KeyPair.get_priv_from_file(input.addr)
+    digest = Elixium.Transaction.signing_digest(transaction)
+    sig = Elixium.KeyPair.sign(priv, digest)
+    {input.addr, sig}
+  end
+
   @doc """
   Creates a current time stamp for transaction building
   """

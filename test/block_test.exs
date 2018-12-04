@@ -4,7 +4,7 @@ defmodule BlockTest do
   alias Elixium.Utilities
   alias Decimal, as: D
   use ExUnit.Case, async: false
-  ExUnit.configure(timeout: 600_000)
+
 
 
 

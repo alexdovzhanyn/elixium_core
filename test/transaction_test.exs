@@ -1,11 +1,23 @@
 defmodule TransactionTest do
   alias Elixium.Transaction
+  alias Elixium.Block
+  alias Elixium.Utilities
+  alias Elixium.KeyPair
+  alias Elixium.Store.Utxo
   alias Decimal, as: D
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
-  @pub_address "EX05BQPcYtf5QQdY3Tg1D8V26dcL2xSiLQwPQ7gfosoza2oRjb23L"
-  @priv <<40, 140, 66, 226, 148, 195, 152, 147, 168, 84, 149, 133, 39, 152, 147, 196,
-  205, 185, 53, 228, 26, 161, 218, 64, 192, 154, 182, 2, 117, 136, 238, 144>>
+  setup do
+      Application.put_env(:elixium_core, :unix_key_address, "./test_keys")
+
+      on_exit(fn ->
+        File.rm_rf!(".chaindata")
+        File.rm_rf!(".utxo")
+        File.rm_rf!("keys")
+      end)
+  end
+
+
 
   test "can generate a coinbase transaction" do
     %{
@@ -67,11 +79,69 @@ defmodule TransactionTest do
   end
 
   test "Correct Transaction is Built and Verified" do
-    #Elixium.Store.Ledger.initialize()
-    #Elixium.Store.Utxo.initialize()
-    #{pub, priv} = Elixium.KeyPair.get_from_private(@priv) |> IO.inspect
-    #addr = Elixium.KeyPair.address_from_pubkey(pub) |> IO.inspect
-    #utxos = Elixium.Store.Utxo.find_by_address(addr) |> IO.inspect
+    #Start the helpers up
+    Elixium.Store.Oracle.start_link(Elixium.Store.Utxo)
+    Elixium.Store.Oracle.start_link(Elixium.Store.Ledger)
+    Elixium.Store.Ledger.initialize()
+    Elixium.Store.Utxo.initialize()
+
+    #Generate a New KeyPair to use for testing
+    path =
+      :elixium_core
+      |> Application.get_env(:unix_key_address)
+      |> Path.expand()
+    {public, private} = KeyPair.create_keypair
+    compressed_pub_address = KeyPair.address_from_pubkey(public)
+
+    #Initialize the block with the correct information allowing a succesfull transaction to be processed using the new blocks utxo's
+    block = Block.initialize()
+    block = Map.put(block, :transactions, [])
+    index = :binary.decode_unsigned(block.index)
+    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coinbase = Transaction.generate_coinbase(coin_base, compressed_pub_address)
+    transactions = [coinbase | block.transactions]
+    txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)
+    block = Map.merge(block, %{
+      transactions: transactions,
+      merkle_root: Utilities.calculate_merkle_root(txdigests)
+    })
+    block = catch_exit(exit Block.mine(block))
+
+    #Append the new block to the store & update the utxo's
+    Elixium.Store.Ledger.append_block(block)
+    Utxo.update_with_transactions(block.transactions)
+
+
+    #Here we are getting the mined block from the store to find the UTXO's to use as inputs
+    utxos = Elixium.Store.Utxo.find_by_address(compressed_pub_address)
+    input_amount = D.new(760.0)
+    input_designations = [%{amount: D.new(100), addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
+    inputs = utxos |> Enum.take(1)
+    output_amount = Decimal.new(100)
+    designations = Transaction.create_designations(inputs, output_amount, D.new(1.0), compressed_pub_address, input_designations)
+
+    #Bulk of the id functions for the transactions, builds the correct time stamp & outputs
+    tx_timestamp = Elixium.Transaction.create_timestamp
+    tx =
+      %Elixium.Transaction{
+        inputs: inputs
+      }
+    id = Elixium.Transaction.create_tx_id(tx, tx_timestamp)
+    tx = %{tx | id: id}
+    transaction = Map.merge(tx, Transaction.calculate_outputs(tx, designations))
+
+    #Here we take unique inputs (i.e only uniq compressed addresses) and we're creating a sig list to verify
+    sigs =
+      Enum.uniq_by(inputs, fn input -> input.addr end)
+      |> Enum.map(fn input ->
+         Transaction.create_sig_list(input, transaction)
+    end)
+    transaction = Map.put(transaction, :sigs, sigs)
+    assert Elixium.Validator.valid_transaction?(transaction) == true
+
+    #Now lets remove the test key from the system
+    key_path = "#{path}/#{compressed_pub_address}.key"
+    File.rm!(key_path)
   end
 
 

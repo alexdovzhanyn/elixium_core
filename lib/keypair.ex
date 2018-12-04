@@ -8,6 +8,8 @@ defmodule Elixium.KeyPair do
   @curve :secp256k1
   @hashtype :sha256
 
+
+
   @moduledoc """
     All the functions responsible for creating keypairs and using them to sign
     data / verify signatures

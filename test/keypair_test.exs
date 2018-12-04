@@ -3,6 +3,16 @@ defmodule KeyPairTest do
 
   use ExUnit.Case, async: true
 
+  setup do
+      Application.put_env(:elixium_core, :unix_key_address, "./test_keys")
+
+      on_exit(fn ->
+        File.rm_rf!(".chaindata")
+        File.rm_rf!(".utxo")
+        File.rm_rf!("keys")
+      end)
+  end
+
   test "Can create a keypair and return correct format private and public keys" do
     {pub, priv} = KeyPair.create_keypair()
 
@@ -22,9 +32,6 @@ defmodule KeyPairTest do
     exists? = File.exists?(key_path)
 
     assert exists? == true
-    with true <- assert exists? do
-      File.rm!(key_path)
-    end
   end
 
   test "Mnemonic Is generated and returns correct private key" do
