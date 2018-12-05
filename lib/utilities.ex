@@ -4,6 +4,7 @@ defmodule Elixium.Utilities do
     places for different things
   """
 
+  
   def sha256(data),
     do: hash(data, :sha256)
 

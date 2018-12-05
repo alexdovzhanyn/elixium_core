@@ -3,7 +3,7 @@ defmodule ErrorTest do
   use ExUnit.Case, async: true
 
   test "can stringify invalid index errors" do
-    assert Error.to_string({:error, {:invalid_index, 3, 2}}) == "Invalid index 2, expected >3"
+    assert Error.to_string({:error, {:invalid_index, <<0,0,0,3>>, <<0,0,0,2>>}}) == "Invalid index 2, expected > 3"
   end
 
   test "can stringify invalid hash errors where the hash doesn't match the last hash" do
