@@ -142,6 +142,7 @@ defmodule Elixium.Validator do
     with true <- Enum.all?(transaction.inputs, & pool_check.(&1)),
          true <- tx_addr_match?(transaction),
          true <- tx_sigs_valid?(transaction),
+         true <- Enum.all?(transaction.inputs ++ transaction.outputs, & D.decimal?(&1.amount)),
          true <- outputs_dont_exceed_inputs?(transaction) do
       true
     else
