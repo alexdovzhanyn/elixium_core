@@ -40,7 +40,12 @@ defmodule Elixium.Node.Supervisor do
   end
 
   defp generate_handlers(socket, router_pid, peers) do
-    for i <- 1..10 do
+    {total_handlers, _} =
+      :maxHandlers
+      |> Elixium.Utilities.get_arg("10")
+      |> Integer.parse()
+
+    for i <- 1..total_handlers do
       %{
         id: :"ConnectionHandler#{i}",
         start: {
