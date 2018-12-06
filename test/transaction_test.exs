@@ -7,8 +7,10 @@ defmodule TransactionTest do
   alias Decimal, as: D
   use ExUnit.Case, async: false
 
+  @store "test_keys"
+
   setup do
-      Application.put_env(:elixium_core, :unix_key_address, "./test_keys")
+      Application.put_env(:elixium_core, :unix_key_address, "/test_keys")
 
       on_exit(fn ->
         File.rm_rf!(".chaindata")
@@ -86,10 +88,7 @@ defmodule TransactionTest do
     Elixium.Store.Utxo.initialize()
 
     #Generate a New KeyPair to use for testing
-    path =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
-      |> Path.expand()
+    path = Elixium.Store.store_path(@store)
     {public, private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
 
