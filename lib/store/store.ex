@@ -18,7 +18,7 @@ defmodule Elixium.Store do
       |> store_path()
       |> Exleveldb.open()
     # Immediately close after ensuring creation, we don't need it constantly open
-    Exleveldb.close(ref) |> IO.inspect
+    Exleveldb.close(ref)
   end
 
   @doc """
