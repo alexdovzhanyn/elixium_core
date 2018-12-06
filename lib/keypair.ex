@@ -9,7 +9,6 @@ defmodule Elixium.KeyPair do
   @hashtype :sha256
 
 
-
   @moduledoc """
     All the functions responsible for creating keypairs and using them to sign
     data / verify signatures
@@ -74,9 +73,9 @@ defmodule Elixium.KeyPair do
   """
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
-    unix_address =
-      Application.get_env(:elixium_core, :unix_key_address)
-      |> Path.expand()
+      data_path = Application.get_env(:elixium_core, :data_path) |> Path.expand()
+      unix_address = data_path <> Application.get_env(:elixium_core, :unix_key_address)
+
 
     key_path = "#{unix_address}/#{pub}.key"
     {_, priv} = get_from_file(key_path)
@@ -147,8 +146,9 @@ defmodule Elixium.KeyPair do
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
-    unix_address = Application.get_env(:elixium_core, :unix_key_address)
-    |> Path.expand()
+    data_path = Application.get_env(:elixium_core, :data_path) |> Path.expand()
+    unix_address = data_path <> Application.get_env(:elixium_core, :unix_key_address)
+
 
      if !File.dir?(unix_address), do: File.mkdir(unix_address)
     address = address_from_pubkey(public)

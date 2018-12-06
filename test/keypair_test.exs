@@ -5,12 +5,12 @@ defmodule KeyPairTest do
   @store "test_keys"
 
   setup do
-      Application.put_env(:elixium_core, :unix_key_address, "~/.elixium/test_keys")
+      Application.put_env(:elixium_core, :unix_key_address, "/test_keys")
 
       on_exit(fn ->
-        File.rm_rf!(".chaindata")
-        File.rm_rf!(".utxo")
-        File.rm_rf!("test_keys")
+        File.rm_rf!("~/.elixium/chaindata")
+        File.rm_rf!("~/.elixium/utxo")
+        File.rm_rf!("~/.elixium/test_keys")
       end)
   end
 
@@ -22,12 +22,11 @@ defmodule KeyPairTest do
   end
 
   test "Key pair is generated and saved" do
-    path = Elixium.Store.store_path(@store) |> IO.inspect
-
+    path = Elixium.Store.store_path(@store)
 
     {public, private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
-    key_path = "#{path}/#{compressed_pub_address}.key" |> IO.inspect
+    key_path = "#{path}/#{compressed_pub_address}.key"
     exists? = File.exists?(key_path)
 
     assert exists? == true
