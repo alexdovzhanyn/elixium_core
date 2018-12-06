@@ -6,7 +6,7 @@ defmodule Elixium.Store.Utxo do
     Provides an interface for interacting with the UTXOs stored in level db
   """
 
-  @store_dir ".utxo"
+  @store_dir "utxo"
   @ets_name :utxo
 
 

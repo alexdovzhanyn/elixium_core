@@ -2,7 +2,7 @@ defmodule Elixium.Store do
   require Exleveldb
 
   @moduledoc """
-    Provides convinience methods for interacting with LevelDB 
+    Provides convinience methods for interacting with LevelDB
   """
 
   defmacro __using__(_opts) do
@@ -13,7 +13,10 @@ defmodule Elixium.Store do
 
   def initialize(store) do
     # Generate a new leveldb instance if none exists
-    {:ok, ref} = Exleveldb.open(store)
+    {:ok, ref} =
+      store
+      |> store_path()
+      |> Exleveldb.open()
     # Immediately close after ensuring creation, we don't need it constantly open
     Exleveldb.close(ref)
   end
@@ -24,7 +27,11 @@ defmodule Elixium.Store do
   """
   defmacro transact(store, do: block) do
     quote bind_quoted: [store: store, block: block] do
-      {:ok, ref} = Exleveldb.open(store)
+      {:ok, ref} =
+        store
+        |> store_path()
+        |> Exleveldb.open()
+
       result = block.(ref)
       Exleveldb.close(ref)
       result
@@ -35,5 +42,18 @@ defmodule Elixium.Store do
     transact store do
       &Exleveldb.is_empty?(&1)
     end
+  end
+
+  def store_path(store) do
+    path =
+      :elixium_core
+      |> Application.get_env(:data_path)
+      |> Path.expand()
+
+    if !File.exists?(path) do
+      File.mkdir(path)
+    end
+
+    "#{path}/#{store}"
   end
 end

@@ -6,7 +6,7 @@ defmodule Elixium.Store.Peer do
     This includes authentication data
   """
 
-  @store_dir ".peers"
+  @store_dir "peers"
 
   def initialize do
     initialize(@store_dir)
