@@ -107,7 +107,7 @@ defmodule Elixium.Transaction do
   """
   @spec create(list, D.t()) :: Transaction
   def create(designations, fee) do
-    utxos = Elixium.Store.Utxo.retrieve_all_utxos()
+    utxos = Elixium.Store.Utxo.retrieve_wallet_utxos()
 
     # Find total amount of elixir being sent in this transaction
     total_amount = Enum.reduce(designations, D.new(0), fn x, acc -> D.add(x.amount, acc) end)
