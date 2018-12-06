@@ -9,7 +9,7 @@ defmodule Elixium.Store.Ledger do
     is where blocks are stored and fetched
   """
 
-  @store_dir ".chaindata"
+  @store_dir "chaindata"
   @ets_name :chaindata
 
   def initialize do

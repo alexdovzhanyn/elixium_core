@@ -81,7 +81,9 @@ defmodule Elixium.Mixfile do
         # 8 Megabyte block size
         block_size_limit: 8_388_608,
 
-        unix_key_address: "~/.keys"
+        unix_key_address: "~/.keys",
+
+        data_path: "~/.elixium"
 
       ]
     ]
