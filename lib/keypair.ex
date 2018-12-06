@@ -51,9 +51,11 @@ defmodule Elixium.KeyPair do
         private = Mnemonic.to_entropy(phrase)
         {pub, priv} = get_from_private(private)
         create_keyfile({pub, priv})
+        {pub, priv}
       else
         {pub, priv} = get_from_private(phrase)
         create_keyfile({pub, priv})
+        {pub, priv}
     end
   end
 
@@ -73,8 +75,7 @@ defmodule Elixium.KeyPair do
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
     unix_address =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
+      Application.get_env(:elixium_core, :unix_key_address)
       |> Path.expand()
 
     key_path = "#{unix_address}/#{pub}.key"
@@ -146,13 +147,10 @@ defmodule Elixium.KeyPair do
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
-    unix_address =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
-      |> Path.expand()
+    unix_address = Application.get_env(:elixium_core, :unix_key_address)
+    |> Path.expand()
 
-    if !File.dir?(unix_address), do: File.mkdir(unix_address)
-
+     if !File.dir?(unix_address), do: File.mkdir(unix_address)
     address = address_from_pubkey(public)
 
     File.write!("#{unix_address}/#{address}.key", private)
