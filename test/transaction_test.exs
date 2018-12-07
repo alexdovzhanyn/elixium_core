@@ -61,7 +61,7 @@ defmodule TransactionTest do
         inputs: inputs
       }
 
-    id = Elixium.Transaction.create_tx_id(tx, tx_timestamp)
+    id = Elixium.Transaction.create_tx_id(tx)
     tx = %{tx | id: id}
     outputs = Transaction.calculate_outputs(tx, designations)
 
@@ -115,7 +115,7 @@ defmodule TransactionTest do
     utxos = Elixium.Store.Utxo.find_by_address(compressed_pub_address)
     input_amount = D.new(760.0)
     input_designations = [%{amount: D.new(100), addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
-    inputs = utxos |> Enum.take(1)
+    inputs = utxos |> Enum.take(1) |> IO.inspect
     output_amount = Decimal.new(100)
     designations = Transaction.create_designations(inputs, output_amount, D.new(1.0), compressed_pub_address, input_designations)
 
@@ -125,7 +125,7 @@ defmodule TransactionTest do
       %Elixium.Transaction{
         inputs: inputs
       }
-    id = Elixium.Transaction.create_tx_id(tx, tx_timestamp)
+    id = Elixium.Transaction.create_tx_id(tx)
     tx = %{tx | id: id}
     transaction = Map.merge(tx, Transaction.calculate_outputs(tx, designations))
 
@@ -135,6 +135,43 @@ defmodule TransactionTest do
     assert Elixium.Validator.valid_transaction?(transaction) == true
 
     #Now lets remove the test key from the system
+    key_path = "#{path}/#{compressed_pub_address}.key"
+    File.rm!(key_path)
+  end
+
+  test "Main Create Transaction function creates a valid transaction" do
+    #Start the helpers up
+    Elixium.Store.Oracle.start_link(Elixium.Store.Utxo)
+    Elixium.Store.Oracle.start_link(Elixium.Store.Ledger)
+    Elixium.Store.Ledger.initialize()
+    Elixium.Store.Utxo.initialize()
+
+    #Generate a New KeyPair to use for testing
+    path = Elixium.Store.store_path(@store)
+    {public, private} = KeyPair.create_keypair
+    compressed_pub_address = KeyPair.address_from_pubkey(public)
+
+    #Initialize the block with the correct information allowing a succesfull transaction to be processed using the new blocks utxo's
+    block = Block.initialize()
+    block = Map.put(block, :transactions, [])
+    index = :binary.decode_unsigned(block.index)
+    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coinbase = Transaction.generate_coinbase(coin_base, compressed_pub_address)
+    transactions = [coinbase | block.transactions]
+    txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)
+    block = Map.merge(block, %{
+      transactions: transactions,
+      merkle_root: Utilities.calculate_merkle_root(txdigests)
+    })
+    block = catch_exit(exit Block.mine(block))
+
+    #Append the new block to the store & update the utxo's
+    Elixium.Store.Ledger.append_block(block)
+    Utxo.update_with_transactions(block.transactions)
+    input_designations = [%{amount: D.new(100), addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
+    transaction = Transaction.create(input_designations, D.from_float(1.0))
+    assert Elixium.Validator.valid_transaction?(transaction) == true
+
     key_path = "#{path}/#{compressed_pub_address}.key"
     File.rm!(key_path)
   end

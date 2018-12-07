@@ -45,20 +45,16 @@ defmodule Elixium.Transaction do
   """
   @spec create_sig_list(List, Map) :: List
   def create_sig_list(inputs, transaction) do
-    Enum.uniq_by(inputs, fn input -> input.addr end)
-    |> Enum.map(fn address -> create_sig(address, transaction) end)
+    digest = Elixium.Transaction.signing_digest(transaction)
+    inputs
+    |> Enum.uniq_by(& &1.addr)
+    |> Enum.map(fn %{addr: addr} ->
+      priv = Elixium.KeyPair.get_priv_from_file(addr)
+      sig = Elixium.KeyPair.sign(priv, digest)
+      {addr, sig}
+    end)
   end
 
-  @doc """
-  Creates a singature address being passed in and the corresponding private key
-  """
-  @spec create_sig(String.t(), Map) :: Tuple
-  def create_sig(address, transaction) do
-    priv = Elixium.KeyPair.get_priv_from_file(address)
-    digest = Elixium.Transaction.signing_digest(transaction)
-    sig = Elixium.KeyPair.sign(priv, digest)
-    {address, sig}
-  end
 
   @doc """
   Take the correct amount of Utxo's to send the alloted amount in a transaction.
@@ -79,6 +75,7 @@ defmodule Elixium.Transaction do
       chosen
     end
   end
+
 
   @doc """
   Creates a current time stamp for transaction building
@@ -179,6 +176,7 @@ defmodule Elixium.Transaction do
   def create(designations, fee) do
     utxos = Elixium.Store.Utxo.retrieve_wallet_utxos()
 
+
     # Find total amount of elixir being sent in this transaction
     total_amount = Enum.reduce(designations, D.new(0), fn x, acc -> D.add(x.amount, acc) end)
 
@@ -210,28 +208,11 @@ defmodule Elixium.Transaction do
     digest = signing_digest(tx)
 
     # Create a signature for each unique address in the inputs
-    sigs =
-      tx.inputs
-      |> Enum.uniq_by(& &1.addr)
-      |> Enum.map(fn %{addr: addr} ->
-        priv = Elixium.KeyPair.get_priv_from_file(addr)
-        sig = Elixium.KeyPair.sign(priv, digest)
-        {addr, sig}
-      end)
+    sigs = create_sig_list(tx.inputs, tx)
 
     Map.put(tx, :sigs, sigs)
+
   end
 
-  defp take_necessary_utxos(utxos, chosen, amount) do
-    if D.cmp(amount, 0) == :gt do
-      if utxos == [] do
-        :not_enough_balance
-      else
-        [utxo | remaining] = utxos
-        take_necessary_utxos(remaining, [utxo | chosen], D.sub(amount, utxo.amount))
-      end
-    else
-      chosen
-    end
-  end
+
 end
