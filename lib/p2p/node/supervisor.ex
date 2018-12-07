@@ -40,7 +40,12 @@ defmodule Elixium.Node.Supervisor do
   end
 
   defp generate_handlers(socket, router_pid, peers) do
-    for i <- 1..10 do
+    {total_handlers, _} =
+      :maxHandlers
+      |> Elixium.Utilities.get_arg("10")
+      |> Integer.parse()
+
+    for i <- 1..total_handlers do
       %{
         id: :"ConnectionHandler#{i}",
         start: {
@@ -78,7 +83,6 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
-
   # Connects to the bootstrapping peer registry and returns a list of
   # previously connected peers.
   @spec fetch_peers_from_registry(integer) :: List | :not_found
@@ -93,7 +97,7 @@ defmodule Elixium.Node.Supervisor do
           body
           |> Jason.decode!()
           |> Enum.map(&peerstring_to_tuple/1)
-          |> Enum.uniq
+          |> Enum.uniq()
           |> Enum.filter(fn {peer, port} ->
             port != nil &&
             validate_own_ip_port(peer, own_local_ip, port, port_conf) == false &&
@@ -105,7 +109,6 @@ defmodule Elixium.Node.Supervisor do
       {:error, _} -> :not_found
     end
   end
-
 
   @doc """
     On Connection, fetch our public ip
@@ -120,7 +123,6 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
-
   @doc """
     On Connection, fetch our local ip
   """
@@ -130,10 +132,10 @@ defmodule Elixium.Node.Supervisor do
 
     adapter_list
     |> Enum.flat_map(fn {_adapter, ip_list} ->
-         ip_list
-         |> Enum.map(&validate_ip_range/1)
-         |> Enum.reject(& &1 == :ok || &1 == '127.0.0.1')
-       end)
+      ip_list
+      |> Enum.map(&validate_ip_range/1)
+      |> Enum.reject(& &1 == :ok || &1 == '127.0.0.1')
+    end)
     |> List.first()
   end
 
@@ -166,11 +168,11 @@ defmodule Elixium.Node.Supervisor do
     :p2p_handlers
     |> :pg2.get_members()
     |> Enum.filter(fn p ->
-        p
-        |> Process.info()
-        |> Keyword.get(:dictionary)
-        |> Keyword.has_key?(:connected)
-      end)
+      p
+      |> Process.info()
+      |> Keyword.get(:dictionary)
+      |> Keyword.has_key?(:connected)
+    end)
   end
 
   @doc """

@@ -129,6 +129,7 @@ defmodule Elixium.Store.Ledger do
     |> max(0)
     |> Range.new(starting_at)
     |> Enum.map(&block_at_height/1)
+    |> Enum.filter(& &1 != :none)
   end
 
   @doc """

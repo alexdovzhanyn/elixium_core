@@ -13,7 +13,7 @@ way -- decentralized even within the development team. Check out the
 to get started with contributing to Elixium. If you have any trouble getting set
 up or just want to join in with our development discussion, join our
 [Telegram Group](https://t.me/joinchat/JjYPS0WI62EMuMXovyjskA). The
-[Elixium Development Wiki](https://github.com/ElixiumNetwork/elixium_core/wiki)
+[Elixium Development Wiki](https://developers.elixiumnetwork.org)
 is a great place to get familiarized with Elixium's codebase.
 
 ### What we're aiming to solve

@@ -170,4 +170,68 @@ defmodule Elixium.Transaction do
 
     :crypto.hash(:sha256, digest)
   end
+
+  @doc """
+    Takes in a list of maps that match %{addr: addr, amount: amount} and creates
+    a valid transaction.
+  """
+  @spec create(list, D.t()) :: Transaction
+  def create(designations, fee) do
+    utxos = Elixium.Store.Utxo.retrieve_wallet_utxos()
+
+    # Find total amount of elixir being sent in this transaction
+    total_amount = Enum.reduce(designations, D.new(0), fn x, acc -> D.add(x.amount, acc) end)
+
+    # Grab enough UTXOs to cover the total amount plus the fee
+    inputs = take_necessary_utxos(utxos, [], D.add(total_amount, fee))
+
+    tx = %Transaction{inputs: inputs}
+
+    tx = Map.put(tx, :id, calculate_hash(tx))
+
+    # UTXO totals will likely exceed the total amount we're trying to send.
+    # Let's see what the difference is
+    remaining =
+      inputs
+      |> sum_inputs()
+      |> D.sub(D.add(total_amount, fee))
+
+    # If there is any remaining unspent elixir in this transaction, assign it
+    # back to an address we control as change
+    designations =
+      if D.cmp(remaining, D.new(0)) == :gt do
+        designations ++ [%{addr: hd(tx.inputs).addr, amount: remaining}]
+      else
+        designations
+      end
+
+    tx = Map.merge(tx, calculate_outputs(tx, designations))
+
+    digest = signing_digest(tx)
+
+    # Create a signature for each unique address in the inputs
+    sigs =
+      tx.inputs
+      |> Enum.uniq_by(& &1.addr)
+      |> Enum.map(fn %{addr: addr} ->
+        priv = Elixium.KeyPair.get_priv_from_file(addr)
+        sig = Elixium.KeyPair.sign(priv, digest)
+        {addr, sig}
+      end)
+
+    Map.put(tx, :sigs, sigs)
+  end
+
+  defp take_necessary_utxos(utxos, chosen, amount) do
+    if D.cmp(amount, 0) == :gt do
+      if utxos == [] do
+        :not_enough_balance
+      else
+        [utxo | remaining] = utxos
+        take_necessary_utxos(remaining, [utxo | chosen], D.sub(amount, utxo.amount))
+      end
+    else
+      chosen
+    end
+  end
 end
