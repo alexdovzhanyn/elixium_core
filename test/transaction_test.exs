@@ -130,11 +130,7 @@ defmodule TransactionTest do
     transaction = Map.merge(tx, Transaction.calculate_outputs(tx, designations))
 
     #Here we take unique inputs (i.e only uniq compressed addresses) and we're creating a sig list to verify
-    sigs =
-      Enum.uniq_by(inputs, fn input -> input.addr end)
-      |> Enum.map(fn input ->
-         Transaction.create_sig_list(input, transaction)
-    end)
+    sigs = Transaction.create_sig_list(inputs, transaction)
     transaction = Map.put(transaction, :sigs, sigs)
     assert Elixium.Validator.valid_transaction?(transaction) == true
 
