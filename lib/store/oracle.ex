@@ -33,7 +33,7 @@ defmodule Elixium.Store.Oracle do
   """
   @spec inquire(pid, tuple) :: any()
   def inquire(pid, options) do
-    GenServer.call(pid, options, 20000)
+    GenServer.call(pid, options, :infinity)
   end
 
 end

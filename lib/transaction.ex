@@ -34,21 +34,30 @@ defmodule Elixium.Transaction do
   @doc """
   Creates a correct tx id
   """
-  @spec create_tx_id(List, String.t()) :: String.t()
-  def create_tx_id(tx, tx_timestamp) do
-    calculate_hash(tx) <> tx_timestamp
+  @spec create_tx_id(List) :: String.t()
+  def create_tx_id(tx) do
+    calculate_hash(tx)
     |> Utilities.sha_base16()
   end
 
   @doc """
-  Creates a singature list based off the input being passed in and the corresponding private key
+  Creates a singature list
   """
-  @spec create_sig_list(Map, Map) :: Tuple
-  def create_sig_list(input, transaction) do
-    priv = Elixium.KeyPair.get_priv_from_file(input.addr)
+  @spec create_sig_list(List, Map) :: List
+  def create_sig_list(inputs, transaction) do
+    Enum.uniq_by(inputs, fn input -> input.addr end)
+    |> Enum.map(fn address -> create_sig(address, transaction) end)
+  end
+
+  @doc """
+  Creates a singature address being passed in and the corresponding private key
+  """
+  @spec create_sig(String.t(), Map) :: Tuple
+  def create_sig(address, transaction) do
+    priv = Elixium.KeyPair.get_priv_from_file(address)
     digest = Elixium.Transaction.signing_digest(transaction)
     sig = Elixium.KeyPair.sign(priv, digest)
-    {input.addr, sig}
+    {address, sig}
   end
 
   @doc """

@@ -4,7 +4,18 @@ defmodule Elixium.Utilities do
     places for different things
   """
 
-  
+  @doc """
+    Depending on the test environment, choose the correct stroe variable to use
+  """
+  @spec choose_store(String.t(), String.t()) :: String.t()
+  def choose_store(store_prod, store_test) do
+    if Mix.env !== :test do
+      store_prod
+    else
+      store_test
+    end
+  end
+
   def sha256(data),
     do: hash(data, :sha256)
 

@@ -139,10 +139,10 @@ defmodule Elixium.Validator do
     this function must return a boolean.
   """
   def valid_transaction?(transaction, pool_check) do
-    with true <- IO.inspect(Enum.all?(transaction.inputs, & pool_check.(&1))),
-         true <- IO.inspect(tx_addr_match?(transaction)),
-         true <- IO.inspect(tx_sigs_valid?(transaction)),
-         true <- IO.inspect(outputs_dont_exceed_inputs?(transaction)) do
+    with true <- Enum.all?(transaction.inputs, & pool_check.(&1)),
+         true <- tx_addr_match?(transaction),
+         true <- tx_sigs_valid?(transaction),
+         true <- outputs_dont_exceed_inputs?(transaction) do
       true
     else
       _ -> false
