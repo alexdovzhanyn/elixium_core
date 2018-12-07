@@ -7,16 +7,12 @@ defmodule Elixium.Node.Supervisor do
     Responsible for getting peer information and launching connection handlers
   """
 
-  @default_port 31_013
+  def start_link, do: start_link(self())
+  def start_link([router_pid]), do: start_link(router_pid)
+  def start_link([nil]), do: start_link(self())
 
-  def start_link, do: start_link(self(), @default_port)
-  def start_link([router_pid]) when is_pid(router_pid), do: start_link(router_pid, @default_port)
-  def start_link([port]) when is_number(port), do: start_link(self(), port)
-  def start_link([nil]), do: start_link(self(), @default_port)
-  def start_link([router_pid, nil]), do: start_link(router_pid, @default_port)
-  def start_link([router_pid, port]), do: start_link(router_pid, port)
-
-  def start_link(router_pid, port) do
+  def start_link(router_pid) do
+    port = Application.get_env(:elixium_core, :port)
     Supervisor.start_link(__MODULE__, [router_pid, port], name: __MODULE__)
   end
 
@@ -40,10 +36,7 @@ defmodule Elixium.Node.Supervisor do
   end
 
   defp generate_handlers(socket, router_pid, peers) do
-    {total_handlers, _} =
-      :maxHandlers
-      |> Elixium.Utilities.get_arg("10")
-      |> Integer.parse()
+    total_handlers = Application.get_env(:elixium_core, :max_handlers)
 
     for i <- 1..total_handlers do
       %{
@@ -87,7 +80,11 @@ defmodule Elixium.Node.Supervisor do
   # previously connected peers.
   @spec fetch_peers_from_registry(integer) :: List | :not_found
   def fetch_peers_from_registry(port_conf) do
-    url = Application.get_env(:elixium_core, :registry_url)
+    url =
+      :elixium_core
+      |> Application.get_env(:bootstrap_url)
+      |> String.to_charlist()
+
     own_local_ip = fetch_local_ip()
     own_public_ip = fetch_public_ip()["ip"] #add condition here
 
