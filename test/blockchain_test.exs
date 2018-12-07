@@ -12,8 +12,8 @@ defmodule BlockchainTest do
     Utxo.initialize()
 
     on_exit(fn ->
-      File.rm_rf!(".chaindata")
-      File.rm_rf!(".utxo")
+      File.rm_rf!("~/.elixium/chaindata")
+      File.rm_rf!("~/.elixium/utxo")
     end)
   end
 
