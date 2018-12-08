@@ -32,15 +32,6 @@ defmodule Elixium.Transaction do
   end
 
   @doc """
-  Creates a correct tx id
-  """
-  @spec create_tx_id(List) :: String.t()
-  def create_tx_id(tx) do
-    calculate_hash(tx)
-    |> Utilities.sha_base16()
-  end
-
-  @doc """
   Creates a singature list
   """
   @spec create_sig_list(List, Map) :: List
@@ -54,7 +45,6 @@ defmodule Elixium.Transaction do
       {addr, sig}
     end)
   end
-
 
   @doc """
   Take the correct amount of Utxo's to send the alloted amount in a transaction.
@@ -77,26 +67,6 @@ defmodule Elixium.Transaction do
   end
 
 
-  @doc """
-  Creates a current time stamp for transaction building
-  """
-  @spec create_timestamp :: String.t()
-  def create_timestamp, do: DateTime.utc_now |> DateTime.to_string
-
-  @doc """
-  # Since a UTXO is fully used up when we put it in a new transaction, we must create a new output
-  # that credits us with the change
-  """
-  @spec create_designations(Map, Decimal, Decimal, String.t(), List) :: List
-  def create_designations(inputs, amount, desired_fee, return_address, prev_designations) do
-    designations =
-      case D.cmp(Transaction.sum_inputs(inputs), D.add(amount, desired_fee)) do
-        :gt ->
-          [%{amount: D.sub(Transaction.sum_inputs(inputs), D.add(amount, desired_fee)), addr: return_address} | prev_designations]
-        :lt -> prev_designations
-        :eq -> prev_designations
-      end
-  end
 
   @doc """
     Each transaction consists of multiple inputs and outputs. Inputs to any

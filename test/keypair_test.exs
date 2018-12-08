@@ -2,15 +2,13 @@ defmodule KeyPairTest do
   alias Elixium.KeyPair
 
   use ExUnit.Case, async: true
-  @store "test_keys"
+  @store "keys"
 
   setup do
-      Application.put_env(:elixium_core, :unix_key_address, "/test_keys")
-
       on_exit(fn ->
-        File.rm_rf!("~/.elixium/chaindata")
-        File.rm_rf!("~/.elixium/utxo")
-        File.rm_rf!("~/.elixium/test_keys")
+        File.rm_rf!(Elixium.Store.store_path("chaindata"))
+        File.rm_rf!(Elixium.Store.store_path("utxo"))
+        File.rm_rf!(Elixium.Store.store_path("keys"))
       end)
   end
 

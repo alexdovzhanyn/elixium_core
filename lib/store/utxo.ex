@@ -8,7 +8,7 @@ defmodule Elixium.Store.Utxo do
 
   @store_dir "utxo"
   @ets_name :utxo
-  @keys Elixium.Utilities.choose_store("keys","test_keys")
+  @keys "keys"
 
 
   @type utxo() :: %{

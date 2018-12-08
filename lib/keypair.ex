@@ -7,8 +7,8 @@ defmodule Elixium.KeyPair do
   @sigtype :ecdsa
   @curve :secp256k1
   @hashtype :sha256
-  @store Elixium.Utilities.choose_store("keys","test_keys")
-  
+  @store "keys"
+
 
   @moduledoc """
     All the functions responsible for creating keypairs and using them to sign

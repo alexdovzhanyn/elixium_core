@@ -54,7 +54,7 @@ defmodule Elixium.Node.LedgerManager do
       :ok ->
         # Save the block to our chain since its valid
         Ledger.append_block(block)
-        Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:update_with_transactions, [block.transactions]})
+        Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:update_with_transactions, [block.transactions]}, :infinity)
         :ok
       _err -> :invalid
     end
@@ -154,7 +154,7 @@ defmodule Elixium.Node.LedgerManager do
         Orphan.add(block)
         {:missing_blocks, fork_chain}
       {fork_chain, fork_source} ->
-        current_utxos_in_pool = Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:retrieve_all_utxos, []})
+        current_utxos_in_pool = Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:retrieve_all_utxos, []}, :infinity)
 
         # Blocks which need to be reversed. (Everything from the block after
         # the fork source to the current block)
@@ -197,7 +197,7 @@ defmodule Elixium.Node.LedgerManager do
           Logger.info("Candidate fork chain valid. Switching.")
 
           # Add everything in final_contextual_pool that is not also in current_utxos_in_pool
-          Enum.each(final_contextual_pool -- current_utxos_in_pool, & Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:add_utxo, [&1]}))
+          Enum.each(final_contextual_pool -- current_utxos_in_pool, & Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:add_utxo, [&1]}, :infinity))
 
           # Remove everything in current_utxos_in_pool that is not also in final_contextual_pool
           current_utxos_in_pool -- final_contextual_pool

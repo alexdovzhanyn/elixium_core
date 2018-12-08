@@ -45,6 +45,7 @@ defmodule Elixium.Store do
   end
 
   def store_path(store) do
+
     path =
       :elixium_core
       |> Application.get_env(:data_path)
@@ -54,6 +55,10 @@ defmodule Elixium.Store do
       File.mkdir(path)
     end
 
+    if Mix.env !== :test do
     "#{path}/#{store}"
+    else
+    "#{path}/test_#{store}"
+    end
   end
 end
