@@ -2,7 +2,7 @@ defmodule NodeTest do
   alias Elixium.Node.Supervisor
 
   use ExUnit.Case, async: true
-  @peer_list Supervisor.fetch_peers_from_registry(31013)
+  @peer_list Supervisor.fetch_peers_from_registry(31_013)
 
   test "Initial fetch of Peer Returns Populated List" do
     peer_list = @peer_list

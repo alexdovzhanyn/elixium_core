@@ -92,8 +92,8 @@ defmodule Elixium.Block do
     the hash is lower, it is a valid block, and we can broadcast the block to
     other nodes on the network.
   """
-  @spec mine(Block, Range.t(), number, number) :: Block | :not_in_range
-  def mine(block, nonce_range \\ 0..18446744073709551615, cpu_num \\ 0, hashes \\ 0, last_hashrate_check \\ time_unix()) do
+  @spec mine(Block, Range.t(), number, number, number) :: Block | :not_in_range
+  def mine(block, nonce_range \\ 0..18_446_744_073_709_551_615, cpu_num \\ 0, hashes \\ 0, last_hashrate_check \\ time_unix()) do
     block = Map.put(block, :hash, calculate_block_hash(block))
 
     cond do
