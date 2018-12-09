@@ -6,6 +6,10 @@ defmodule Elixium.Mnemonic do
   @regex_chunk_from_entropy Regex.compile!(".{1,#{@leading_zeros_of_mnemonic}}")
   @regex_chunk_to_entropy Regex.compile!(".{1,#{@leading_zeros_for_mnemonic}}")
 
+  @moduledoc """
+    Functionality for generating mnemonics
+  """
+
   @words to_string(:code.priv_dir(:elixium_core)) <> "/words.txt"
         |> File.stream!()
         |> Stream.map(&String.trim/1)

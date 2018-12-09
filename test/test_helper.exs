@@ -1,4 +1,4 @@
-ExUnit.start(timeout: 600000, capture_log: true)
+ExUnit.start(timeout: 600_000, capture_log: true)
 
 
 
