@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.5.3",
+      version: "0.5.4",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -81,12 +81,15 @@ defmodule Elixium.Mixfile do
         # 8 Megabyte block size
         block_size_limit: 8_388_608,
 
-
         data_path: "~/.elixium",
 
         max_handlers: 10,
 
-        port: 31013
+        port: 31013,
+
+        max_bidirectional_connections: 10,
+
+        max_inbound_connections: 90
       ]
     ]
   end

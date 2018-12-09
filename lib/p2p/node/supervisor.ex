@@ -36,20 +36,38 @@ defmodule Elixium.Node.Supervisor do
   end
 
   defp generate_handlers(socket, router_pid, peers) do
-    total_handlers = Application.get_env(:elixium_core, :max_handlers)
+    max_bidirectional = Application.get_env(:elixium_core, :max_bidirectional_connections)
+    max_inbound = Application.get_env(:elixium_core, :max_inbound_connections)
 
-    for i <- 1..total_handlers do
-      %{
-        id: :"ConnectionHandler#{i}",
-        start: {
-          Elixium.Node.ConnectionHandler,
-          :start_link,
-          [socket, router_pid, peers, i]
-        },
-        type: :worker,
-        restart: :permanent
-      }
-    end
+    bidirectional =
+      for i <- 1..max_bidirectional do
+        %{
+          id: :"ConnectionHandler#{i}",
+          start: {
+            Elixium.Node.ConnectionHandler,
+            :start_link,
+            [socket, router_pid, peers, i, true]
+          },
+          type: :worker,
+          restart: :permanent
+        }
+      end
+
+    inbound =
+      for i <- (max_bidirectional + 1)..max_inbound do
+        %{
+          id: :"ConnectionHandler#{i}",
+          start: {
+            Elixium.Node.ConnectionHandler,
+            :start_link,
+            [socket, router_pid, peers, i]
+          },
+          type: :worker,
+          restart: :permanent
+        }
+      end
+
+    bidirectional ++ inbound
   end
 
   @spec open_socket(pid) :: pid | :error

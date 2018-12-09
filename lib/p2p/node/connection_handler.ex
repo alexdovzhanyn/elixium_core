@@ -9,11 +9,11 @@ defmodule Elixium.Node.ConnectionHandler do
     Manage inbound and outbound connections
   """
 
-  def start_link(socket, pid, peers, handler_number) do
-    GenServer.start_link(__MODULE__, [socket, pid, peers, handler_number], name: :"ConnectionHandler#{handler_number}")
+  def start_link(socket, pid, peers, handler_number, bidirectional \\ false) do
+    GenServer.start_link(__MODULE__, [socket, pid, peers, handler_number, bidirectional], name: :"ConnectionHandler#{handler_number}")
   end
 
-  def init([socket, pid, peers, handler_number]) do
+  def init([socket, pid, peers, handler_number, bidirectional]) do
     Process.send_after(self(), :start_connection, 1000)
 
     {:ok,
@@ -22,7 +22,8 @@ defmodule Elixium.Node.ConnectionHandler do
         router_pid: pid,
         available_peers: peers,
         handler_name: :"ConnectionHandler#{handler_number}",
-        handler_number: handler_number
+        handler_number: handler_number,
+        bidirectional: bidirectional
       }
     }
   end
@@ -34,7 +35,7 @@ defmodule Elixium.Node.ConnectionHandler do
         GenServer.cast(state.handler_name, :accept_inbound_connection)
 
       peers ->
-        if length(peers) >= state.handler_number do
+        if state.bidirectional && length(peers) >= state.handler_number do
           {ip, port} = Enum.at(peers, state.handler_number - 1)
 
           GenServer.cast(state.handler_name, {:attempt_outbound_connection, {ip, port}})
