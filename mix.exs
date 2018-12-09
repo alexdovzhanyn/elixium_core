@@ -4,7 +4,7 @@ defmodule Elixium.Mixfile do
   def project do
     [
       app: :elixium_core,
-      version: "0.4.12",
+      version: "0.5.0",
       elixir: "~> 1.7",
       elixirc_paths: ["lib"],
       start_permanent: Mix.env() == :prod,
@@ -74,7 +74,7 @@ defmodule Elixium.Mixfile do
         ghost_protocol_version: "v1.0",
 
         # Url used to bootstrap node connections
-        registry_url: 'https://registry.testnet.elixium.app/',
+        bootstrap_url: "https://registry.testnet.elixium.app/",
 
         address_version: "EX0",
 
@@ -82,8 +82,11 @@ defmodule Elixium.Mixfile do
         block_size_limit: 8_388_608,
 
 
-        data_path: "~/.elixium"
+        data_path: "~/.elixium",
 
+        max_handlers: 10,
+
+        port: 31013
       ]
     ]
   end
