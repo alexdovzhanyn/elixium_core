@@ -121,8 +121,10 @@ defmodule Elixium.Node.ConnectionHandler do
   def handle_cast(:accept_inbound_connection, state) do
     {:ok, socket} = :gen_tcp.accept(state.listen_socket)
 
+    peername = get_peername(socket)
+
     # Here would be a good place to put an IP blacklisting safeguard...
-    Logger.info("#{state.handler_name} Accepted potential handshake")
+    Logger.info("#{state.handler_name} Accepted potential handshake from #{peername}")
 
     handshake = Message.read(socket)
 
@@ -187,11 +189,12 @@ defmodule Elixium.Node.ConnectionHandler do
 
   defp prepare_connection_loop(socket, shared_secret, state, conn_type) do
     session_key = generate_session_key(shared_secret)
-    Logger.info("#{state.handler_name} authenticated with peer.")
 
     :inet.setopts(socket, active: :once)
 
     peername = get_peername(socket)
+
+    Logger.info("#{state.handler_name} authenticated with peer #{peername}")
 
     # Set the connected flag so that the parent process knows we've connected
     # to a peer.
