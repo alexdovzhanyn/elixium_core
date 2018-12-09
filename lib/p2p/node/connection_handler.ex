@@ -36,7 +36,7 @@ defmodule Elixium.Node.ConnectionHandler do
       peers ->
         if length(peers) >= state.handler_number do
           {ip, port} = Enum.at(peers, state.handler_number - 1)
-          had_previous_connection = had_previous_connection?(ip)
+          had_previous_connection = had_previous_connection?(ip, port)
           credentials = Authentication.load_credentials(ip, port)
 
           GenServer.cast(state.handler_name, {
@@ -256,8 +256,10 @@ defmodule Elixium.Node.ConnectionHandler do
 
   # Checks to see if this node has previously had an authentication
   # handshake with the node at the given IP.
-  @spec had_previous_connection?(String.t()) :: boolean
-  defp had_previous_connection?(ip) do
+  @spec had_previous_connection?(String.t(), number) :: boolean
+  defp had_previous_connection?(ip, port) do
+    ip = List.to_string(ip) <> ":" <> Integer.to_string(port)
+
     case Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:load_self, [ip]}) do
       :not_found -> false
       {_identifier, _password} -> true
