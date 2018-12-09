@@ -8,7 +8,7 @@ defmodule Elixium.Store.Utxo do
 
   @store_dir "utxo"
   @ets_name :utxo
-  @keys "keys"
+  
 
 
   @type utxo() :: %{
@@ -113,7 +113,7 @@ defmodule Elixium.Store.Utxo do
   """
   @spec retrieve_wallet_utxos :: list(utxo())
   def retrieve_wallet_utxos do
-    unix_address = Elixium.Store.store_path(@keys)
+    unix_address = Elixium.Store.store_path("keys")
 
     case File.ls(unix_address) do
       {:ok, keyfiles} ->
