@@ -10,11 +10,11 @@ defmodule TransactionTest do
   @store "keys"
 
   setup do
-      on_exit(fn ->
-        File.rm_rf!(Elixium.Store.store_path("chaindata"))
-        File.rm_rf!(Elixium.Store.store_path("utxo"))
-        File.rm_rf!(Elixium.Store.store_path("keys"))
-      end)
+    on_exit(fn ->
+      File.rm_rf!(Elixium.Store.store_path("chaindata"))
+      File.rm_rf!(Elixium.Store.store_path("utxo"))
+      File.rm_rf!(Elixium.Store.store_path("keys"))
+    end)
   end
 
   test "can generate a coinbase transaction" do
@@ -52,7 +52,7 @@ defmodule TransactionTest do
 
     #Generate a New KeyPair to use for testing
     path = Elixium.Store.store_path(@store)
-    {public, private} = KeyPair.create_keypair
+    {public, _private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
 
     #Initialize the block with the correct information allowing a succesfull transaction to be processed using the new blocks utxo's

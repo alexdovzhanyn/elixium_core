@@ -47,12 +47,12 @@ defmodule Elixium.KeyPair do
   @spec gen_keypair(String.t() | binary) :: {binary, binary}
   def gen_keypair(phrase) do
     if String.contains?(phrase, " ") do
-        private = Mnemonic.to_entropy(phrase)
-        {pub, priv} = get_from_private(private)
-        create_keyfile({pub, priv})
-      else
-        {pub, priv} = get_from_private(phrase)
-        create_keyfile({pub, priv})
+      private = Mnemonic.to_entropy(phrase)
+      {pub, priv} = get_from_private(private)
+      create_keyfile({pub, priv})
+    else
+      {pub, priv} = get_from_private(phrase)
+      create_keyfile({pub, priv})
     end
   end
 

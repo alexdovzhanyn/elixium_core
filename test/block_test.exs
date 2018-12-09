@@ -1,12 +1,8 @@
 defmodule BlockTest do
   alias Elixium.Block
   alias Elixium.Transaction
-  alias Elixium.Utilities
   alias Decimal, as: D
   use ExUnit.Case, async: false
-
-
-
 
   test "can create a genesis block" do
     block = Block.initialize()
