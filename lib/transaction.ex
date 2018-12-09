@@ -36,7 +36,8 @@ defmodule Elixium.Transaction do
   """
   @spec create_sig_list(List, Map) :: List
   def create_sig_list(inputs, transaction) do
-    digest = Elixium.Transaction.signing_digest(transaction)
+    digest = signing_digest(transaction)
+
     inputs
     |> Enum.uniq_by(& &1.addr)
     |> Enum.map(fn %{addr: addr} ->
@@ -65,8 +66,6 @@ defmodule Elixium.Transaction do
       chosen
     end
   end
-
-
 
   @doc """
     Each transaction consists of multiple inputs and outputs. Inputs to any
@@ -146,7 +145,6 @@ defmodule Elixium.Transaction do
   def create(designations, fee) do
     utxos = Elixium.Store.Utxo.retrieve_wallet_utxos()
 
-
     # Find total amount of elixir being sent in this transaction
     total_amount = Enum.reduce(designations, D.new(0), fn x, acc -> D.add(x.amount, acc) end)
 
@@ -154,7 +152,6 @@ defmodule Elixium.Transaction do
     inputs = take_necessary_utxos(utxos, [], D.add(total_amount, fee))
 
     tx = %Transaction{inputs: inputs}
-
     tx = Map.put(tx, :id, calculate_hash(tx))
 
     # UTXO totals will likely exceed the total amount we're trying to send.
@@ -175,14 +172,9 @@ defmodule Elixium.Transaction do
 
     tx = Map.merge(tx, calculate_outputs(tx, designations))
 
-    digest = signing_digest(tx)
-
     # Create a signature for each unique address in the inputs
     sigs = create_sig_list(tx.inputs, tx)
 
     Map.put(tx, :sigs, sigs)
-
   end
-
-
 end

@@ -8,15 +8,6 @@ defmodule Elixium.Store.Utxo do
 
   @store_dir "utxo"
   @ets_name :utxo
-  
-
-
-  @type utxo() :: %{
-    txoid: String.t(),
-    addr: String.t(),
-    amount: number,
-    signature: String.t() | none()
-  }
 
   def initialize do
     initialize(@store_dir)
@@ -26,7 +17,7 @@ defmodule Elixium.Store.Utxo do
   @doc """
     Add a utxo to leveldb, indexing it by its txoid
   """
-  @spec add_utxo(utxo()) :: :ok | {:error, any}
+  @spec add_utxo(Elixium.Utxo) :: :ok | {:error, any}
   def add_utxo(utxo) do
     transact @store_dir do
       &Exleveldb.put(&1, String.to_atom(utxo.txoid), :erlang.term_to_binary(utxo))
@@ -66,10 +57,10 @@ defmodule Elixium.Store.Utxo do
   @doc """
     Check if a UTXO is currently in the pool
   """
-  @spec in_pool?(utxo()) :: true | false
+  @spec in_pool?(Elixium.Utxo) :: true | false
   def in_pool?(%{txoid: txoid}), do: retrieve_utxo(txoid) != :not_found
 
-  @spec retrieve_all_utxos :: list(utxo())
+  @spec retrieve_all_utxos :: list(Elixium.Utxo)
   def retrieve_all_utxos do
     # It might be better to get from ets here, but there might be the issue
     # that ets wont have an UTXO that the store does, causing a block to be
@@ -111,7 +102,7 @@ defmodule Elixium.Store.Utxo do
   @doc """
     Fetches all keys from the wallet and passes them through to return the signed utxo's for later use
   """
-  @spec retrieve_wallet_utxos :: list(utxo())
+  @spec retrieve_wallet_utxos :: list(Elixium.Utxo)
   def retrieve_wallet_utxos do
     unix_address = Elixium.Store.store_path("keys")
 
@@ -131,7 +122,7 @@ end
   @doc """
     Return a list of UTXOs that a given address (public key) can use as inputs
   """
-  @spec find_by_address(String.t()) :: list(utxo())
+  @spec find_by_address(String.t()) :: list(Elixium.Utxo)
   def find_by_address(public_key) do
     case :ets.match(@ets_name, {'_', public_key, '$1'}) do
       [] -> do_find_by_address_from_store(public_key)
