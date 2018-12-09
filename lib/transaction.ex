@@ -32,6 +32,42 @@ defmodule Elixium.Transaction do
   end
 
   @doc """
+  Creates a singature list
+  """
+  @spec create_sig_list(List, Map) :: List
+  def create_sig_list(inputs, transaction) do
+    digest = signing_digest(transaction)
+
+    inputs
+    |> Enum.uniq_by(& &1.addr)
+    |> Enum.map(fn %{addr: addr} ->
+      priv = Elixium.KeyPair.get_priv_from_file(addr)
+      sig = Elixium.KeyPair.sign(priv, digest)
+      {addr, sig}
+    end)
+  end
+
+  @doc """
+  Take the correct amount of Utxo's to send the alloted amount in a transaction.
+  """
+  @spec take_necessary_utxos(List, Decimal) :: function
+  def take_necessary_utxos(utxos, amount), do: take_necessary_utxos(utxos, [], amount)
+
+  @spec take_necessary_utxos(List, List, Decimal) :: List
+  def take_necessary_utxos(utxos, chosen, amount) do
+    if D.cmp(amount, 0) == :gt do
+      if utxos == [] do
+        :not_enough_balance
+      else
+        [utxo | remaining] = utxos
+        take_necessary_utxos(remaining, [utxo | chosen], D.sub(amount, utxo.amount))
+      end
+    else
+      chosen
+    end
+  end
+
+  @doc """
     Each transaction consists of multiple inputs and outputs. Inputs to any
     particular transaction are just outputs from other transactions. This is
     called the UTXO model. In order to efficiently represent the UTXOs within
@@ -116,7 +152,6 @@ defmodule Elixium.Transaction do
     inputs = take_necessary_utxos(utxos, [], D.add(total_amount, fee))
 
     tx = %Transaction{inputs: inputs}
-
     tx = Map.put(tx, :id, calculate_hash(tx))
 
     # UTXO totals will likely exceed the total amount we're trying to send.
@@ -137,31 +172,9 @@ defmodule Elixium.Transaction do
 
     tx = Map.merge(tx, calculate_outputs(tx, designations))
 
-    digest = signing_digest(tx)
-
     # Create a signature for each unique address in the inputs
-    sigs =
-      tx.inputs
-      |> Enum.uniq_by(& &1.addr)
-      |> Enum.map(fn %{addr: addr} ->
-        priv = Elixium.KeyPair.get_priv_from_file(addr)
-        sig = Elixium.KeyPair.sign(priv, digest)
-        {addr, sig}
-      end)
+    sigs = create_sig_list(tx.inputs, tx)
 
     Map.put(tx, :sigs, sigs)
-  end
-
-  defp take_necessary_utxos(utxos, chosen, amount) do
-    if D.cmp(amount, 0) == :gt do
-      if utxos == [] do
-        :not_enough_balance
-      else
-        [utxo | remaining] = utxos
-        take_necessary_utxos(remaining, [utxo | chosen], D.sub(amount, utxo.amount))
-      end
-    else
-      chosen
-    end
   end
 end

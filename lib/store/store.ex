@@ -54,6 +54,8 @@ defmodule Elixium.Store do
       File.mkdir(path)
     end
 
-    "#{path}/#{store}"
+    is_test = Application.get_env(:elixium_core, :is_test)
+
+    "#{path}/#{if is_test, do: "test_"}#{store}"
   end
 end

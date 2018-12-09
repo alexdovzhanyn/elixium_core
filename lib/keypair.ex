@@ -7,6 +7,8 @@ defmodule Elixium.KeyPair do
   @sigtype :ecdsa
   @curve :secp256k1
   @hashtype :sha256
+  @store "keys"
+
 
   @moduledoc """
     All the functions responsible for creating keypairs and using them to sign
@@ -21,7 +23,6 @@ defmodule Elixium.KeyPair do
   def create_keypair do
     keypair = :crypto.generate_key(@algorithm, @curve)
     create_keyfile(keypair)
-    keypair
   end
 
   @doc """
@@ -46,12 +47,12 @@ defmodule Elixium.KeyPair do
   @spec gen_keypair(String.t() | binary) :: {binary, binary}
   def gen_keypair(phrase) do
     if String.contains?(phrase, " ") do
-        private = Mnemonic.to_entropy(phrase)
-        {pub, priv} = get_from_private(private)
-        create_keyfile({pub, priv})
-      else
-        {pub, priv} = get_from_private(phrase)
-        create_keyfile({pub, priv})
+      private = Mnemonic.to_entropy(phrase)
+      {pub, priv} = get_from_private(private)
+      create_keyfile({pub, priv})
+    else
+      {pub, priv} = get_from_private(phrase)
+      create_keyfile({pub, priv})
     end
   end
 
@@ -70,10 +71,7 @@ defmodule Elixium.KeyPair do
   """
   @spec get_priv_from_file(String.t()) :: {binary, binary}
   def get_priv_from_file(pub) do
-    unix_address =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
-      |> Path.expand()
+    unix_address = Elixium.Store.store_path(@store)
 
     key_path = "#{unix_address}/#{pub}.key"
     {_, priv} = get_from_file(key_path)
@@ -138,22 +136,20 @@ defmodule Elixium.KeyPair do
     <<4>> <> x <> y
   end
 
-  defp get_from_private(private) do
+  def get_from_private(private) do
     :crypto.generate_key(@algorithm, @curve, private)
   end
 
   @spec create_keyfile(tuple) :: :ok | {:error, any}
   defp create_keyfile({public, private}) do
-    unix_address =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
-      |> Path.expand()
 
-    if !File.dir?(unix_address), do: File.mkdir(unix_address)
+    unix_address = Elixium.Store.store_path(@store)
 
+     if !File.dir?(unix_address), do: File.mkdir(unix_address)
     address = address_from_pubkey(public)
 
     File.write!("#{unix_address}/#{address}.key", private)
+    {public, private}
   end
 
   # Adapted from stackoverflow answer

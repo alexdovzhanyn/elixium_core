@@ -2,6 +2,15 @@ defmodule KeyPairTest do
   alias Elixium.KeyPair
 
   use ExUnit.Case, async: true
+  @store "keys"
+
+  setup do
+      on_exit(fn ->
+        File.rm_rf!(Elixium.Store.store_path("chaindata"))
+        File.rm_rf!(Elixium.Store.store_path("utxo"))
+        File.rm_rf!(Elixium.Store.store_path("keys"))
+      end)
+  end
 
   test "Can create a keypair and return correct format private and public keys" do
     {pub, priv} = KeyPair.create_keypair()
@@ -11,33 +20,27 @@ defmodule KeyPairTest do
   end
 
   test "Key pair is generated and saved" do
-    path =
-      :elixium_core
-      |> Application.get_env(:unix_key_address)
-      |> Path.expand()
+    path = Elixium.Store.store_path(@store)
 
-    {public, private} = KeyPair.create_keypair
+    {public, _private} = KeyPair.create_keypair
     compressed_pub_address = KeyPair.address_from_pubkey(public)
     key_path = "#{path}/#{compressed_pub_address}.key"
     exists? = File.exists?(key_path)
 
     assert exists? == true
-    with true <- assert exists? do
-      File.rm!(key_path)
-    end
   end
 
   test "Mnemonic Is generated and returns correct private key" do
-    {public, private} = KeyPair.create_keypair
+    {_public, private} = KeyPair.create_keypair
     mnemonic = KeyPair.create_mnemonic(private)
-    {pub_from_mne, priv_from_mne} = KeyPair.gen_keypair(mnemonic)
+    {_pub_from_mne, priv_from_mne} = KeyPair.gen_keypair(mnemonic)
 
     assert private == priv_from_mne
   end
 
   test "Key pair is generated and the private key is able to generate the correct pub key" do
     {public, private} = KeyPair.create_keypair
-    {pub_from_mne, priv_from_mne} = KeyPair.gen_keypair(private)
+    {pub_from_mne, _priv_from_mne} = KeyPair.gen_keypair(private)
 
     assert public == pub_from_mne
   end

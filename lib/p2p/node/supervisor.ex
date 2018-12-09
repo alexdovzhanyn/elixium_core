@@ -145,7 +145,7 @@ defmodule Elixium.Node.Supervisor do
           |> Enum.count
 
         validate_ip(address, size)
-      _-> :ok
+      _ -> :ok
     end
   end
 

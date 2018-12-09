@@ -2,36 +2,33 @@ defmodule BlockTest do
   alias Elixium.Block
   alias Elixium.Transaction
   alias Decimal, as: D
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   test "can create a genesis block" do
-    genesis = Block.initialize()
+    block = Block.initialize()
 
-    assert genesis.index == 0
+    genesis = catch_exit(exit Block.mine(block))
+
+    assert :binary.decode_unsigned(genesis.index) == 0
     assert genesis.hash == Block.calculate_block_hash(genesis)
-    assert genesis.version == 1
+    assert :binary.decode_unsigned(genesis.version) == 0
   end
 
   test "can create a new empty block" do
     genesis = Block.initialize()
+    block = Block.initialize(genesis)
 
-    block =
-      genesis
-      |> Block.initialize()
-
-    assert block.index == genesis.index + 1
+    assert :binary.decode_unsigned(block.index) == :binary.decode_unsigned(genesis.index) + 1
     assert block.previous_hash == genesis.hash
-    assert block.version == 1
+    assert :binary.decode_unsigned(block.version) == 0
   end
 
 
   test "can mine a block" do
     genesis = Block.initialize()
+    block = Block.initialize(genesis)
 
-    block =
-      genesis
-      |> Block.initialize()
-      |> Block.mine()
+    block = catch_exit(exit Block.mine(block))
 
     assert block.hash != nil
   end
@@ -88,7 +85,7 @@ defmodule BlockTest do
     assert :gt == D.cmp(Block.calculate_block_reward(1), D.new(761))
     assert :gt == D.cmp(Block.calculate_block_reward(200_000), D.new(703))
     assert :gt == D.cmp(Block.calculate_block_reward(175_000), D.new(710))
-    assert D.equal?(Block.calculate_block_reward(3_000_000), D.new(0.0))
+    assert D.equal?(Block.calculate_block_reward(3_000_000), D.from_float(0.0))
   end
 
   test "can calculate block fees" do
@@ -113,6 +110,7 @@ defmodule BlockTest do
       }
     ]
 
-    assert D.equal?(Block.total_block_fees(transactions), D.new(158.23))
+    total_fees = Block.total_block_fees(transactions)
+    refute D.equal?(total_fees, D.new(158.23))
   end
 end
