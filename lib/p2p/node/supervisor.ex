@@ -23,11 +23,7 @@ defmodule Elixium.Node.Supervisor do
     case open_socket(port) do
       :error -> :error
       socket ->
-        # Fetch known peers. We're going to try to connect to them
-        # before setting up a listener
-        peers = find_potential_peers(port)
-
-        handlers = generate_handlers(socket, router_pid, peers)
+        handlers = generate_handlers(socket, router_pid, find_potential_peers())
 
         children = handlers ++ [Elixium.HostAvailability.Supervisor]
 
@@ -84,45 +80,25 @@ defmodule Elixium.Node.Supervisor do
     end
   end
 
-  # Either loads peers from a local storage or connects to the
-  # bootstrapping registry
-  @spec find_potential_peers(integer) :: List | :not_found
-  defp find_potential_peers(port) do
+
+  # Either returns known peers from our peer storage or gets seed peers
+  # from config
+  @spec find_potential_peers :: List | :not_found
+  defp find_potential_peers do
     case Oracle.inquire(:"Elixir.Elixium.Store.PeerOracle", {:load_known_peers, []}) do
-      [] -> fetch_peers_from_registry(port)
+      [] -> seed_peers()
       peers -> peers
     end
   end
 
-  # Connects to the bootstrapping peer registry and returns a list of
-  # previously connected peers.
-  @spec fetch_peers_from_registry(integer) :: List | :not_found
-  def fetch_peers_from_registry(port_conf) do
-    url =
-      :elixium_core
-      |> Application.get_env(:bootstrap_url)
-      |> String.to_charlist()
-
-    own_local_ip = fetch_local_ip()
-    own_public_ip = fetch_public_ip()["ip"] #add condition here
-
-    case :httpc.request(url ++ '/' ++ Integer.to_charlist(port_conf)) do
-      {:ok, {{'HTTP/1.1', 200, 'OK'}, _headers, body}} ->
-        peers =
-          body
-          |> Jason.decode!()
-          |> Enum.map(&peerstring_to_tuple/1)
-          |> Enum.uniq()
-          |> Enum.filter(fn {peer, port} ->
-            port != nil &&
-            validate_own_ip_port(peer, own_local_ip, port, port_conf) == false &&
-            validate_own_ip_port(peer, own_public_ip, port, port_conf) == false
-          end)
-
-        if peers == [], do: :not_found, else: peers
-
-      {:error, _} -> :not_found
-    end
+  @doc """
+    Returns a list of seed peers based on config
+  """
+  @spec seed_peers :: List
+  def seed_peers do
+    :elixium_core
+    |> Application.get_env(:seed_peers)
+    |> Enum.map(&peerstring_to_tuple/1)
   end
 
   @doc """

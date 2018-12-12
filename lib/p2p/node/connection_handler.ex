@@ -117,16 +117,15 @@ defmodule Elixium.Node.ConnectionHandler do
 
     peername = get_peername(socket)
 
+    if has_existing_connection?(socket) do
+      Process.exit(self(), :normal)
+    end
+
     # Here would be a good place to put an IP blacklisting safeguard...
     Logger.info("#{state.handler_name} Accepted potential handshake from #{peername}")
 
     handshake = Message.read(socket)
 
-    # If the handshake message contains JUST an identifier, the peer
-    # is signaling to us that they've talked to us before. We can try
-    # to find them in the database. Otherwise, they should be passing
-    # multiple pieces of data in this request, in effort to give us
-    # the information we need in order to register them.
     shared_secret =
       case handshake do
         %{prime: _, generator: _, verifier: _, public_value: _} ->
@@ -152,11 +151,11 @@ defmodule Elixium.Node.ConnectionHandler do
   end
 
   def handle_cast({:attempt_outbound_connection, {ip, port}}, state) do
-    Logger.info("#{state.handler_name } attempting connection to peer at host: #{ip}, port: #{port}...")
+    Logger.info("#{state.handler_name} attempting connection to peer at host: #{ip}, port: #{port}...")
 
     case :gen_tcp.connect(ip, port, [:binary, active: false], 1000) do
       {:ok, socket} ->
-        Logger.info("#{state.handler_name } connected to peer at host: #{ip}")
+        Logger.info("#{state.handler_name} connected to peer at host: #{ip}")
 
         shared_secret = Authentication.outbound_auth(socket)
 
@@ -174,7 +173,7 @@ defmodule Elixium.Node.ConnectionHandler do
         {:noreply, state}
 
       {:error, reason} ->
-        Logger.warn("#{state.handler_name } -- Error connecting to peer: #{reason}. Starting listener instead.")
+        Logger.warn("#{state.handler_name} -- Error connecting to peer: #{reason}. Starting listener instead.")
 
         GenServer.cast(state.handler_name, :accept_inbound_connection)
 
