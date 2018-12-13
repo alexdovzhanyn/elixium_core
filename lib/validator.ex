@@ -121,7 +121,7 @@ defmodule Elixium.Validator do
   def coinbase_exist?(_coinbase), do: :ok
 
 
-  @spec valid_transaction?(Transaction, function) :: boolean
+  @spec valid_transaction?(Transaction, function) :: :ok, {:error, any}
   def valid_transaction?(transaction, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]}))
 
   @doc """
@@ -151,27 +151,27 @@ defmodule Elixium.Validator do
     end
   end
 
-  @spec correct_tx_id?(Transaction) :: :ok | {:invalid_tx_id, String.t(), String.t()}
+  @spec correct_tx_id?(Transaction) :: :ok | {:error, {:invalid_tx_id, String.t(), String.t()}}
   def correct_tx_id?(transaction) do
     expected_id = Transaction.calculate_hash(transaction)
 
     if expected_id == transaction.id do
       :ok
     else
-      {:invalid_tx_id, expected_id, transaction.id}
+      {:error, {:invalid_tx_id, expected_id, transaction.id}}
     end
   end
 
-  @spec passes_pool_check?(Transaction, function) :: :ok | :failed_pool_check
+  @spec passes_pool_check?(Transaction, function) :: :ok | {:error, :failed_pool_check}
   def passes_pool_check?(%{inputs: inputs}, pool_check) do
     if Enum.all?(inputs, & pool_check.(&1)) do
       :ok
     else
-      :failed_pool_check
+      {:error, :failed_pool_check}
     end
   end
 
-  @spec tx_addr_match?(Transaction) :: :ok | :sig_set_mismatch
+  @spec tx_addr_match?(Transaction) :: :ok | {:error, :sig_set_mismatch}
   defp tx_addr_match?(transaction) do
     signed_addresses = Enum.map(transaction.sigs, fn {addr, _sig} -> addr end)
 
@@ -182,10 +182,10 @@ defmodule Elixium.Validator do
       |> Enum.uniq()
       |> Enum.all?(& Enum.member?(signed_addresses, &1))
 
-    if all?, do: :ok, else: :sig_set_mismatch
+    if all?, do: :ok, else: {:error, :sig_set_mismatch}
   end
 
-  @spec tx_sigs_valid?(Transaction) :: :ok | :invalid_tx_sig
+  @spec tx_sigs_valid?(Transaction) :: :ok | {:error, :invalid_tx_sig}
   defp tx_sigs_valid?(transaction) do
     all? =
       Enum.all?(transaction.sigs, fn {addr, sig} ->
@@ -196,19 +196,19 @@ defmodule Elixium.Validator do
         KeyPair.verify_signature(pub, sig, transaction_digest)
       end)
 
-    if all?, do: :ok, else: :invalid_tx_sig
+    if all?, do: :ok, else: {:error, :invalid_tx_sig}
   end
 
-  @spec utxo_amount_decimal?(Transaction) :: :ok | :utxo_amount_not_decimal
+  @spec utxo_amount_decimal?(Transaction) :: :ok | {:error, :utxo_amount_not_decimal}
   def utxo_amount_decimal?(transaction) do
     if Enum.all?(transaction.inputs ++ transaction.outputs, & D.decimal?(&1.amount)) do
       :ok
     else
-      :utxo_amount_not_decimal
+      {:error, :utxo_amount_not_decimal}
     end
   end
 
-  @spec outputs_dont_exceed_inputs?(Transaction) :: :ok | {:outputs_exceed_inputs, Decimal.t(), Decimal.t()}
+  @spec outputs_dont_exceed_inputs?(Transaction) :: :ok | {:error, {:outputs_exceed_inputs, Decimal.t(), Decimal.t()}}
   defp outputs_dont_exceed_inputs?(transaction) do
     input_total = Transaction.sum_inputs(transaction.inputs)
     output_total = Transaction.sum_inputs(transaction.outputs)
@@ -216,14 +216,14 @@ defmodule Elixium.Validator do
     if D.cmp(output_total, input_total) != :gt do
       :ok
     else
-      {:outputs_exceed_inputs, output_total, input_total}
+      {:error, {:outputs_exceed_inputs, output_total, input_total}}
     end
   end
 
-  @spec valid_transactions?(Block, function) :: :ok | {:invalid_transactions, list}
+  @spec valid_transactions?(Block, function) :: :ok | {:error, {:invalid_transactions, list}}
   def valid_transactions?(%{transactions: transactions}, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]})) do
     results = Enum.map(transactions, & valid_transaction?(&1, pool_check))
-    if Enum.all?(results, & &1 == :ok), do: :ok, else: {:invalid_transactions, Enum.filter(results, & &1 != :ok)}
+    if Enum.all?(results, & &1 == :ok), do: :ok, else: {:error, {:invalid_transactions, Enum.filter(results, & &1 != :ok)}}
   end
 
   @spec is_coinbase?(Transaction) :: :ok | {:error, {:not_coinbase, String.t()}}
