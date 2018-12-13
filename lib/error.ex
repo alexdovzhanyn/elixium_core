@@ -1,4 +1,6 @@
 defmodule Elixium.Error do
+  alias Elixium.Error
+  
   @moduledoc """
     Converts error tuples to human-readable strings.
   """

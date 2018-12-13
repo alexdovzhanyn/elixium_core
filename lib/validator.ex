@@ -121,7 +121,7 @@ defmodule Elixium.Validator do
   def coinbase_exist?(_coinbase), do: :ok
 
 
-  @spec valid_transaction?(Transaction, function) :: :ok, {:error, any}
+  @spec valid_transaction?(Transaction, function) :: :ok | {:error, any}
   def valid_transaction?(transaction, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]}))
 
   @doc """
