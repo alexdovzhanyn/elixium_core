@@ -280,7 +280,9 @@ defmodule Elixium.Node.LedgerManager do
       if curr_index_in_fork < retargeting_window do
         to_get = retargeting_window - curr_index_in_fork
 
-        Ledger.last_n_blocks(to_get, :binary.decode_unsigned(hd(chain).index) - 1)
+        idx = :binary.decode_unsigned(hd(chain).index)
+
+        if idx > 0, do: Ledger.last_n_blocks(to_get, idx - 1), else: []
       else
         []
       end

@@ -20,6 +20,8 @@ defmodule Elixium.Block do
             merkle_root: nil,
             transactions: []
 
+  @default_difficulty 3_000_000.0
+
   @doc """
     When the first node on the Elixium network spins up, there won't be any
     blocks in the chain. In order to create a base from which all nodes can agree,
@@ -214,7 +216,7 @@ defmodule Elixium.Block do
     index = :binary.decode_unsigned(block.index)
 
     if index < 11 do
-      3_000_000.0
+      @default_difficulty
     else
       blocks_to_weight =
         :elixium_core
@@ -229,21 +231,32 @@ defmodule Elixium.Block do
   def calculate_difficulty(block, blocks_to_weight) do
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
+    
+    index =
+      if is_binary(block.index) do
+        :binary.decode_unsigned(block.index)
+      else
+        block.index
+      end
 
-    # If we don't have enough blocks to fill our retargeting window, the
-    # algorithm won't run properly (difficulty will be set too high). Let's scale
-    # the algo down until then.
-    retargeting_window = min(block.index, retargeting_window)
+    if index < 11 do
+      @default_difficulty
+    else
+      # If we don't have enough blocks to fill our retargeting window, the
+      # algorithm won't run properly (difficulty will be set too high). Let's scale
+      # the algo down until then.
+      retargeting_window = min(block.index, retargeting_window)
 
-    {weighted_solvetimes, summed_difficulties} = weight_solvetimes_and_sum_difficulties(blocks_to_weight)
+      {weighted_solvetimes, summed_difficulties} = weight_solvetimes_and_sum_difficulties(blocks_to_weight)
 
-    min_timespan = (target_solvetime * retargeting_window) / 2
+      min_timespan = (target_solvetime * retargeting_window) / 2
 
-    weighted_solvetimes = if weighted_solvetimes < min_timespan, do: min_timespan, else: weighted_solvetimes
+      weighted_solvetimes = if weighted_solvetimes < min_timespan, do: min_timespan, else: weighted_solvetimes
 
-    target = (retargeting_window + 1) / 2 * target_solvetime
+      target = (retargeting_window + 1) / 2 * target_solvetime
 
-    summed_difficulties * target / weighted_solvetimes
+      summed_difficulties * target / weighted_solvetimes
+    end
   end
 
   def weight_solvetimes_and_sum_difficulties(blocks) do
