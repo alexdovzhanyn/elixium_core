@@ -45,7 +45,7 @@ defmodule Elixium.Error do
   defp str({:outputs_exceed_inputs, output_total, input_total}),
     do: "Outputs exceed inputs. Outputs: #{output_total}, Inputs: #{input_total}"
 
-  defp str({:invalid_transaction, errors}), do: Enum.each(errors, &to_string/1)
+  defp str({:invalid_transaction, errors}), do: Enum.each(errors, &Error.to_string/1)
 
   defp str(err), do: "Unrecognized error: #{err}"
 
