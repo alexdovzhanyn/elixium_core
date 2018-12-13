@@ -30,6 +30,23 @@ defmodule Elixium.Error do
   defp str({:invalid_difficulty, difficulty, diff}),
     do: "Invalid block difficulty #{difficulty}. expected #{diff}"
 
+  defp str({:invalid_tx_id, expected, received}),
+    do: "Invalid transaction id. Calculated #{expected} but got #{received}"
+
+  defp str(:failed_pool_check), do: "Input in transaction was not found in UTXO pool"
+
+  defp str(:sig_set_mismatch), do: "Transaction is missing signature(s)"
+
+  defp str(:invalid_tx_sig), do: "One or more signatures in transaction are invalid"
+
+  defp str(:utxo_amount_not_decimal),
+    do: "One or more inputs/outputs in the transaction have an amount that is not of type Decimal"
+
+  defp str({:outputs_exceed_inputs, output_total, input_total}),
+    do: "Outputs exceed inputs. Outputs: #{output_total}, Inputs: #{input_total}"
+
+  defp str({:invalid_transaction, errors}), do: Enum.each(errors, &to_string/1)
+
   defp str(err), do: "Unrecognized error: #{err}"
 
   defp hash_err({:doesnt_match_last, prev, hash}),
