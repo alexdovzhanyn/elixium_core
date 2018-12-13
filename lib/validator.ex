@@ -128,7 +128,7 @@ defmodule Elixium.Validator do
     Coinbase transactions are validated separately. If a coinbase transaction
     gets here it'll always return true
   """
-  def valid_transaction?(%{txtype: "COINBASE"}, _pool_check), do: true
+  def valid_transaction?(%{txtype: "COINBASE"}, _pool_check), do: :ok
 
   @doc """
     Checks if a transaction is valid. A transaction is considered valid if
@@ -139,50 +139,91 @@ defmodule Elixium.Validator do
     this function must return a boolean.
   """
   def valid_transaction?(transaction, pool_check) do
-    with true <- Enum.all?(transaction.inputs, & pool_check.(&1)),
-         true <- tx_addr_match?(transaction),
-         true <- tx_sigs_valid?(transaction),
-         true <- Enum.all?(transaction.inputs ++ transaction.outputs, & D.decimal?(&1.amount)),
-         true <- outputs_dont_exceed_inputs?(transaction) do
-      true
+    with :ok <- correct_tx_id?(transaction),
+         :ok <- passes_pool_check?(transaction, pool_check),
+         :ok <- tx_addr_match?(transaction),
+         :ok <- tx_sigs_valid?(transaction),
+         :ok <- utxo_amount_decimal?(transaction),
+         :ok <- outputs_dont_exceed_inputs?(transaction) do
+      :ok
     else
-      _ -> false
+      err -> err
     end
   end
 
-  @spec tx_addr_match?(Transaction) :: boolean
+  @spec correct_tx_id?(Transaction) :: :ok | {:invalid_tx_id, String.t(), String.t()}
+  def correct_tx_id?(transaction) do
+    expected_id = Transaction.calculate_hash(transaction)
+
+    if expected_id == transaction.id do
+      :ok
+    else
+      {:invalid_tx_id, expected_id, transaction.id}
+    end
+  end
+
+  @spec passes_pool_check?(Transaction, function) :: :ok | :failed_pool_check
+  def passes_pool_check?(%{inputs: inputs}, pool_check) do
+    if Enum.all?(inputs, & pool_check.(&1)) do
+      :ok
+    else
+      :failed_pool_check
+    end
+  end
+
+  @spec tx_addr_match?(Transaction) :: :ok | :sig_set_mismatch
   defp tx_addr_match?(transaction) do
     signed_addresses = Enum.map(transaction.sigs, fn {addr, _sig} -> addr end)
 
     # Check that all addresses in the inputs are also part of the signature set
-    transaction.inputs
-    |> Enum.map(& &1.addr)
-    |> Enum.uniq()
-    |> Enum.all?(& Enum.member?(signed_addresses, &1))
+    all? =
+      transaction.inputs
+      |> Enum.map(& &1.addr)
+      |> Enum.uniq()
+      |> Enum.all?(& Enum.member?(signed_addresses, &1))
+
+    if all?, do: :ok, else: :sig_set_mismatch
   end
 
-  @spec tx_sigs_valid?(Transaction) :: boolean
+  @spec tx_sigs_valid?(Transaction) :: :ok | :invalid_tx_sig
   defp tx_sigs_valid?(transaction) do
-    Enum.all?(transaction.sigs, fn {addr, sig} ->
-      pub = KeyPair.address_to_pubkey(addr)
+    all? =
+      Enum.all?(transaction.sigs, fn {addr, sig} ->
+        pub = KeyPair.address_to_pubkey(addr)
 
-      transaction_digest = Transaction.signing_digest(transaction)
+        transaction_digest = Transaction.signing_digest(transaction)
 
-      KeyPair.verify_signature(pub, sig, transaction_digest)
-    end)
+        KeyPair.verify_signature(pub, sig, transaction_digest)
+      end)
+
+    if all?, do: :ok, else: :invalid_tx_sig
   end
 
-  @spec outputs_dont_exceed_inputs?(Transaction) :: boolean
+  @spec utxo_amount_decimal?(Transaction) :: :ok | :utxo_amount_not_decimal
+  def utxo_amount_decimal?(transaction) do
+    if Enum.all?(transaction.inputs ++ transaction.outputs, & D.decimal?(&1.amount)) do
+      :ok
+    else
+      :utxo_amount_not_decimal
+    end
+  end
+
+  @spec outputs_dont_exceed_inputs?(Transaction) :: :ok | {:outputs_exceed_inputs, Decimal.t(), Decimal.t()}
   defp outputs_dont_exceed_inputs?(transaction) do
     input_total = Transaction.sum_inputs(transaction.inputs)
     output_total = Transaction.sum_inputs(transaction.outputs)
 
-    D.cmp(output_total, input_total) != :gt
+    if D.cmp(output_total, input_total) != :gt do
+      :ok
+    else
+      {:outputs_exceed_inputs, output_total, input_total}
+    end
   end
 
-  @spec valid_transactions?(Block, function) :: :ok | {:error, :invalid_inputs}
+  @spec valid_transactions?(Block, function) :: :ok | {:invalid_transactions, list}
   def valid_transactions?(%{transactions: transactions}, pool_check \\ &Oracle.inquire(:"Elixir.Elixium.Store.UtxoOracle", {:in_pool?, [&1]})) do
-    if Enum.all?(transactions, &valid_transaction?(&1, pool_check)), do: :ok, else: {:error, :invalid_inputs}
+    results = Enum.map(transactions, & valid_transaction?(&1, pool_check))
+    if Enum.all?(results, & &1 == :ok), do: :ok, else: {:invalid_transactions, Enum.filter(results, & &1 != :ok)}
   end
 
   @spec is_coinbase?(Transaction) :: :ok | {:error, {:not_coinbase, String.t()}}
