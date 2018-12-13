@@ -82,7 +82,7 @@ defmodule TransactionTest do
     outputs_has_send_address? = transaction.outputs |> Enum.any?(fn utxo -> utxo.addr == "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA" end)
     outputs_has_correct_value? = transaction.outputs |> Enum.reduce(D.new(0), fn utxo, acc ->  D.add(acc, utxo.amount) end)
 
-    assert Elixium.Validator.valid_transaction?(transaction) == true
+    assert Elixium.Validator.valid_transaction?(transaction) == :ok
     assert outputs_has_correct_value? == D.sub(transaction_input, D.new(1.0))
     assert outputs_has_own_address? == true
     assert outputs_has_send_address? == true
