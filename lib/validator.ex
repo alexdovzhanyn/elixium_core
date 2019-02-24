@@ -203,7 +203,6 @@ defmodule Elixium.Validator do
     if Enum.all?(transaction.inputs ++ transaction.outputs, & is_integer(&1.amount)) do
       :ok
     else
-      IO.inspect transaction
       {:error, :utxo_amount_not_integer}
     end
   end

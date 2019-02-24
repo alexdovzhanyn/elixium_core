@@ -81,9 +81,9 @@ defmodule BlockTest do
   end
 
   test "can correctly calculate block reward" do
-    assert Block.calculate_block_reward(1) == 7610344284
-    assert Block.calculate_block_reward(200_000) == 7031173118
-    assert Block.calculate_block_reward(175_000) == 7103569876
+    assert Block.calculate_block_reward(1) == 7_610_344_284
+    assert Block.calculate_block_reward(200_000) == 7_031_173_118
+    assert Block.calculate_block_reward(175_000) == 7_103_569_876
     assert Block.calculate_block_reward(3_000_000) == 0
   end
 
@@ -92,7 +92,7 @@ defmodule BlockTest do
       %Transaction{
         inputs: [
           %{txoid: "sometxoid", amount: 210_000_000},
-          %{txoid: "othertxoid", amount: 1232300000}
+          %{txoid: "othertxoid", amount: 1_232_300_000}
         ],
         outputs: [
           %{txoid: "atxoid", amount: 1_120_000_000}
