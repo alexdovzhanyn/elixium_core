@@ -3,7 +3,6 @@ defmodule Elixium.Block do
   alias Elixium.Utilities
   alias Elixium.Transaction
   alias Elixium.Store.Ledger
-  alias Decimal, as: D
   require Logger
 
   @moduledoc """
@@ -174,26 +173,28 @@ defmodule Elixium.Block do
 
     Where x is total token supply, t is block at full emission, i is block index,
     and s is the sigma of the total_token_supply, the Smooth emission algorithm
-    is as follows: (x * max{0, t - i}) / s
+    is as follows: Round(((x * 10,000,000) * max{0, t - i}) / s) (+1 if i % 172 = 0)
   """
-  @spec calculate_block_reward(number) :: Decimal
+  @spec calculate_block_reward(number) :: integer
   def calculate_block_reward(block_index) do
     sigma_full_emission = Application.get_env(:elixium_core, :sigma_full_emission)
     total_token_supply = Application.get_env(:elixium_core, :total_token_supply)
     block_at_full_emission = Application.get_env(:elixium_core, :block_at_full_emission)
 
-    D.div(
-      D.mult(
-        D.from_float(total_token_supply),
-        D.new(max(0, block_at_full_emission - block_index))
-      ),
-      D.new(sigma_full_emission)
-    )
+    # 10000000000000028 total ions
+
+    total_token_supply
+    |> Kernel.*(10_000_000)
+    |> Kernel.*(max(0, block_at_full_emission - block_index))
+    |> Kernel./(sigma_full_emission)
+    |> Float.round()
+    |> Kernel.+(if rem(block_index, 172) == 0, do: 1, else: 0)
+    |> trunc()
   end
 
-  @spec total_block_fees(list) :: Decimal
+  @spec total_block_fees(list) :: integer
   def total_block_fees(transactions) do
-    Enum.reduce(transactions, D.new(0), fn tx, acc -> D.add(acc, Transaction.calculate_fee(tx)) end)
+    Enum.reduce(transactions, 0, & Transaction.calculate_fee(&1) + &2)
   end
 
   @doc """
@@ -231,7 +232,7 @@ defmodule Elixium.Block do
   def calculate_difficulty(block, blocks_to_weight) do
     retargeting_window = Application.get_env(:elixium_core, :retargeting_window)
     target_solvetime = Application.get_env(:elixium_core, :target_solvetime)
-    
+
     index =
       if is_binary(block.index) do
         :binary.decode_unsigned(block.index)
