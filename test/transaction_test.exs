@@ -4,7 +4,6 @@ defmodule TransactionTest do
   alias Elixium.Utilities
   alias Elixium.KeyPair
   alias Elixium.Store.Utxo
-  alias Decimal, as: D
   use ExUnit.Case, async: false
 
   @store "keys"
@@ -59,7 +58,7 @@ defmodule TransactionTest do
     block = Block.initialize()
     block = Map.put(block, :transactions, [])
     index = :binary.decode_unsigned(block.index)
-    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coin_base = Block.calculate_block_reward(index) + Block.total_block_fees(block.transactions)
     coinbase = Transaction.generate_coinbase(coin_base, compressed_pub_address)
     transactions = [coinbase | block.transactions]
     txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)
@@ -73,17 +72,17 @@ defmodule TransactionTest do
     Elixium.Store.Ledger.append_block(block)
     Utxo.update_with_transactions(block.transactions)
 
-    input_designations = [%{amount: D.new(100), addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
-    transaction = Transaction.create(input_designations, D.from_float(1.0))
+    input_designations = [%{amount: 1_000_000_000, addr: "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA"}]
+    transaction = Transaction.create(input_designations, 10_000_000)
 
     transaction_input = List.first(transaction.inputs).amount
 
-    outputs_has_own_address? = transaction.outputs |> Enum.any?(fn utxo -> utxo.addr == compressed_pub_address end)
-    outputs_has_send_address? = transaction.outputs |> Enum.any?(fn utxo -> utxo.addr == "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA" end)
-    outputs_has_correct_value? = transaction.outputs |> Enum.reduce(D.new(0), fn utxo, acc ->  D.add(acc, utxo.amount) end)
+    outputs_has_own_address? = transaction.outputs |> Enum.any?(& &1.addr == compressed_pub_address)
+    outputs_has_send_address? = transaction.outputs |> Enum.any?(& &1.addr == "EX08wxzqyiG4nvJqC9gTHDnmow71h8j7tt2UAGj3GamRibVAEkiKA")
+    outputs_has_correct_value? = transaction.outputs |> Enum.reduce(0, & &1.amount + &2)
 
     assert Elixium.Validator.valid_transaction?(transaction) == :ok
-    assert outputs_has_correct_value? == D.sub(transaction_input, D.new(1.0))
+    assert outputs_has_correct_value? == transaction_input - 10_000_000
     assert outputs_has_own_address? == true
     assert outputs_has_send_address? == true
 

@@ -1,7 +1,6 @@
 defmodule BlockTest do
   alias Elixium.Block
   alias Elixium.Transaction
-  alias Decimal, as: D
   use ExUnit.Case, async: false
 
   test "can create a genesis block" do
@@ -82,35 +81,35 @@ defmodule BlockTest do
   end
 
   test "can correctly calculate block reward" do
-    assert :gt == D.cmp(Block.calculate_block_reward(1), D.new(761))
-    assert :gt == D.cmp(Block.calculate_block_reward(200_000), D.new(703))
-    assert :gt == D.cmp(Block.calculate_block_reward(175_000), D.new(710))
-    assert D.equal?(Block.calculate_block_reward(3_000_000), D.from_float(0.0))
+    assert Block.calculate_block_reward(1) == 7_610_344_284
+    assert Block.calculate_block_reward(200_000) == 7_031_173_118
+    assert Block.calculate_block_reward(175_000) == 7_103_569_876
+    assert Block.calculate_block_reward(3_000_000) == 0
   end
 
   test "can calculate block fees" do
     transactions = [
       %Transaction{
         inputs: [
-          %{txoid: "sometxoid", amount: D.new(21)},
-          %{txoid: "othertxoid", amount: D.new(123.23)}
+          %{txoid: "sometxoid", amount: 210_000_000},
+          %{txoid: "othertxoid", amount: 1_232_300_000}
         ],
         outputs: [
-          %{txoid: "atxoid", amount: D.new(112)}
+          %{txoid: "atxoid", amount: 1_120_000_000}
         ]
       },
       %Transaction{
         inputs: [
-          %{txoid: "bleh", amount: D.new(1)},
-          %{txoid: "meh", amount: D.new(13)}
+          %{txoid: "bleh", amount: 10_000_000},
+          %{txoid: "meh", amount: 130_000_000}
         ],
         outputs: [
-          %{txoid: "atxoid", amount: D.new(14)}
+          %{txoid: "atxoid", amount: 140_000_000}
         ]
       }
     ]
 
     total_fees = Block.total_block_fees(transactions)
-    refute D.equal?(total_fees, D.new(158.23))
+    refute total_fees == 1_582_300_000
   end
 end
