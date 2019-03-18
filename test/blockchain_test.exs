@@ -4,7 +4,6 @@ defmodule BlockchainTest do
   alias Elixium.Store.Utxo
   alias Elixium.Transaction
   alias Elixium.Utilities
-  alias Decimal, as: D
   use ExUnit.Case, async: false
 
   setup _ do
@@ -21,7 +20,7 @@ defmodule BlockchainTest do
     block = Block.initialize()
     block = Map.put(block, :transactions, [])
     index = :binary.decode_unsigned(block.index)
-    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coin_base = Block.calculate_block_reward(index) + Block.total_block_fees(block.transactions)
     coinbase = Transaction.generate_coinbase(coin_base, "EX06BQPcYtf5QQdY3Tg1D8V26dcL2xSiLQwPQ7gfosoza2oRjb23L")
     transactions = [coinbase | block.transactions]
     txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)
@@ -45,7 +44,7 @@ defmodule BlockchainTest do
     block = Block.initialize()
     block = Map.put(block, :transactions, [])
     index = :binary.decode_unsigned(block.index)
-    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coin_base = Block.calculate_block_reward(index) + Block.total_block_fees(block.transactions)
     coinbase = Transaction.generate_coinbase(coin_base, "EX06BQPcYtf5QQdY3Tg1D8V26dcL2xSiLQwPQ7gfosoza2oRjb23L")
     transactions = [coinbase | block.transactions]
     txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)
@@ -66,7 +65,7 @@ defmodule BlockchainTest do
       |> Block.initialize()
     block = Map.put(block, :transactions, [])
     index = :binary.decode_unsigned(block.index)
-    coin_base = D.add(Block.calculate_block_reward(index), Block.total_block_fees(block.transactions))
+    coin_base = Block.calculate_block_reward(index) + Block.total_block_fees(block.transactions)
     coinbase = Transaction.generate_coinbase(coin_base, "EX06BQPcYtf5QQdY3Tg1D8V26dcL2xSiLQwPQ7gfosoza2oRjb23L")
     transactions = [coinbase | block.transactions]
     txdigests = Enum.map(transactions, &:erlang.term_to_binary/1)

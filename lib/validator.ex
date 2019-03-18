@@ -6,7 +6,6 @@ defmodule Elixium.Validator do
   alias Elixium.BlockEncoder
   alias Elixium.Store.Oracle
   alias Elixium.Transaction
-  alias Decimal, as: D
 
   @moduledoc """
     Responsible for implementing the consensus rules to all blocks and transactions
@@ -143,7 +142,7 @@ defmodule Elixium.Validator do
          :ok <- passes_pool_check?(transaction, pool_check),
          :ok <- tx_addr_match?(transaction),
          :ok <- tx_sigs_valid?(transaction),
-         :ok <- utxo_amount_decimal?(transaction),
+         :ok <- utxo_amount_integer?(transaction),
          :ok <- outputs_dont_exceed_inputs?(transaction) do
       :ok
     else
@@ -199,21 +198,21 @@ defmodule Elixium.Validator do
     if all?, do: :ok, else: {:error, :invalid_tx_sig}
   end
 
-  @spec utxo_amount_decimal?(Transaction) :: :ok | {:error, :utxo_amount_not_decimal}
-  def utxo_amount_decimal?(transaction) do
-    if Enum.all?(transaction.inputs ++ transaction.outputs, & D.decimal?(&1.amount)) do
+  @spec utxo_amount_integer?(Transaction) :: :ok | {:error, :utxo_amount_not_integer}
+  def utxo_amount_integer?(transaction) do
+    if Enum.all?(transaction.inputs ++ transaction.outputs, & is_integer(&1.amount)) do
       :ok
     else
-      {:error, :utxo_amount_not_decimal}
+      {:error, :utxo_amount_not_integer}
     end
   end
 
-  @spec outputs_dont_exceed_inputs?(Transaction) :: :ok | {:error, {:outputs_exceed_inputs, Decimal.t(), Decimal.t()}}
+  @spec outputs_dont_exceed_inputs?(Transaction) :: :ok | {:error, {:outputs_exceed_inputs, integer, integer}}
   defp outputs_dont_exceed_inputs?(transaction) do
     input_total = Transaction.sum_inputs(transaction.inputs)
     output_total = Transaction.sum_inputs(transaction.outputs)
 
-    if D.cmp(output_total, input_total) != :gt do
+    if output_total <= input_total do
       :ok
     else
       {:error, {:outputs_exceed_inputs, output_total, input_total}}
@@ -230,7 +229,7 @@ defmodule Elixium.Validator do
   defp is_coinbase?(%{txtype: "COINBASE"}), do: :ok
   defp is_coinbase?(tx), do: {:error, {:not_coinbase, tx.txtype}}
 
-  @spec appropriate_coinbase_output?(list, number) :: :ok | {:error, :invalid_coinbase}
+  @spec appropriate_coinbase_output?(list, number) :: :ok | {:error, :invalid_coinbase, integer, integer, integer}
   defp appropriate_coinbase_output?([coinbase | transactions], block_index) do
     total_fees = Block.total_block_fees(transactions)
 
@@ -241,7 +240,7 @@ defmodule Elixium.Validator do
 
     amount = hd(coinbase.outputs).amount
 
-    if D.equal?(D.add(total_fees, reward), amount) do
+    if total_fees + reward == amount do
       :ok
     else
       {:error, {:invalid_coinbase, total_fees, reward, amount}}
