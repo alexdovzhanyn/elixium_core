@@ -47,11 +47,11 @@ a new API to interact with the chain.
 - TCP-layer zero knowledge peer authentication for secure communication
 - Low target block solve time
 
-### Anonymous transactions
+### Private transactions
 We're going to be the first (that we're aware of) blockchain that strictly
 enforces zkSNARKS technology in it's core. Other networks default to insecure /
-non-anonymous transactions and some allow nodes to opt into secure transactions.
-Our approach is to only allow anonymous transactions via zero knowledge proofs
+non-private transactions and some allow nodes to opt into secure transactions.
+Our approach is to only allow private transactions via zero knowledge proofs
 -- it's part of our consensus mechanism. We're still researching this, but we're
 looking at using Hyrax, a zero knowledge protocol that doesn't need a trusted
 setup.
