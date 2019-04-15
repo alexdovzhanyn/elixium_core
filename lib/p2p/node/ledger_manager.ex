@@ -22,7 +22,7 @@ defmodule Elixium.Node.LedgerManager do
     # if this index is the next index in the chain. In the case that its
     # not, we've likely found a new longest chain, so we need to evaluate
     # whether or not we want to switch to that chain
-    case Ledger.block_at_height(block.index) do
+    case Ledger.block_at_height(block.index) |> IO.inspect(label: "Index #{:binary.decode_unsigned(block.index)}") do
       :none ->
         last_block = Ledger.last_block()
         block_index = :binary.decode_unsigned(block.index)
@@ -32,6 +32,7 @@ defmodule Elixium.Node.LedgerManager do
         if block_index == 0 || (last_block != :err && block_index == :binary.decode_unsigned(last_block.index) + 1 && block.previous_hash == last_block.hash) do
           # If this block is positioned as the next block in the chain,
           # validate it as such
+          IO.puts "GOT HERE"
           validate_new_block(block)
         else
           # Otherwise, check if it's a fork and whether we need to swap to
@@ -50,7 +51,7 @@ defmodule Elixium.Node.LedgerManager do
     # Recalculate target difficulty if necessary
     difficulty = Block.calculate_difficulty(block)
 
-    case Validator.is_block_valid?(block, difficulty) do
+    case Validator.is_block_valid?(block, difficulty) |> IO.inspect(label: "Is block valid?") do
       :ok ->
         # Save the block to our chain since its valid
         Ledger.append_block(block)

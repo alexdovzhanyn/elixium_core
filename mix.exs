@@ -88,9 +88,7 @@ defmodule Elixium.Mixfile do
 
         port: 31013,
 
-        max_bidirectional_connections: 10,
-
-        max_inbound_connections: 90
+        max_connections: 100
       ]
     ]
   end

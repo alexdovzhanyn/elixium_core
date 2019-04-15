@@ -5,8 +5,6 @@ defmodule Elixium.P2P.Authentication do
     SRP authentication handshakes and generation of credentials
   """
 
-  # If this node has never communicated with a given peer, it will first
-  # need to identify itself.
   @spec outbound_auth(reference) :: bitstring
   def outbound_auth(peer) do
     {prime, generator} = Strap.prime_group(1024)
