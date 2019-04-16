@@ -50,4 +50,37 @@ defmodule Elixium.Store.Peer do
       end
     end
   end
+
+  @spec find_potential_peers :: List | :not_found
+  def find_potential_peers do
+    case load_known_peers() do
+      [] -> seed_peers()
+      peers -> peers
+    end
+  end
+
+  @doc """
+    Returns a list of seed peers based on config
+  """
+  @spec seed_peers :: List
+  def seed_peers do
+    :elixium_core
+    |> Application.get_env(:seed_peers)
+    |> Enum.map(&peerstring_to_tuple/1)
+  end
+
+  # Converts from a colon delimited string to a tuple containing the
+  # ip and port. "127.0.0.1:3000" becomes {'127.0.0.1', 3000}
+  defp peerstring_to_tuple(peer) do
+    [ip, port] = String.split(peer, ":")
+    ip = String.to_charlist(ip)
+
+    port =
+      case Integer.parse(port) do
+        {port, _} -> port
+        :error -> nil
+      end
+
+    {ip, port}
+  end
 end
