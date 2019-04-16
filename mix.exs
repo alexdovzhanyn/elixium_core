@@ -45,6 +45,7 @@ defmodule Elixium.Mixfile do
 
   def application do
     [
+      extra_applications: [:logger],
       env: [
         # Total amount of tokens that will ever exist.
         total_token_supply: 1_000_000_000.0,
