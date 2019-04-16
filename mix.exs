@@ -69,8 +69,6 @@ defmodule Elixium.Mixfile do
         # timestamp can be and still be considered valid.
         future_time_limit: 360,
 
-        ghost_protocol_version: "v1.0",
-
         seed_peers: [
           "206.189.103.38:31013",
           "142.93.158.121:31013",
