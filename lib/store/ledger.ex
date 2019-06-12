@@ -69,6 +69,7 @@ defmodule Elixium.Store.Ledger do
         fn ref ->
           ref
           |> Exleveldb.map(fn {_, block} -> BlockEncoder.decode(block) end)
+          |> Enum.map(fn block -> Elixium.Block.header(block) end)
           |> Enum.sort_by(& &1.index, &>=/2)
         end
       end
