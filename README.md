@@ -1,4 +1,3 @@
-[![Packagist](https://img.shields.io/badge/license-MIT-blue.svg)]()
 [![Build Status](https://travis-ci.org/ElixiumNetwork/elixium_core.svg?branch=master)](https://travis-ci.org/ElixiumNetwork/elixium_core)
 [![Join the chat](https://patrolavia.github.io/telegram-badge/chat.png)](https://t.me/elixiumnetwork)
 
